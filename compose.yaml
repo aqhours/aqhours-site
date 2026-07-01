@@ -1,0 +1,14 @@
+name: homepage
+
+services:
+  homepage:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./src:/usr/share/nginx/html:ro
+    networks:
+      - aqhours-web
+
+networks:
+  aqhours-web:
+    external: true
