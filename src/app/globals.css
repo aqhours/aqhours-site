@@ -99,6 +99,7 @@ a {
 
 .hero-serif {
   font-family:
+    var(--font-noto-serif-sc),
     "Noto Serif SC",
     "Songti SC",
     "STSong",

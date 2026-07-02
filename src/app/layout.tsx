@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
+
+const notoSerifSC = Noto_Serif_SC({
+  display: "swap",
+  preload: false,
+  variable: "--font-noto-serif-sc",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "aqhours",
@@ -13,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body className={notoSerifSC.variable}>{children}</body>
     </html>
   );
 }
