@@ -1,4 +1,10 @@
 .env
+.DS_Store
 node_modules/
+.next/
+.npm-cache/
+out/
 dist/
 .data/
+npm-debug.log*
+tsconfig.tsbuildinfo

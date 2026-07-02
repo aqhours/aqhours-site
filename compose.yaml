@@ -2,10 +2,9 @@ name: homepage
 
 services:
   homepage:
-    image: nginx:alpine
+    build: .
+    image: aqhours-homepage:0.1
     restart: unless-stopped
-    volumes:
-      - ./src:/usr/share/nginx/html:ro
     networks:
       - aqhours-web
 
