@@ -1,2 +1,0 @@
-import TypeIt from 'typeit'
-
