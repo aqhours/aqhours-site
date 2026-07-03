@@ -262,15 +262,22 @@ function useHourglassCanvas() {
   return canvasRef;
 }
 
-export function KineticHourglass() {
+type KineticHourglassProps = {
+  className?: string;
+  intro?: boolean;
+};
+
+export function KineticHourglass({ className, intro = true }: KineticHourglassProps) {
   const canvasRef = useHourglassCanvas();
 
   return (
     <motion.div
-      className="relative mx-auto aspect-[0.72] w-[min(50vw,455px)] min-w-[245px] max-w-[455px] sm:min-w-[310px]"
-      initial={{ opacity: 0, y: 26, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+      className={["relative mx-auto aspect-[0.72] w-[min(37vw,340px)] min-w-[190px] max-w-[340px] sm:min-w-[235px]", className]
+        .filter(Boolean)
+        .join(" ")}
+      initial={intro ? { opacity: 0, y: 26, scale: 0.95 } : false}
+      animate={intro ? { opacity: 1, y: 0, scale: 1 } : undefined}
+      transition={intro ? { duration: 0.9, ease: [0.16, 1, 0.3, 1] } : undefined}
     >
       <div className="hero-hourglass-shadow pointer-events-none absolute bottom-[3%] left-[19%] h-[9%] w-[62%] rounded-full bg-[#009DFF]/25 blur-2xl" />
 
