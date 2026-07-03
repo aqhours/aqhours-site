@@ -345,12 +345,18 @@ export function KineticHourglass({ className, flowDirection, rotationDegrees, in
             <filter id="softBlueGlow" x="-40%" y="-40%" width="180%" height="180%">
               <feGaussianBlur stdDeviation="8" />
             </filter>
+            <clipPath id="hourglassInteriorClip" clipPathUnits="userSpaceOnUse">
+              <path d="M94 73 C124 139 167 205 205 286 C243 205 296 139 326 73 C278 91 142 91 94 73Z" />
+              <path d="M94 511 C128 446 170 371 205 286 C246 371 292 446 326 511 C278 493 142 493 94 511Z" />
+            </clipPath>
           </defs>
 
           <ellipse cx="210" cy="541" rx="128" ry="20" fill="#009DFF" opacity="0.16" filter="url(#softBlueGlow)" />
-          <path d="M126 84 L184 99 L164 189 L112 163 Z" fill="url(#facetSea)" opacity="0.38" />
-          <path d="M196 92 L276 104 L258 204 L176 187 Z" fill="url(#facetBlue)" opacity="0.34" />
-          <path d="M286 99 L328 110 L304 202 L266 194 Z" fill="#009DFF" opacity="0.28" />
+          <g clipPath="url(#hourglassInteriorClip)">
+            <path d="M126 84 L184 99 L164 189 L112 163 Z" fill="url(#facetSea)" opacity="0.38" />
+            <path d="M196 92 L276 104 L258 204 L176 187 Z" fill="url(#facetBlue)" opacity="0.34" />
+            <path d="M286 99 L328 110 L304 202 L266 194 Z" fill="#009DFF" opacity="0.28" />
+          </g>
           <path
             d="M69 43 C103 24 318 24 351 43"
             stroke="url(#hourglassWarm)"
