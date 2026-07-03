@@ -48,17 +48,17 @@ export function HomepageHero() {
     : isCompact
       ? {
           input: [0, 0.7, 1],
-          x: ["-4vw", "-1vw", "0vw"],
-          y: ["-1vh", "-9vh", "-16vh"],
-          rotate: ["-28deg", "-10deg", "0deg"],
-          scale: [1.58, 1.14, 0.76],
+          x: ["-4vw", "10vw", "25vw"],
+          y: ["-1vh", "-8vh", "-15vh"],
+          rotate: ["-28deg", "58deg", "152deg"],
+          scale: [1.58, 1.1, 0.72],
         }
       : {
           input: [0, 0.72, 1],
-          x: ["7vw", "4vw", "0vw"],
+          x: ["7vw", "15vw", "27vw"],
           y: ["0vh", "0vh", "0vh"],
-          rotate: ["-28deg", "-9deg", "0deg"],
-          scale: [2.18, 1.34, 0.8],
+          rotate: ["-28deg", "58deg", "152deg"],
+          scale: [2.18, 1.32, 0.8],
         };
 
   const hourglassX = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.x);
@@ -108,7 +108,7 @@ export function HomepageHero() {
 
           <motion.div
             className={[
-              "absolute left-1/2 top-[14vh] z-40 flex w-[min(91vw,640px)] -translate-x-1/2 flex-col items-center text-center transition-opacity duration-300 ease-[var(--ease-out)] md:left-[6vw] md:top-[17vh] md:w-[610px] md:translate-x-0 md:items-start md:text-left lg:left-[7vw]",
+              "absolute bottom-[14vh] left-5 z-40 flex w-[min(88vw,620px)] flex-col items-start text-left transition-opacity duration-300 ease-[var(--ease-out)] sm:left-8 md:bottom-[13vh] md:left-[6vw] md:w-[610px] lg:left-[7vw]",
               isIntroVisible ? "opacity-100" : "pointer-events-none opacity-0",
             ].join(" ")}
           >
