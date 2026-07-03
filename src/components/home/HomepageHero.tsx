@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { motion, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { CollageLayer } from "./CollageLayer";
 import { KineticHourglass } from "./KineticHourglass";
@@ -28,6 +28,7 @@ function useCompactViewport() {
 
 export function HomepageHero() {
   const sceneRef = useRef<HTMLElement | null>(null);
+  const scrollAnimationRef = useRef<number | null>(null);
   const isCompact = useCompactViewport();
   const [isIntroVisible, setIsIntroVisible] = useState(true);
   const [isAboutVisible, setIsAboutVisible] = useState(false);
@@ -37,28 +38,36 @@ export function HomepageHero() {
     offset: ["start start", "end end"],
   });
 
+  useEffect(() => {
+    return () => {
+      if (scrollAnimationRef.current !== null) {
+        cancelAnimationFrame(scrollAnimationRef.current);
+      }
+    };
+  }, []);
+
   const hourglassProfile = shouldReduceMotion
     ? {
         input: [0, 1],
         x: ["0vw", "0vw"],
         y: [isCompact ? "-16vh" : "0vh", isCompact ? "-16vh" : "0vh"],
         rotate: ["0deg", "0deg"],
-        scale: [isCompact ? 0.76 : 0.8, isCompact ? 0.76 : 0.8],
+        scale: [isCompact ? 0.72 : 0.78, isCompact ? 0.72 : 0.78],
       }
     : isCompact
       ? {
-          input: [0, 0.7, 1],
-          x: ["-4vw", "10vw", "25vw"],
+          input: [0, 0.62, 1],
+          x: ["-4vw", "11vw", "25vw"],
           y: ["-1vh", "-8vh", "-15vh"],
-          rotate: ["-28deg", "58deg", "152deg"],
-          scale: [1.58, 1.1, 0.72],
+          rotate: ["-28deg", "180deg", "0deg"],
+          scale: [1.42, 1.02, 0.72],
         }
       : {
-          input: [0, 0.72, 1],
+          input: [0, 0.62, 1],
           x: ["7vw", "15vw", "27vw"],
           y: ["0vh", "0vh", "0vh"],
-          rotate: ["-28deg", "58deg", "152deg"],
-          scale: [2.18, 1.32, 0.8],
+          rotate: ["-28deg", "180deg", "0deg"],
+          scale: [1.92, 1.2, 0.78],
         };
 
   const hourglassX = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.x);
@@ -74,6 +83,44 @@ export function HomepageHero() {
     setIsIntroVisible(latest < 0.48);
     setIsAboutVisible(latest > 0.5);
   });
+
+  const handleExploreClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+
+    const aboutTarget = document.getElementById("about");
+    if (!aboutTarget) return;
+
+    const startY = window.scrollY;
+    const targetY = aboutTarget.getBoundingClientRect().top + window.scrollY;
+    const distance = targetY - startY;
+
+    if (scrollAnimationRef.current !== null) {
+      cancelAnimationFrame(scrollAnimationRef.current);
+    }
+
+    if (shouldReduceMotion) {
+      window.scrollTo({ top: targetY });
+      return;
+    }
+
+    const duration = 760;
+    const startedAt = performance.now();
+    const easeInOut = (progress: number) =>
+      progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    const animateScroll = (time: number) => {
+      const progress = Math.min(1, (time - startedAt) / duration);
+      window.scrollTo({ top: startY + distance * easeInOut(progress) });
+
+      if (progress < 1) {
+        scrollAnimationRef.current = requestAnimationFrame(animateScroll);
+      } else {
+        scrollAnimationRef.current = null;
+      }
+    };
+
+    scrollAnimationRef.current = requestAnimationFrame(animateScroll);
+  };
 
   return (
     <main className="min-h-screen bg-[#F7FBFF] text-[#102A43]">
@@ -108,7 +155,7 @@ export function HomepageHero() {
 
           <motion.div
             className={[
-              "absolute bottom-[14vh] left-5 z-40 flex w-[min(88vw,620px)] flex-col items-start text-left transition-opacity duration-300 ease-[var(--ease-out)] sm:left-8 md:bottom-[13vh] md:left-[6vw] md:w-[610px] lg:left-[7vw]",
+              "absolute bottom-[21vh] left-5 z-40 flex w-[min(88vw,620px)] flex-col items-start text-left transition-opacity duration-300 ease-[var(--ease-out)] sm:left-8 md:bottom-[20vh] md:left-[6vw] md:w-[610px] lg:left-[7vw]",
               isIntroVisible ? "opacity-100" : "pointer-events-none opacity-0",
             ].join(" ")}
           >
@@ -120,6 +167,7 @@ export function HomepageHero() {
             <div className="mt-5 flex items-center">
               <a
                 href="#about"
+                onClick={handleExploreClick}
                 className="liquid-glass inline-flex items-center justify-center rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0A5486] transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.97] sm:px-[18px] sm:py-2.5 sm:text-xs"
               >
                 <span>Explore</span>
