@@ -59,14 +59,14 @@ export function HomepageHero() {
           input: [0, 0.62, 1],
           x: ["-4vw", "11vw", "25vw"],
           y: ["-1vh", "-8vh", "-15vh"],
-          rotate: ["-28deg", "180deg", "0deg"],
+          rotate: ["-28deg", "86deg", "180deg"],
           scale: [1.42, 1.02, 0.72],
         }
       : {
           input: [0, 0.62, 1],
           x: ["7vw", "15vw", "27vw"],
           y: ["0vh", "0vh", "0vh"],
-          rotate: ["-28deg", "180deg", "0deg"],
+          rotate: ["-28deg", "86deg", "180deg"],
           scale: [1.92, 1.2, 0.78],
         };
 
@@ -103,14 +103,13 @@ export function HomepageHero() {
       return;
     }
 
-    const duration = 760;
+    const duration = 1450;
     const startedAt = performance.now();
-    const easeInOut = (progress: number) =>
-      progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+    const easeOutSoft = (progress: number) => 1 - Math.pow(1 - progress, 2.25);
 
     const animateScroll = (time: number) => {
       const progress = Math.min(1, (time - startedAt) / duration);
-      window.scrollTo({ top: startY + distance * easeInOut(progress) });
+      window.scrollTo({ top: startY + distance * easeOutSoft(progress) });
 
       if (progress < 1) {
         scrollAnimationRef.current = requestAnimationFrame(animateScroll);
@@ -155,7 +154,7 @@ export function HomepageHero() {
 
           <motion.div
             className={[
-              "absolute bottom-[21vh] left-5 z-40 flex w-[min(88vw,620px)] flex-col items-start text-left transition-opacity duration-300 ease-[var(--ease-out)] sm:left-8 md:bottom-[20vh] md:left-[6vw] md:w-[610px] lg:left-[7vw]",
+              "absolute bottom-[26vh] left-5 z-40 flex w-[min(88vw,620px)] flex-col items-start text-left transition-opacity duration-300 ease-[var(--ease-out)] sm:left-8 md:bottom-[25vh] md:left-[6vw] md:w-[610px] lg:left-[7vw]",
               isIntroVisible ? "opacity-100" : "pointer-events-none opacity-0",
             ].join(" ")}
           >
