@@ -54,18 +54,18 @@ export function HomepageHero() {
       }
     : isCompact
       ? {
-          input: [0, 0.62, 1],
-          x: ["-4vw", "11vw", "25vw"],
-          y: ["-1vh", "-8vh", "-15vh"],
-          rotate: ["-28deg", "86deg", "180deg"],
-          scale: [1.42, 1.02, 0.72],
+          input: [0, 0.42, 0.78, 1],
+          x: ["-4vw", "8vw", "22vw", "25vw"],
+          y: ["-1vh", "-6vh", "-13vh", "-15vh"],
+          rotate: ["-28deg", "52deg", "142deg", "180deg"],
+          scale: [1.42, 1.1, 0.8, 0.72],
         }
       : {
-          input: [0, 0.62, 1],
-          x: ["7vw", "15vw", "27vw"],
-          y: ["0vh", "0vh", "0vh"],
-          rotate: ["-28deg", "86deg", "180deg"],
-          scale: [1.92, 1.2, 0.78],
+          input: [0, 0.42, 0.78, 1],
+          x: ["7vw", "17vw", "25vw", "27vw"],
+          y: ["0vh", "0vh", "0vh", "0vh"],
+          rotate: ["-28deg", "52deg", "142deg", "180deg"],
+          scale: [1.92, 1.42, 0.9, 0.78],
         };
 
   const hourglassX = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.x);
