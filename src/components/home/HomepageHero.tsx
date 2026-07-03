@@ -6,8 +6,6 @@ import { CollageLayer } from "./CollageLayer";
 import { KineticHourglass } from "./KineticHourglass";
 import { WaveRibbons } from "./WaveRibbons";
 
-const navigation = ["Link 01", "Link 02", "Link 03", "Link 04"];
-
 const aboutStats = ["About 01", "About 02", "About 03"];
 
 function useCompactViewport() {
@@ -99,17 +97,17 @@ export function HomepageHero() {
     }
 
     if (shouldReduceMotion) {
-      window.scrollTo({ top: targetY });
+      window.scrollTo(0, targetY);
       return;
     }
 
-    const duration = 1450;
+    const duration = 1850;
     const startedAt = performance.now();
-    const easeOutSoft = (progress: number) => 1 - Math.pow(1 - progress, 2.25);
+    const easeOutSoft = (progress: number) => 1 - Math.pow(1 - progress, 1.65);
 
     const animateScroll = (time: number) => {
       const progress = Math.min(1, (time - startedAt) / duration);
-      window.scrollTo({ top: startY + distance * easeOutSoft(progress) });
+      window.scrollTo(0, startY + distance * easeOutSoft(progress));
 
       if (progress < 1) {
         scrollAnimationRef.current = requestAnimationFrame(animateScroll);
@@ -129,20 +127,6 @@ export function HomepageHero() {
           <div className="absolute inset-0 bg-[linear-gradient(116deg,#FFFFFF_0%,#F7FBFF_34%,#E9F8FF_66%,#FFFFFF_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_14%,rgba(255,209,102,0.18),transparent_28%),radial-gradient(circle_at_86%_30%,rgba(94,234,212,0.2),transparent_30%),radial-gradient(circle_at_60%_90%,rgba(255,138,101,0.15),transparent_26%)]" />
           <div className="hero-dotted-grid absolute inset-x-0 top-16 h-[66vh] opacity-30" />
-
-          <header className="absolute inset-x-0 top-0 z-50 flex items-center justify-end px-4 py-4 sm:px-8 lg:px-10">
-            <nav className="grid grid-cols-2 gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0A5486] sm:flex sm:gap-2 sm:text-[11px]">
-              {navigation.map((item) => (
-                <a
-                  key={item}
-                  href="#"
-                  className="liquid-glass inline-flex items-center justify-center rounded-full px-3 py-1.5 transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.97] sm:px-3.5"
-                >
-                  <span>{item}</span>
-                </a>
-              ))}
-            </nav>
-          </header>
 
           <motion.div
             className="pointer-events-none absolute left-1/2 top-1/2 z-20"
