@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion, type MotionValue, useReducedMotion } from "motion/react";
 
 type Particle = {
   lane: number;
@@ -62,6 +62,10 @@ function drawShard(ctx: CanvasRenderingContext2D, x: number, y: number, radius: 
   ctx.restore();
 }
 
+function wrapProgress(value: number) {
+  return ((value % 1) + 1) % 1;
+}
+
 function createParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, index) => {
     const kind = index % 11 === 0 ? "shard" : index % 7 === 0 ? "star" : "dot";
@@ -82,7 +86,7 @@ function createParticles(count: number): Particle[] {
   });
 }
 
-function useHourglassCanvas() {
+function useHourglassCanvas(flowDirection?: MotionValue<number>) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
@@ -118,6 +122,10 @@ function useHourglassCanvas() {
       const delta = Math.min(48, time - previousTime);
       previousTime = time;
       frame += delta * 0.001;
+      const rawFlowDirection = flowDirection?.get() ?? 1;
+      const particleFlow = Math.max(-1, Math.min(1, rawFlowDirection));
+      const flowMagnitude = Math.abs(particleFlow);
+      const signedFrame = frame * particleFlow;
 
       ctx.clearRect(0, 0, width, height);
       ctx.globalCompositeOperation = "source-over";
@@ -171,7 +179,7 @@ function useHourglassCanvas() {
 
       ctx.lineCap = "round";
       for (let stream = 0; stream < 6; stream += 1) {
-        const offset = ((frame * 0.08 + stream * 0.035) % 0.27) - 0.135;
+        const offset = wrapProgress(signedFrame * 0.08 + stream * 0.13) * 0.27 - 0.135;
         const streamY = height * (0.5 + offset);
         const x = width * (0.5 + Math.sin(frame * 1.4 + stream) * 0.01);
         const alpha = 0.2 + (1 - Math.abs(offset) / 0.135) * 0.4;
@@ -185,9 +193,12 @@ function useHourglassCanvas() {
 
       particles.forEach((particle) => {
         if (!shouldReduceMotion) {
-          particle.y += particle.speed * (delta / 1000);
+          particle.y += particle.speed * (delta / 1000) * particleFlow;
           if (particle.y > 1.045) {
             particle.y = -0.045;
+            particle.lane = Math.random() * 2 - 1;
+          } else if (particle.y < -0.045) {
+            particle.y = 1.045;
             particle.lane = Math.random() * 2 - 1;
           }
         }
@@ -201,19 +212,20 @@ function useHourglassCanvas() {
         const y = particle.y * height;
         const waistGlow = 1 - Math.min(1, Math.abs(particle.y - 0.5) / 0.22);
         const basinGlow = particle.y > 0.62 ? (particle.y - 0.62) * 0.32 : 0;
-        const alpha = (0.34 + waistGlow * 0.2 + basinGlow) * particle.twinkle * particle.depth;
+        const alpha = (0.34 + waistGlow * 0.2 + basinGlow) * particle.twinkle * particle.depth * (0.72 + flowMagnitude * 0.28);
         const color = colors[particle.hue];
         const radius = Math.max(1.1, particle.size * (0.58 + waistGlow * 0.12));
 
-        const trailLength = particle.kind === "dot" ? 8 + particle.speed * 180 : 5;
+        const trailLength = particle.kind === "dot" ? (8 + particle.speed * 180) * (0.42 + flowMagnitude * 0.58) : 5;
         if (particle.kind === "dot") {
-          const trail = ctx.createLinearGradient(x, y - trailLength, x, y + 1);
+          const trailStartY = y - trailLength * (particleFlow >= 0 ? 1 : -1);
+          const trail = ctx.createLinearGradient(x, trailStartY, x, y);
           trail.addColorStop(0, `rgba(${color}, 0)`);
           trail.addColorStop(1, `rgba(${color}, ${alpha * 0.38})`);
           ctx.strokeStyle = trail;
           ctx.lineWidth = Math.max(0.6, radius * 0.4);
           ctx.beginPath();
-          ctx.moveTo(x + Math.sin(particle.phase) * 1.4, y - trailLength);
+          ctx.moveTo(x + Math.sin(particle.phase) * 1.4, trailStartY);
           ctx.lineTo(x, y);
           ctx.stroke();
         }
@@ -257,18 +269,19 @@ function useHourglassCanvas() {
       resizeObserver.disconnect();
       cancelAnimationFrame(animationId);
     };
-  }, [shouldReduceMotion]);
+  }, [flowDirection, shouldReduceMotion]);
 
   return canvasRef;
 }
 
 type KineticHourglassProps = {
   className?: string;
+  flowDirection?: MotionValue<number>;
   intro?: boolean;
 };
 
-export function KineticHourglass({ className, intro = true }: KineticHourglassProps) {
-  const canvasRef = useHourglassCanvas();
+export function KineticHourglass({ className, flowDirection, intro = true }: KineticHourglassProps) {
+  const canvasRef = useHourglassCanvas(flowDirection);
 
   return (
     <motion.div

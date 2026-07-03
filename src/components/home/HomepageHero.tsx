@@ -73,6 +73,7 @@ export function HomepageHero() {
   const hourglassRotate = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.rotate);
   const hourglassScale = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.scale);
   const hourglassTransform = useMotionTemplate`translate3d(calc(-50% + ${hourglassX}), calc(-50% + ${hourglassY}), 0) rotate(${hourglassRotate}) scale(${hourglassScale})`;
+  const particleFlowDirection = useTransform(scrollYProgress, [0, 0.52, 0.7, 1], [1, 1, -1, -1]);
 
   const collageOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [1, 0.35, 0.22]);
   const waveOpacity = useTransform(scrollYProgress, [0, 0.62, 1], [1, 0.92, 0.74]);
@@ -133,7 +134,7 @@ export function HomepageHero() {
             style={{ transform: hourglassTransform, willChange: "transform" }}
             aria-hidden="true"
           >
-            <KineticHourglass intro={false} />
+            <KineticHourglass flowDirection={particleFlowDirection} intro={false} />
           </motion.div>
 
           <motion.div
