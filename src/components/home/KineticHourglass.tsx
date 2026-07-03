@@ -86,7 +86,7 @@ function createParticles(count: number): Particle[] {
   });
 }
 
-function useHourglassCanvas(flowDirection?: MotionValue<number>) {
+function useHourglassCanvas(flowDirection?: MotionValue<number>, rotationDegrees?: MotionValue<number>) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
@@ -123,9 +123,11 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
       previousTime = time;
       frame += delta * 0.001;
       const rawFlowDirection = flowDirection?.get() ?? 1;
-      const particleFlow = Math.max(-1, Math.min(1, rawFlowDirection));
-      const flowMagnitude = Math.abs(particleFlow);
-      const signedFrame = frame * particleFlow;
+      const rotationRadians = (((rotationDegrees?.get() ?? 0) * Math.PI) / 180) % (Math.PI * 2);
+      const flowMagnitude = Math.abs(Math.max(-1, Math.min(1, rawFlowDirection)));
+      const uprightness = Math.abs(Math.cos(rotationRadians));
+      const gravityFlow = Math.max(0, Math.min(1, (uprightness - 0.08) / 0.42)) * flowMagnitude;
+      const surfaceFrame = frame * (0.35 + gravityFlow * 0.65);
 
       ctx.clearRect(0, 0, width, height);
       ctx.globalCompositeOperation = "source-over";
@@ -140,12 +142,17 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
 
       ctx.globalCompositeOperation = "source-over";
 
+      ctx.save();
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(-rotationRadians);
+      ctx.translate(-width / 2, -height / 2);
+
       for (let band = 0; band < 3; band += 1) {
         ctx.beginPath();
         const baseY = height * (0.16 + band * 0.16);
         let started = false;
         for (let x = width * 0.16; x <= width * 0.84; x += 12) {
-          const wave = Math.sin(x * 0.017 + frame * 0.72 + band * 1.3) * (7 + band * 1.8);
+          const wave = Math.sin(x * 0.017 + surfaceFrame * 0.72 + band * 1.3) * (4.5 + gravityFlow * (3.2 + band * 1.4));
           const taper = Math.sin((x / width) * Math.PI);
           const y = baseY + wave * taper;
           if (!started) {
@@ -167,7 +174,7 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
         ctx.lineTo(width * 0.16, baseY);
         for (let x = width * 0.16; x <= width * 0.84; x += 10) {
           const taper = Math.sin((x / width) * Math.PI);
-          const y = baseY + Math.sin(x * 0.022 + frame * (0.9 + layer * 0.18)) * (9 - layer * 1.6) * taper;
+          const y = baseY + Math.sin(x * 0.022 + surfaceFrame * (0.9 + layer * 0.18)) * (4.5 + gravityFlow * (5 - layer * 1.2)) * taper;
           ctx.lineTo(x, y);
         }
         ctx.lineTo(width * 0.84, height);
@@ -179,10 +186,11 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
 
       ctx.lineCap = "round";
       for (let stream = 0; stream < 6; stream += 1) {
-        const offset = wrapProgress(signedFrame * 0.08 + stream * 0.13) * 0.27 - 0.135;
+        const offset = wrapProgress(frame * 0.08 + stream * 0.13) * 0.27 - 0.135;
         const streamY = height * (0.5 + offset);
         const x = width * (0.5 + Math.sin(frame * 1.4 + stream) * 0.01);
-        const alpha = 0.2 + (1 - Math.abs(offset) / 0.135) * 0.4;
+        const alpha = (0.2 + (1 - Math.abs(offset) / 0.135) * 0.4) * gravityFlow;
+        if (alpha <= 0.02) continue;
         ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.72})`;
         ctx.lineWidth = 0.9;
         ctx.beginPath();
@@ -193,12 +201,9 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
 
       particles.forEach((particle) => {
         if (!shouldReduceMotion) {
-          particle.y += particle.speed * (delta / 1000) * particleFlow;
+          particle.y += particle.speed * (delta / 1000) * gravityFlow;
           if (particle.y > 1.045) {
             particle.y = -0.045;
-            particle.lane = Math.random() * 2 - 1;
-          } else if (particle.y < -0.045) {
-            particle.y = 1.045;
             particle.lane = Math.random() * 2 - 1;
           }
         }
@@ -212,13 +217,13 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
         const y = particle.y * height;
         const waistGlow = 1 - Math.min(1, Math.abs(particle.y - 0.5) / 0.22);
         const basinGlow = particle.y > 0.62 ? (particle.y - 0.62) * 0.32 : 0;
-        const alpha = (0.34 + waistGlow * 0.2 + basinGlow) * particle.twinkle * particle.depth * (0.72 + flowMagnitude * 0.28);
+        const alpha = (0.34 + waistGlow * 0.2 + basinGlow) * particle.twinkle * particle.depth * (0.46 + gravityFlow * 0.54);
         const color = colors[particle.hue];
         const radius = Math.max(1.1, particle.size * (0.58 + waistGlow * 0.12));
 
-        const trailLength = particle.kind === "dot" ? (8 + particle.speed * 180) * (0.42 + flowMagnitude * 0.58) : 5;
-        if (particle.kind === "dot") {
-          const trailStartY = y - trailLength * (particleFlow >= 0 ? 1 : -1);
+        const trailLength = particle.kind === "dot" ? (8 + particle.speed * 180) * gravityFlow : 5;
+        if (particle.kind === "dot" && gravityFlow > 0.12) {
+          const trailStartY = y - trailLength;
           const trail = ctx.createLinearGradient(x, trailStartY, x, y);
           trail.addColorStop(0, `rgba(${color}, 0)`);
           trail.addColorStop(1, `rgba(${color}, ${alpha * 0.38})`);
@@ -257,6 +262,7 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
 
       ctx.shadowBlur = 0;
       ctx.globalCompositeOperation = "source-over";
+      ctx.restore();
 
       if (!shouldReduceMotion) {
         animationId = requestAnimationFrame(render);
@@ -269,7 +275,7 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
       resizeObserver.disconnect();
       cancelAnimationFrame(animationId);
     };
-  }, [flowDirection, shouldReduceMotion]);
+  }, [flowDirection, rotationDegrees, shouldReduceMotion]);
 
   return canvasRef;
 }
@@ -277,11 +283,12 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
 type KineticHourglassProps = {
   className?: string;
   flowDirection?: MotionValue<number>;
+  rotationDegrees?: MotionValue<number>;
   intro?: boolean;
 };
 
-export function KineticHourglass({ className, flowDirection, intro = true }: KineticHourglassProps) {
-  const canvasRef = useHourglassCanvas(flowDirection);
+export function KineticHourglass({ className, flowDirection, rotationDegrees, intro = true }: KineticHourglassProps) {
+  const canvasRef = useHourglassCanvas(flowDirection, rotationDegrees);
 
   return (
     <motion.div
@@ -316,7 +323,7 @@ export function KineticHourglass({ className, flowDirection, intro = true }: Kin
             <linearGradient id="hourglassWarm" x1="84" x2="334" y1="40" y2="540" gradientUnits="userSpaceOnUse">
               <stop stopColor="#DDF7FF" />
               <stop offset="0.44" stopColor="#AEE4F8" />
-              <stop offset="1" stopColor="#FFB067" />
+              <stop offset="1" stopColor="#DDF7FF" />
             </linearGradient>
             <linearGradient id="facetSea" x1="128" x2="290" y1="86" y2="190" gradientUnits="userSpaceOnUse">
               <stop stopColor="#DFFFF8" />
@@ -327,11 +334,6 @@ export function KineticHourglass({ className, flowDirection, intro = true }: Kin
               <stop stopColor="#CFF5FF" />
               <stop offset="0.5" stopColor="#12C7FF" />
               <stop offset="1" stopColor="#0084D6" />
-            </linearGradient>
-            <linearGradient id="coralWave" x1="116" x2="328" y1="448" y2="552" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FF6F61" />
-              <stop offset="0.55" stopColor="#FF8A65" />
-              <stop offset="1" stopColor="#FFD166" />
             </linearGradient>
             <filter id="frameGlow" x="-30%" y="-20%" width="160%" height="140%">
               <feGaussianBlur stdDeviation="5" result="blur" />
@@ -349,16 +351,6 @@ export function KineticHourglass({ className, flowDirection, intro = true }: Kin
           <path d="M126 84 L184 99 L164 189 L112 163 Z" fill="url(#facetSea)" opacity="0.38" />
           <path d="M196 92 L276 104 L258 204 L176 187 Z" fill="url(#facetBlue)" opacity="0.34" />
           <path d="M286 99 L328 110 L304 202 L266 194 Z" fill="#009DFF" opacity="0.28" />
-          <path
-            d="M128 486 C157 513 205 524 247 510 C277 500 300 477 320 450 C326 490 312 527 282 545 C244 567 166 557 127 522 C112 509 109 492 115 474 C119 479 123 483 128 486Z"
-            fill="url(#coralWave)"
-            opacity="0.46"
-          />
-          <path
-            d="M155 502 C182 520 218 525 248 513 C224 541 176 538 145 513"
-            fill="white"
-            opacity="0.45"
-          />
           <path
             d="M69 43 C103 24 318 24 351 43"
             stroke="url(#hourglassWarm)"
