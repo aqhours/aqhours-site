@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "deploy": "bash scripts/deploy-homepage.sh",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

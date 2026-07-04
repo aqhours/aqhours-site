@@ -21,6 +21,12 @@ npm run dev
 Production service:
 
 ```bash
+npm run deploy
+```
+
+Manual server commands:
+
+```bash
 cd /opt/apps/homepage
 docker compose up -d --build
 docker compose logs -f
