@@ -13,15 +13,11 @@ type Particle = {
   depth: number;
   spin: number;
   kind: "dot" | "star" | "shard";
-  hue: "blue" | "sea" | "yellow" | "mint" | "coral";
+  hue: "paleBlue";
 };
 
 const colors = {
-  blue: "0, 157, 255",
-  sea: "18, 199, 255",
-  yellow: "255, 209, 102",
-  mint: "94, 234, 212",
-  coral: "255, 138, 101",
+  paleBlue: "174, 228, 248",
 };
 
 function halfWidthForY(y: number) {
@@ -69,7 +65,6 @@ function wrapProgress(value: number) {
 function createParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, index) => {
     const kind = index % 11 === 0 ? "shard" : index % 7 === 0 ? "star" : "dot";
-    const hue = index % 29 === 0 ? "coral" : index % 17 === 0 ? "mint" : index % 11 === 0 ? "yellow" : index % 3 === 0 ? "sea" : "blue";
 
     return {
       lane: Math.random() * 2 - 1,
@@ -81,7 +76,7 @@ function createParticles(count: number): Particle[] {
       depth: 0.55 + Math.random() * 0.65,
       spin: Math.random() * Math.PI * 2,
       kind,
-      hue,
+      hue: "paleBlue",
     };
   });
 }
@@ -249,7 +244,7 @@ function useHourglassCanvas(flowDirection?: MotionValue<number>) {
         const x = width * (0.28 + fleck * 0.078 + Math.sin(frame * 0.7 + fleck) * 0.004);
         const y = height * (0.76 + Math.sin(frame * 1.1 + fleck * 1.7) * 0.018);
         const alpha = 0.12 + Math.sin(frame * 1.3 + fleck) * 0.05;
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.fillStyle = `rgba(174, 228, 248, ${alpha})`;
         ctx.beginPath();
         ctx.arc(x, y, 1.2 + (fleck % 3) * 0.45, 0, Math.PI * 2);
         ctx.fill();
@@ -437,8 +432,8 @@ export function KineticHourglass({ className, flowDirection, intro = true }: Kin
             strokeLinecap="round"
             opacity="0.52"
           />
-          <circle cx="151" cy="118" r="3.4" fill="#FFFFFF" opacity="0.84" />
-          <circle cx="280" cy="454" r="2.8" fill="#FFD166" opacity="0.74" />
+          <circle cx="151" cy="118" r="3.4" fill="#AEE4F8" opacity="0.84" />
+          <circle cx="280" cy="454" r="2.8" fill="#AEE4F8" opacity="0.74" />
         </svg>
       </div>
     </motion.div>

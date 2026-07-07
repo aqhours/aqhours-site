@@ -50,9 +50,9 @@ export function WaveRibbons() {
           fill="#FFFFFF"
           opacity="0.82"
         />
-        <circle className="hero-foam-sparkle" cx="188" cy="57" r="4" fill="#12C7FF" opacity="0.45" />
-        <circle className="hero-foam-sparkle" cx="1040" cy="50" r="3" fill="#FFD166" opacity="0.62" />
-        <circle className="hero-foam-sparkle" cx="1216" cy="42" r="5" fill="#5EEAD4" opacity="0.5" />
+        <circle className="hero-foam-sparkle" cx="188" cy="57" r="4" fill="#AEE4F8" opacity="0.52" />
+        <circle className="hero-foam-sparkle" cx="1040" cy="50" r="3" fill="#AEE4F8" opacity="0.58" />
+        <circle className="hero-foam-sparkle" cx="1216" cy="42" r="5" fill="#AEE4F8" opacity="0.5" />
       </svg>
     </div>
   );

@@ -3,10 +3,10 @@
 import { motion } from "motion/react";
 
 const sparkles = [
-  "left-[21%] top-[13%] text-[#12C7FF] scale-75",
-  "right-[18%] top-[16%] text-[#FFD166] scale-110",
-  "left-[8%] bottom-[34%] text-[#5EEAD4] scale-100",
-  "right-[24%] bottom-[21%] hidden text-[#FFD166] scale-75 md:block",
+  "left-[21%] top-[13%] text-[#AEE4F8] scale-75",
+  "right-[18%] top-[16%] text-[#AEE4F8] scale-110",
+  "left-[8%] bottom-[34%] text-[#AEE4F8] scale-100",
+  "right-[24%] bottom-[21%] hidden text-[#AEE4F8] scale-75 md:block",
 ];
 
 function Sparkle({ className, index }: { className: string; index: number }) {
