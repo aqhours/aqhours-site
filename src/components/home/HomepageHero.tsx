@@ -4,6 +4,7 @@ import { type MouseEvent, useEffect, useRef, useState } from "react";
 import { motion, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { CollageLayer } from "./CollageLayer";
 import { KineticHourglass } from "./KineticHourglass";
+import { ThemeToggle } from "./ThemeToggle";
 import { WaveRibbons } from "./WaveRibbons";
 
 const aboutStats = ["About 01", "About 02", "About 03"];
@@ -55,10 +56,10 @@ export function HomepageHero() {
     : isCompact
       ? {
           input: [0, 0.42, 0.78, 1],
-          x: ["-4vw", "8vw", "22vw", "25vw"],
-          y: ["-1vh", "-6vh", "-13vh", "-15vh"],
+          x: ["10vw", "14vw", "22vw", "25vw"],
+          y: ["-8vh", "-9vh", "-13vh", "-15vh"],
           rotate: ["-28deg", "52deg", "142deg", "180deg"],
-          scale: [1.42, 1.1, 0.8, 0.72],
+          scale: [1.18, 1.02, 0.8, 0.72],
         }
       : {
           input: [0, 0.42, 0.78, 1],
@@ -121,13 +122,14 @@ export function HomepageHero() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7FBFF] text-[#102A43]">
-      <section ref={sceneRef} className="relative h-[200vh] bg-[#F7FBFF]">
+    <main className="homepage-shell min-h-screen">
+      <section ref={sceneRef} className="homepage-shell relative h-[220vh]">
         <span id="about" className="absolute top-[100vh]" aria-hidden="true" />
-        <div className="sticky top-0 h-[100vh] min-h-[640px] overflow-hidden bg-[#F7FBFF] sm:min-h-[720px]">
-          <div className="absolute inset-0 bg-[linear-gradient(116deg,#FFFFFF_0%,#F7FBFF_34%,#E9F8FF_66%,#FFFFFF_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_14%,rgba(255,209,102,0.18),transparent_28%),radial-gradient(circle_at_86%_30%,rgba(94,234,212,0.2),transparent_30%),radial-gradient(circle_at_60%_90%,rgba(255,138,101,0.15),transparent_26%)]" />
-          <div className="hero-dotted-grid absolute inset-x-0 top-16 h-[66vh] opacity-30" />
+        <div className="homepage-shell homepage-stage sticky top-0 h-[100vh] min-h-[640px] overflow-hidden sm:min-h-[720px]">
+          <div className="homepage-stage-gradient absolute inset-0 z-0" />
+          <div className="homepage-aurora absolute inset-0 z-0" />
+          <div className="hero-dotted-grid absolute inset-x-0 top-16 z-[1] h-[66vh] opacity-30" />
+          <ThemeToggle className="absolute right-5 top-5 z-50 sm:right-8 sm:top-8" />
 
           <motion.div
             className="pointer-events-none absolute left-1/2 top-1/2 z-20"
@@ -143,7 +145,7 @@ export function HomepageHero() {
               isIntroVisible ? "opacity-100" : "pointer-events-none opacity-0",
             ].join(" ")}
           >
-            <h1 className="hero-serif text-[clamp(1.32rem,5.25vw,1.86rem)] font-bold leading-[1.24] tracking-normal text-[#26062F] md:text-[clamp(2rem,3.15vw,2.9rem)]">
+            <h1 className="hero-serif text-[clamp(1.32rem,5.25vw,1.86rem)] font-bold leading-[1.24] tracking-normal text-[var(--hero-title)] md:text-[clamp(2rem,3.15vw,2.9rem)]">
               <span className="block whitespace-nowrap">与你相伴的时光</span>
               <span className="block whitespace-nowrap">如此珍贵 如此难忘</span>
               <span className="block whitespace-nowrap">想要紧紧抱着不愿放手</span>
@@ -152,7 +154,7 @@ export function HomepageHero() {
               <a
                 href="#about"
                 onClick={handleExploreClick}
-                className="liquid-glass inline-flex items-center justify-center rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0A5486] transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.97] sm:px-[18px] sm:py-2.5 sm:text-xs"
+                className="liquid-glass inline-flex items-center justify-center rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--hero-accent)] transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.97] sm:px-[18px] sm:py-2.5 sm:text-xs"
               >
                 <span>Explore</span>
               </a>
@@ -171,18 +173,18 @@ export function HomepageHero() {
             ].join(" ")}
           >
             <div className="relative flex h-full items-end justify-center pb-[7vh] md:items-center md:justify-start md:pb-0">
-              <div className="liquid-glass w-[min(92vw,430px)] rounded-[28px] px-5 py-5 text-[#102A43] shadow-[0_18px_50px_rgba(0,157,255,0.12)] sm:px-6 sm:py-6 md:ml-[6vw] lg:ml-[7vw]">
+              <div className="liquid-glass homepage-about-card w-[min(92vw,430px)] rounded-[28px] px-5 py-5 sm:px-6 sm:py-6 md:ml-[6vw] lg:ml-[7vw]">
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#0A5486]">About</p>
-                  <h2 id="about-heading" className="hero-serif mt-2 text-[clamp(1.65rem,7vw,2.35rem)] font-bold leading-tight text-[#26062F] md:text-[2.6rem]">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--hero-accent)]">About</p>
+                  <h2 id="about-heading" className="hero-serif mt-2 text-[clamp(1.65rem,7vw,2.35rem)] font-bold leading-tight text-[var(--hero-title)] md:text-[2.6rem]">
                     关于我
                   </h2>
-                  <p className="mt-4 text-sm leading-7 text-[#102A43]/78 sm:text-[15px]">
+                  <p className="mt-4 text-sm leading-7 text-[var(--hero-muted)] sm:text-[15px]">
                     这里暂时放关于我的占位内容。之后可以替换成个人介绍、创作方向、时间线或任何你想表达的故事。
                   </p>
                   <div className="mt-5 grid gap-2 sm:grid-cols-3">
                     {aboutStats.map((item) => (
-                      <div key={item} className="rounded-2xl border border-[#AEE4F8]/70 bg-white/38 px-3 py-2 text-xs font-semibold text-[#0A5486]">
+                      <div key={item} className="homepage-chip rounded-2xl px-3 py-2 text-xs font-semibold">
                         {item}
                       </div>
                     ))}
