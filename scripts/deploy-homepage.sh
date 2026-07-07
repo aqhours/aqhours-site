@@ -20,8 +20,8 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-npm run typecheck
-npm run build
+pnpm run typecheck
+pnpm run build
 
 git fetch origin main
 if ! git merge-base --is-ancestor origin/main HEAD; then

@@ -7,21 +7,21 @@ Static personal homepage service deployed under `/opt/apps/homepage`.
 - `compose.yaml`: builds the Next.js static export and serves it with Nginx on the shared Docker network.
 - `.env`: service environment variables, not committed.
 - `src/`: Next.js source files.
-- `out/`: generated static export from `npm run build`.
+- `out/`: generated static export from `pnpm run build`.
 
 ## Commands
 
 Local development:
 
 ```bash
-npm ci
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Production service:
 
 ```bash
-npm run deploy
+pnpm run deploy
 ```
 
 Manual server commands:
