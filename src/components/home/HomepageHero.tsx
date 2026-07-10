@@ -1,204 +1,279 @@
-"use client";
-
-import { type MouseEvent, useEffect, useRef, useState } from "react";
-import { motion, useMotionTemplate, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "motion/react";
-import { CollageLayer } from "./CollageLayer";
-import { KineticHourglass } from "./KineticHourglass";
+import { LiquidIdentity } from "./LiquidIdentity";
 import { ThemeToggle } from "./ThemeToggle";
-import { WaveRibbons } from "./WaveRibbons";
 
-const aboutStats = ["About 01", "About 02", "About 03"];
+const artists = [
+  { name: "Taylor Swift", note: "喜欢的歌手", tone: "swift" },
+  { name: "Aqours", note: "喜欢的歌手", tone: "aqours" },
+  { name: "徐佳莹", note: "喜欢的歌手", tone: "lala" },
+];
 
-function useCompactViewport() {
-  const [isCompact, setIsCompact] = useState(false);
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M4 10h11M11 6l4 4-4 4" />
+    </svg>
+  );
+}
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const syncViewport = () => setIsCompact(mediaQuery.matches);
+function BrandMark() {
+  return (
+    <span className="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32">
+        <path d="M8.1 10.6c0-3 2.3-5.1 5-5.1 3.7 0 5.7 4.3 7.4 7.4 1.3 2.3 2.4 4.2 4 4.2 1.2 0 2.2-1 2.2-2.4s-.9-2.4-2.2-2.4c-1.5 0-2.7 1.6-4 3.8-1.8 3.1-3.8 7.4-7.4 7.4-2.8 0-5-2.1-5-5.1 0-2.9 2.2-5.1 5-5.1 1.3 0 2.4.5 3.4 1.4" />
+      </svg>
+    </span>
+  );
+}
 
-    syncViewport();
-    mediaQuery.addEventListener("change", syncViewport);
-
-    return () => mediaQuery.removeEventListener("change", syncViewport);
-  }, []);
-
-  return isCompact;
+function SectionLabel({ number, children }: { number: string; children: React.ReactNode }) {
+  return (
+    <div className="section-label">
+      <span>{number}</span>
+      <p>{children}</p>
+    </div>
+  );
 }
 
 export function HomepageHero() {
-  const sceneRef = useRef<HTMLElement | null>(null);
-  const scrollAnimationRef = useRef<number | null>(null);
-  const isCompact = useCompactViewport();
-  const [isIntroVisible, setIsIntroVisible] = useState(true);
-  const [isAboutVisible, setIsAboutVisible] = useState(false);
-  const shouldReduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: sceneRef,
-    offset: ["start start", "end end"],
-  });
-
-  useEffect(() => {
-    return () => {
-      if (scrollAnimationRef.current !== null) {
-        cancelAnimationFrame(scrollAnimationRef.current);
-      }
-    };
-  }, []);
-
-  const hourglassProfile = shouldReduceMotion
-    ? {
-        input: [0, 1],
-        x: ["0vw", "0vw"],
-        y: [isCompact ? "-16vh" : "0vh", isCompact ? "-16vh" : "0vh"],
-        rotate: ["0deg", "0deg"],
-        scale: [isCompact ? 0.72 : 0.78, isCompact ? 0.72 : 0.78],
-      }
-    : isCompact
-      ? {
-          input: [0, 0.42, 0.78, 1],
-          x: ["10vw", "14vw", "22vw", "25vw"],
-          y: ["-8vh", "-9vh", "-13vh", "-15vh"],
-          rotate: ["-28deg", "52deg", "142deg", "180deg"],
-          scale: [1.18, 1.02, 0.8, 0.72],
-        }
-      : {
-          input: [0, 0.42, 0.78, 1],
-          x: ["7vw", "17vw", "25vw", "27vw"],
-          y: ["0vh", "0vh", "0vh", "0vh"],
-          rotate: ["-28deg", "52deg", "142deg", "180deg"],
-          scale: [1.92, 1.42, 0.9, 0.78],
-        };
-
-  const hourglassX = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.x);
-  const hourglassY = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.y);
-  const hourglassRotate = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.rotate);
-  const hourglassScale = useTransform(scrollYProgress, hourglassProfile.input, hourglassProfile.scale);
-  const hourglassTransform = useMotionTemplate`translate3d(calc(-50% + ${hourglassX}), calc(-50% + ${hourglassY}), 0) rotate(${hourglassRotate}) scale(${hourglassScale})`;
-  const particleFlowDirection = useTransform(scrollYProgress, [0, 0.52, 0.7, 1], [1, 1, -1, -1]);
-
-  const collageOpacity = useTransform(scrollYProgress, [0, 0.55, 1], [1, 0.35, 0.22]);
-  const waveOpacity = useTransform(scrollYProgress, [0, 0.62, 1], [1, 0.92, 0.74]);
-
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setIsIntroVisible(latest < 0.48);
-    setIsAboutVisible(latest > 0.5);
-  });
-
-  const handleExploreClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    event.preventDefault();
-
-    const aboutTarget = document.getElementById("about");
-    if (!aboutTarget) return;
-
-    const startY = window.scrollY;
-    const targetY = aboutTarget.getBoundingClientRect().top + window.scrollY;
-    const distance = targetY - startY;
-
-    if (scrollAnimationRef.current !== null) {
-      cancelAnimationFrame(scrollAnimationRef.current);
-    }
-
-    if (shouldReduceMotion) {
-      window.scrollTo(0, targetY);
-      return;
-    }
-
-    const duration = 1850;
-    const startedAt = performance.now();
-    const easeOutSoft = (progress: number) => 1 - Math.pow(1 - progress, 1.65);
-
-    const animateScroll = (time: number) => {
-      const progress = Math.min(1, (time - startedAt) / duration);
-      window.scrollTo(0, startY + distance * easeOutSoft(progress));
-
-      if (progress < 1) {
-        scrollAnimationRef.current = requestAnimationFrame(animateScroll);
-      } else {
-        scrollAnimationRef.current = null;
-      }
-    };
-
-    scrollAnimationRef.current = requestAnimationFrame(animateScroll);
-  };
-
   return (
-    <main className="homepage-shell min-h-screen">
-      <section ref={sceneRef} className="homepage-shell relative h-[220vh]">
-        <span id="about" className="absolute top-[100vh]" aria-hidden="true" />
-        <div className="homepage-shell homepage-stage sticky top-0 h-[100vh] min-h-[640px] overflow-hidden sm:min-h-[720px]">
-          <div className="homepage-stage-gradient absolute inset-0 z-0" />
-          <div className="homepage-aurora absolute inset-0 z-0" />
-          <div className="hero-dotted-grid absolute inset-x-0 top-16 z-[1] h-[66vh] opacity-30" />
-          <ThemeToggle className="absolute right-5 top-5 z-50 sm:right-8 sm:top-8" />
+    <main className="site-shell">
+      <div className="ambient ambient-one" aria-hidden="true" />
+      <div className="ambient ambient-two" aria-hidden="true" />
+      <div className="ambient ambient-three" aria-hidden="true" />
 
-          <motion.div
-            className="pointer-events-none absolute left-1/2 top-1/2 z-20"
-            style={{ transform: hourglassTransform, willChange: "transform" }}
-            aria-hidden="true"
-          >
-            <KineticHourglass flowDirection={particleFlowDirection} intro={false} />
-          </motion.div>
+      <header className="site-header liquid-glass">
+        <a className="site-brand" href="#top" aria-label="aqhours 首页">
+          <BrandMark />
+          <span>aqhours</span>
+        </a>
 
-          <motion.div
-            className={[
-              "absolute bottom-[26vh] left-5 z-40 flex w-[min(88vw,620px)] flex-col items-start text-left transition-opacity duration-300 ease-[var(--ease-out)] sm:left-8 md:bottom-[25vh] md:left-[6vw] md:w-[610px] lg:left-[7vw]",
-              isIntroVisible ? "opacity-100" : "pointer-events-none opacity-0",
-            ].join(" ")}
-          >
-            <h1 className="hero-serif text-[clamp(1.32rem,5.25vw,1.86rem)] font-bold leading-[1.24] tracking-normal text-[var(--hero-title)] md:text-[clamp(2rem,3.15vw,2.9rem)]">
-              <span className="block whitespace-nowrap">与你相伴的时光</span>
-              <span className="block whitespace-nowrap">如此珍贵 如此难忘</span>
-              <span className="block whitespace-nowrap">想要紧紧抱着不愿放手</span>
-            </h1>
-            <div className="mt-5 flex items-center">
-              <a
-                href="#about"
-                onClick={handleExploreClick}
-                className="liquid-glass inline-flex items-center justify-center rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--hero-accent)] transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.97] sm:px-[18px] sm:py-2.5 sm:text-xs"
-              >
-                <span>Explore</span>
-              </a>
-            </div>
-          </motion.div>
+        <nav className="site-nav" aria-label="主导航">
+          <a href="#about">关于</a>
+          <a href="#create">创造</a>
+          <a href="#music">音乐</a>
+          <a href="#play">游玩</a>
+          <a href="#site">本站</a>
+        </nav>
 
-          <motion.div className="pointer-events-none absolute inset-0 z-30" style={{ opacity: collageOpacity }}>
-            <CollageLayer />
-          </motion.div>
+        <div className="header-actions">
+          <span className="location-status"><i /> Nanchang</span>
+          <ThemeToggle />
+        </div>
+      </header>
 
-          <motion.section
-            aria-labelledby="about-heading"
-            className={[
-              "pointer-events-none absolute inset-0 z-40 px-5 transition-opacity duration-300 ease-[var(--ease-out)] sm:px-8 lg:px-10",
-              isAboutVisible ? "opacity-100" : "opacity-0",
-            ].join(" ")}
-          >
-            <div className="relative flex h-full items-end justify-center pb-[7vh] md:items-center md:justify-start md:pb-0">
-              <div className="liquid-glass homepage-about-card w-[min(92vw,430px)] rounded-[28px] px-5 py-5 sm:px-6 sm:py-6 md:ml-[6vw] lg:ml-[7vw]">
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--hero-accent)]">About</p>
-                  <h2 id="about-heading" className="hero-serif mt-2 text-[clamp(1.65rem,7vw,2.35rem)] font-bold leading-tight text-[var(--hero-title)] md:text-[2.6rem]">
-                    关于我
-                  </h2>
-                  <p className="mt-4 text-sm leading-7 text-[var(--hero-muted)] sm:text-[15px]">
-                    这里暂时放关于我的占位内容。之后可以替换成个人介绍、创作方向、时间线或任何你想表达的故事。
-                  </p>
-                  <div className="mt-5 grid gap-2 sm:grid-cols-3">
-                    {aboutStats.map((item) => (
-                      <div key={item} className="homepage-chip rounded-2xl px-3 py-2 text-xs font-semibold">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.section>
+      <section id="top" className="hero-section" aria-labelledby="hero-title">
+        <div className="hero-copy intro-reveal">
+          <p className="hero-kicker">Hello from Nanchang · Personal homepage</p>
+          <h1 id="hero-title">
+            你好，
+            <br />
+            我是 <span>aqhours</span>。
+          </h1>
+          <p className="hero-lead">
+            一个生活在江西南昌，
+            <strong>有力气、爱创造、按专辑听歌</strong>
+            的青春男大。
+          </p>
+          <p className="hero-description">
+            我在计算机科学与技术的世界里继续读书，也喜欢把突然出现的想法做成网站。
+            这里介绍我，也记录那些让我感到快乐、获得成就感的事情。
+          </p>
 
-          <motion.div className="pointer-events-none absolute inset-0 z-10" style={{ opacity: waveOpacity }}>
-            <WaveRibbons />
-          </motion.div>
+          <div className="hero-actions">
+            <a className="primary-button" href="#about">
+              认识我
+              <ArrowIcon />
+            </a>
+            <a className="quiet-link" href="#site">关于这个网站</a>
+          </div>
+
+          <div className="identity-pills" aria-label="个人关键词">
+            <span className="liquid-chip">江西 · 南昌</span>
+            <span className="liquid-chip">CS Master</span>
+            <span className="liquid-chip">100,000 min / year</span>
+          </div>
+        </div>
+
+        <div className="hero-art intro-reveal intro-delay-one">
+          <LiquidIdentity />
         </div>
       </section>
+
+      <section id="about" className="content-section about-section">
+        <SectionLabel number="01">About me</SectionLabel>
+        <div className="about-layout">
+          <div className="section-copy">
+            <p className="section-kicker">现在的我</p>
+            <h2>有力气的青春，<br />正在南昌发生。</h2>
+            <p>
+              现在我的日常位于江西南昌。我喜欢计算机，也仍然对许多新东西保持好奇。
+              学习、创造、听歌和游戏，共同组成了我正在经历的生活。
+            </p>
+          </div>
+
+          <div className="study-path liquid-glass">
+            <div className="study-path-head">
+              <span>LEARNING PATH</span>
+              <i>2 stages</i>
+            </div>
+            <div className="study-stage">
+              <span className="stage-dot stage-dot-done" />
+              <div>
+                <small>本科 · Bachelor&apos;s degree</small>
+                <strong>计算机科学与技术</strong>
+              </div>
+              <span className="stage-status">COMPLETED</span>
+            </div>
+            <div className="study-connector" aria-hidden="true"><span /></div>
+            <div className="study-stage">
+              <span className="stage-dot stage-dot-now" />
+              <div>
+                <small>现在 · Master&apos;s student</small>
+                <strong>计算机科学与技术 · 硕士在读</strong>
+              </div>
+              <span className="stage-status stage-status-now">NOW</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="create" className="content-section create-section">
+        <SectionLabel number="02">Create</SectionLabel>
+        <div className="create-panel feature-panel">
+          <div className="create-copy">
+            <p className="section-kicker">Create something</p>
+            <h2>把脑海里的想法，<br />做成一个网站。</h2>
+            <p>
+              我喜欢做具有创造性的事情。开发网站时，想法会逐渐变成结构、颜色、交互和真实可用的页面。
+              这个过程给我带来快乐，也给我实实在在的成就感。
+            </p>
+            <div className="create-formula" aria-label="创作过程">
+              <span>IDEA</span><i>→</i><span>DESIGN</span><i>→</i><span>CODE</span><i>→</i><strong>JOY</strong>
+            </div>
+          </div>
+
+          <div className="browser-art liquid-glass" aria-label="一个正在生成的个人网站界面示意图">
+            <div className="browser-bar">
+              <div><i /><i /><i /></div>
+              <span>aqhours.cn</span>
+              <em>↗</em>
+            </div>
+            <div className="browser-canvas">
+              <div className="browser-sidebar">
+                <BrandMark />
+                <span className="sidebar-line sidebar-line-active" />
+                <span className="sidebar-line" />
+                <span className="sidebar-line sidebar-line-short" />
+              </div>
+              <div className="browser-page">
+                <span className="page-label">BUILDING SOMETHING I LIKE</span>
+                <div className="page-title-line" />
+                <div className="page-title-line page-title-line-short" />
+                <div className="page-grid">
+                  <span /><span /><span />
+                </div>
+                <div className="cursor-badge">CREATE</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="music" className="content-section music-section">
+        <SectionLabel number="03">Music</SectionLabel>
+        <div className="music-panel feature-panel">
+          <div className="music-stat">
+            <p className="section-kicker">Listening time / year</p>
+            <div className="music-number">100,000</div>
+            <div className="music-unit">MINUTES <span>≈ 1,667 HOURS</span></div>
+            <p className="music-statement">
+              我喜欢按照专辑 💽 听音乐。让一首歌自然地走向下一首，完整进入一段声音创造的世界。
+            </p>
+          </div>
+
+          <div className="album-shelf" aria-label="喜欢的歌手">
+            <div className="shelf-title"><span>FAVORITE ARTISTS</span><i>03</i></div>
+            {artists.map((artist, index) => (
+              <article className={`artist-card artist-${artist.tone}`} key={artist.name}>
+                <div className="album-sleeve">
+                  <span className="album-index">0{index + 1}</span>
+                  <strong>{artist.name}</strong>
+                  <small>{artist.note}</small>
+                </div>
+                <div className="vinyl" aria-hidden="true"><span /></div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="play" className="content-section play-section">
+        <SectionLabel number="04">Play</SectionLabel>
+        <div className="play-panel feature-panel">
+          <div className="nikki-world" aria-hidden="true">
+            <span className="world-moon" />
+            <span className="world-cloud world-cloud-one" />
+            <span className="world-cloud world-cloud-two" />
+            <span className="world-island world-island-back" />
+            <span className="world-island world-island-front" />
+            <span className="world-path" />
+            <div className="wardrobe-card liquid-glass">
+              <span>LOOK 07</span>
+              <div><i /><i /><i /><i /></div>
+              <small>自由搭配中</small>
+            </div>
+          </div>
+
+          <div className="play-copy">
+            <p className="section-kicker">Infinity Nikki</p>
+            <h2>自由搭配，<br />跳向更远的世界。</h2>
+            <p>
+              我喜欢玩《无限暖暖》。自由搭配带来表达的乐趣，跳跳乐让探索有了节奏，
+              而开放世界里总有新的角落值得走过去看看。
+            </p>
+            <div className="play-tags">
+              <span>自由搭配</span>
+              <span>跳跳乐</span>
+              <span>探索大世界</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="site" className="content-section site-section">
+        <SectionLabel number="05">About this site</SectionLabel>
+        <div className="site-intro">
+          <div>
+            <p className="section-kicker">aqhours.cn</p>
+            <h2>
+              <span>这是我的个人主页，</span>
+              <span>也是一处数字住处。</span>
+            </h2>
+          </div>
+          <p>
+            这里介绍我自己，也会慢慢装下我的想法、创造、音乐与游戏体验。
+            我希望它一直保留个人的温度，并随着我正在经历的生活继续生长。
+          </p>
+        </div>
+
+        <blockquote className="quote-panel liquid-glass">
+          <BrandMark />
+          <p className="hero-serif">
+            <span>“与你相伴的时光，如此珍贵，如此难忘。”</span>
+            <span>“想要紧紧抱着，不愿放手。”</span>
+          </p>
+          <footer>THE FEELING I WANT TO KEEP</footer>
+        </blockquote>
+      </section>
+
+      <footer className="site-footer">
+        <a className="site-brand" href="#top">
+          <BrandMark />
+          <span>aqhours</span>
+        </a>
+        <p>生活在南昌 · 学习计算机 · 保持创造</p>
+        <span>© 2026 aqhours.cn</span>
+      </footer>
     </main>
   );
 }

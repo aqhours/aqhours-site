@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { Noto_Serif_SC } from "next/font/google";
+import { Inter, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
 
 const notoSerifSC = Noto_Serif_SC({
   display: "swap",
@@ -40,7 +46,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={notoSerifSC.variable}>{children}</body>
+      <body className={`${inter.variable} ${notoSerifSC.variable}`}>{children}</body>
     </html>
   );
 }
