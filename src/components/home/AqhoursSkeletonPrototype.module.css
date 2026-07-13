@@ -1,0 +1,102 @@
+.prototype {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: #f2f1ed;
+  color: #111216;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+.stage {
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(32px, 6vw, 96px);
+}
+
+.letterform {
+  display: block;
+  width: min(92vw, 1640px);
+  height: auto;
+  overflow: visible;
+  transform: skewX(-11deg) rotate(-1deg);
+  transform-origin: center;
+}
+
+.skeleton,
+.skeletonShadow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.skeletonShadow {
+  stroke: rgba(17, 18, 22, 0.07);
+  stroke-width: 60;
+}
+
+.skeleton {
+  stroke: #111216;
+  stroke-width: 32;
+}
+
+.prototypeNote {
+  position: fixed;
+  z-index: 2;
+  right: clamp(16px, 3vw, 40px);
+  bottom: clamp(16px, 3vw, 40px);
+  display: grid;
+  gap: 4px;
+  max-width: min(310px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid rgba(17, 18, 22, 0.14);
+  border-radius: 10px;
+  background: rgba(242, 241, 237, 0.9);
+  box-shadow: 0 10px 30px rgba(17, 18, 22, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.prototypeNote span,
+.prototypeNote small {
+  color: rgba(17, 18, 22, 0.56);
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.prototypeNote strong {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 720px) {
+  .stage {
+    padding: 20px;
+  }
+
+  .letterform {
+    width: 108vw;
+    transform: skewX(-11deg) rotate(-3deg) scale(0.96);
+  }
+
+  .prototypeNote {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    max-width: none;
+  }
+}
