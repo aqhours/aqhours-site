@@ -1,5 +1,3 @@
-import { HomepageHero } from "@/components/home/HomepageHero";
-
 export default function Home() {
-  return <HomepageHero />;
+  return <main className="rebuild-canvas" aria-label="aqhours" />;
 }
