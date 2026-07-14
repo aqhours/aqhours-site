@@ -52,6 +52,30 @@
   line-height: 1.4;
 }
 
+.replayButton {
+  width: fit-content;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(7, 30, 49, 0.72);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.replayButton:hover {
+  color: #071e31;
+}
+
+.replayButton:focus-visible {
+  outline: 2px solid rgba(7, 30, 49, 0.58);
+  outline-offset: 4px;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;
