@@ -1,5 +1,5 @@
-import { AqhoursSkeletonPrototype } from "@/components/home/AqhoursSkeletonPrototype";
+import { GlassStrokePrototype } from "@/components/home/GlassStrokePrototype";
 
 export default function Home() {
-  return <AqhoursSkeletonPrototype />;
+  return <GlassStrokePrototype />;
 }

@@ -2,42 +2,23 @@
   position: relative;
   min-height: 100svh;
   overflow: hidden;
-  background: #f2f1ed;
-  color: #111216;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.4), transparent 30%),
+    radial-gradient(circle at 80% 82%, rgba(5, 67, 145, 0.35), transparent 42%),
+    linear-gradient(155deg, #0872dc 0%, #188ff1 48%, #7cc9f8 100%);
+  color: #071e31;
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
 }
 
 .stage {
-  min-height: 100svh;
-  display: grid;
-  place-items: center;
-  padding: clamp(32px, 6vw, 96px);
+  position: absolute;
+  inset: 0;
 }
 
-.letterform {
+.stage canvas {
   display: block;
-  width: min(92vw, 1640px);
-  height: auto;
-  overflow: visible;
-  transform: skewX(-11deg) rotate(-1deg);
-  transform-origin: center;
-}
-
-.skeleton,
-.skeletonShadow {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.skeletonShadow {
-  stroke: rgba(17, 18, 22, 0.07);
-  stroke-width: 60;
-}
-
-.skeleton {
-  stroke: #111216;
-  stroke-width: 32;
+  width: 100%;
+  height: 100%;
 }
 
 .prototypeNote {
@@ -47,18 +28,18 @@
   bottom: clamp(16px, 3vw, 40px);
   display: grid;
   gap: 4px;
-  max-width: min(310px, calc(100vw - 32px));
+  max-width: min(340px, calc(100vw - 32px));
   padding: 14px 16px;
-  border: 1px solid rgba(17, 18, 22, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 10px;
-  background: rgba(242, 241, 237, 0.9);
-  box-shadow: 0 10px 30px rgba(17, 18, 22, 0.08);
-  backdrop-filter: blur(12px);
+  background: rgba(242, 249, 255, 0.82);
+  box-shadow: 0 12px 34px rgba(0, 45, 105, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 .prototypeNote span,
 .prototypeNote small {
-  color: rgba(17, 18, 22, 0.56);
+  color: rgba(7, 30, 49, 0.57);
   font-size: 11px;
   line-height: 1.4;
   letter-spacing: 0.08em;
@@ -84,15 +65,6 @@
 }
 
 @media (max-width: 720px) {
-  .stage {
-    padding: 20px;
-  }
-
-  .letterform {
-    width: 108vw;
-    transform: skewX(-11deg) rotate(-3deg) scale(0.96);
-  }
-
   .prototypeNote {
     right: 12px;
     bottom: 12px;
