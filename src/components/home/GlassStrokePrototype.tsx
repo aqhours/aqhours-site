@@ -6,7 +6,7 @@ import * as THREE from "three";
 
 import styles from "./GlassStrokePrototype.module.css";
 
-// PROTOTYPE 02 — one material study only. No Aqhours lettering, clouds, or scene modes yet.
+// PROTOTYPE 03 — one connected Aqhours word study. No clouds or scene modes yet.
 const VERTEX_SHADER = /* glsl */ `
   varying vec3 vWorldPosition;
   varying vec3 vWorldNormal;
@@ -75,85 +75,98 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 glassColor = mix(skyTint, dispersedReflection, 0.7);
     glassColor = mix(glassColor, innerLayer, 0.28 + innerBand * 0.16);
     glassColor += uEdgeTint * fresnel * (0.55 + innerBand * 0.35);
-    glassColor = mix(glassColor, vec3(1.0), highlight * 0.62);
+    glassColor = mix(glassColor, vec3(1.0), highlight * 0.46);
     glassColor = mix(glassColor, uSkyBottom * 0.72, shadowBand * 0.14);
-    glassColor = mix(vec3(0.78, 0.91, 1.0), glassColor, 0.82);
+    glassColor = mix(vec3(0.82, 0.94, 1.0), glassColor, 0.94);
 
-    float alpha = 0.28 + fresnel * 0.62 + highlight * 0.3 + innerBand * 0.1;
-    alpha = clamp(alpha, 0.28, 0.96);
+    float alpha = 0.045 + fresnel * 0.46 + highlight * 0.12 + innerBand * 0.035;
+    alpha = clamp(alpha, 0.045, 0.64);
 
     gl_FragColor = vec4(glassColor, alpha);
   }
 `;
 
-function makeMaterialStudyCurve() {
+type SkeletonPoint = readonly [number, number];
+type SkeletonSegment = readonly [SkeletonPoint, SkeletonPoint, SkeletonPoint];
+
+const AQHOURS_START: SkeletonPoint = [78, 560];
+const AQHOURS_SEGMENTS: SkeletonSegment[] = [
+  [[138, 370], [208, 118], [300, 78]],
+  [[360, 50], [414, 410], [456, 560]],
+  [[444, 480], [380, 332], [270, 320]],
+  [[350, 318], [445, 334], [520, 326]],
+  [[532, 230], [600, 180], [676, 215]],
+  [[760, 255], [760, 400], [700, 460]],
+  [[640, 515], [535, 485], [525, 395]],
+  [[515, 300], [600, 240], [675, 275]],
+  [[735, 305], [730, 390], [700, 450]],
+  [[675, 520], [675, 600], [730, 625]],
+  [[780, 645], [805, 520], [830, 400]],
+  [[850, 300], [862, 165], [900, 118]],
+  [[938, 82], [920, 370], [920, 455]],
+  [[935, 360], [980, 285], [1040, 300]],
+  [[1100, 315], [1090, 440], [1100, 455]],
+  [[1120, 330], [1190, 265], [1260, 300]],
+  [[1330, 335], [1330, 450], [1260, 485]],
+  [[1190, 520], [1120, 450], [1140, 370]],
+  [[1160, 300], [1260, 295], [1290, 360]],
+  [[1305, 410], [1310, 470], [1345, 480]],
+  [[1370, 485], [1375, 350], [1385, 310]],
+  [[1370, 410], [1390, 500], [1450, 490]],
+  [[1510, 480], [1510, 350], [1520, 310]],
+  [[1515, 400], [1515, 480], [1560, 480]],
+  [[1590, 480], [1590, 340], [1600, 310]],
+  [[1605, 370], [1610, 310], [1660, 315]],
+  [[1690, 320], [1700, 350], [1700, 380]],
+  [[1705, 300], [1780, 275], [1820, 315]],
+  [[1855, 350], [1810, 390], [1755, 408]],
+  [[1705, 428], [1725, 495], [1790, 510]],
+  [[1855, 525], [1900, 480], [1915, 430]],
+];
+
+function makeAqhoursCurve() {
   const path = new THREE.CurvePath<THREE.Vector3>();
-  const start = new THREE.Vector3(-3.65, -0.42, 0.02);
+  const scale = 0.00515;
+  const italicLean = 0.27;
+  const originX = 996;
+  const baselineY = 455;
+  const depthAt = (index: number) =>
+    Math.sin(index * 0.82) * 0.045 + Math.sin(index * 0.23) * 0.025;
+  const toWorld = ([x, y]: SkeletonPoint, depth: number) => {
+    const worldY = (baselineY - y) * scale;
+    return new THREE.Vector3(
+      (x - originX) * scale + worldY * italicLean,
+      worldY,
+      depth,
+    );
+  };
 
-  path.add(
-    new THREE.CubicBezierCurve3(
-      start,
-      new THREE.Vector3(-3.05, -1.28, 0.12),
-      new THREE.Vector3(-1.75, -1.18, 0.28),
-      new THREE.Vector3(-1.02, -0.4, 0.14),
-    ),
-  );
-  path.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(-1.02, -0.4, 0.14),
-      new THREE.Vector3(-0.28, 0.42, -0.1),
-      new THREE.Vector3(0.04, 1.45, -0.3),
-      new THREE.Vector3(0.55, 1.02, -0.24),
-    ),
-  );
-  path.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(0.55, 1.02, -0.24),
-      new THREE.Vector3(1.08, 0.5, -0.18),
-      new THREE.Vector3(0.92, -0.58, 0.16),
-      new THREE.Vector3(0.22, -0.72, 0.34),
-    ),
-  );
-  path.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(0.22, -0.72, 0.34),
-      new THREE.Vector3(-0.48, -0.86, 0.4),
-      new THREE.Vector3(-0.54, 0.18, 0.12),
-      new THREE.Vector3(0.16, 0.3, -0.06),
-    ),
-  );
-  path.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(0.16, 0.3, -0.06),
-      new THREE.Vector3(0.84, 0.4, -0.18),
-      new THREE.Vector3(1.1, -0.76, 0.26),
-      new THREE.Vector3(1.74, -0.7, 0.2),
-    ),
-  );
-  path.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(1.74, -0.7, 0.2),
-      new THREE.Vector3(2.38, -0.64, 0.08),
-      new THREE.Vector3(2.32, 0.34, -0.14),
-      new THREE.Vector3(3.12, 0.45, -0.04),
-    ),
-  );
-  path.add(
-    new THREE.CubicBezierCurve3(
-      new THREE.Vector3(3.12, 0.45, -0.04),
-      new THREE.Vector3(3.52, 0.5, 0.03),
-      new THREE.Vector3(3.67, 0.18, 0.1),
-      new THREE.Vector3(3.82, 0.04, 0.14),
-    ),
-  );
+  let start = toWorld(AQHOURS_START, depthAt(0));
 
-  return path;
+  AQHOURS_SEGMENTS.forEach(([controlA, controlB, endpoint], index) => {
+    const startDepth = depthAt(index);
+    const endDepth = depthAt(index + 1);
+    const end = toWorld(endpoint, endDepth);
+
+    path.add(
+      new THREE.CubicBezierCurve3(
+        start,
+        toWorld(controlA, THREE.MathUtils.lerp(startDepth, endDepth, 0.34)),
+        toWorld(controlB, THREE.MathUtils.lerp(startDepth, endDepth, 0.68)),
+        end,
+      ),
+    );
+    start = end;
+  });
+
+  return new THREE.CatmullRomCurve3(path.getSpacedPoints(520), false, "centripetal");
 }
 
 function makeVariableTubeGeometry(
   curve: THREE.Curve<THREE.Vector3>,
   tubularSegments: number,
   radialSegments: number,
+  baseRadius: number,
 ) {
   const frames = curve.computeFrenetFrames(tubularSegments, false);
   const positions: number[] = [];
@@ -167,7 +180,7 @@ function makeVariableTubeGeometry(
     curve.getPointAt(progress, point);
 
     const radius =
-      0.205 *
+      baseRadius *
       (0.95 + Math.sin(progress * Math.PI) * 0.08 + Math.sin(progress * Math.PI * 5) * 0.025);
     const normal = frames.normals[segment];
     const binormal = frames.binormals[segment];
@@ -275,10 +288,10 @@ function GlassStroke() {
   const groupRef = useRef<THREE.Group>(null);
   const { viewport } = useThree();
 
-  const curve = useMemo(() => makeMaterialStudyCurve(), []);
-  const geometry = useMemo(() => makeVariableTubeGeometry(curve, 420, 48), [curve]);
+  const curve = useMemo(() => makeAqhoursCurve(), []);
+  const geometry = useMemo(() => makeVariableTubeGeometry(curve, 880, 36, 0.145), [curve]);
   const capGeometry = useMemo(
-    () => new THREE.SphereGeometry(0.195, 48, 20, 0, Math.PI * 2, 0, Math.PI / 2),
+    () => new THREE.SphereGeometry(0.138, 36, 18, 0, Math.PI * 2, 0, Math.PI / 2),
     [],
   );
   const start = useMemo(() => curve.getPointAt(0), [curve]);
@@ -338,10 +351,10 @@ function GlassStroke() {
 
   if (!environment) return null;
 
-  const scale = Math.min(1, viewport.width / 8.15);
+  const scale = Math.min(1, viewport.width / 10.35);
 
   return (
-    <group ref={groupRef} rotation={[-0.04, -0.08, -0.025]} scale={scale}>
+    <group ref={groupRef} rotation={[-0.025, -0.045, -0.015]} scale={scale}>
       <mesh geometry={geometry} material={material} />
       <mesh
         position={start}
@@ -362,7 +375,7 @@ function GlassStroke() {
 export function GlassStrokePrototype() {
   return (
     <main className={styles.prototype}>
-      <h1 className={styles.srOnly}>Aqhours 玻璃材质实验</h1>
+      <h1 className={styles.srOnly}>Aqhours 连写玻璃字形实验</h1>
 
       <div className={styles.stage} aria-hidden="true">
         <Canvas
@@ -377,9 +390,9 @@ export function GlassStrokePrototype() {
       </div>
 
       <aside className={styles.prototypeNote} aria-label="原型状态">
-        <span>PROTOTYPE 02 · MATERIAL STUDY</span>
-        <strong>原创环境反射玻璃笔画</strong>
-        <small>当前只确认通透度、边缘色散与多层高光</small>
+        <span>PROTOTYPE 03 · CONNECTED WORD</span>
+        <strong>完整斜体连写 Aqhours</strong>
+        <small>当前只确认透明度、字形连接与整体斜度</small>
       </aside>
     </main>
   );
