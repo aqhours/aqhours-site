@@ -366,6 +366,47 @@ const WRITE_DURATION = 3.35;
 const FLOW_PAUSE = 0.55;
 const FLOW_DURATION = 5.4;
 
+// POST-WRITE MOTION — edit these values to tune the transition checkpoint.
+const HELLO_SETTLE_MOTION = {
+  hold: 0.25,
+  duration: 2.2,
+  scale: 0.25,
+  lift: 0.52,
+  startRotation: [-0.025, -0.045, 0] as const,
+  // One complete Y-axis flip, ending slightly turned so the glass keeps its depth.
+  endRotation: [-0.06, -Math.PI * 2 - 0.15, 0] as const,
+};
+
+function easeHelloSettle(progress: number) {
+  // cubic-bezier(0.77, 0, 0.175, 1), solved by bisection.
+  if (progress <= 0) return 0;
+  if (progress >= 1) return 1;
+
+  const sample = (time: number, first: number, second: number) => {
+    const inverse = 1 - time;
+    return (
+      3 * inverse * inverse * time * first +
+      3 * inverse * time * time * second +
+      time * time * time
+    );
+  };
+
+  let lower = 0;
+  let upper = 1;
+  let time = progress;
+
+  for (let iteration = 0; iteration < 8; iteration += 1) {
+    if (sample(time, 0.77, 0.175) < progress) {
+      lower = time;
+    } else {
+      upper = time;
+    }
+    time = (lower + upper) * 0.5;
+  }
+
+  return sample(time, 0, 1);
+}
+
 function tubeRadiusAt(progress: number, baseRadius = TUBE_BASE_RADIUS) {
   return (
     baseRadius *
@@ -861,6 +902,7 @@ type GlassStrokeProps = {
 function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
   const environment = useStudioEnvironment();
   const animationStartRef = useRef<number | null>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const { invalidate, viewport } = useThree();
 
   const curves = useMemo(
@@ -987,14 +1029,58 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
       material.uniforms.uSweep.value = sweep;
       material.uniforms.uSweepStrength.value = sweepStrength;
     });
+
+    const settleRawProgress = reduceMotion
+      ? 1
+      : THREE.MathUtils.clamp(
+          (afterWrite - HELLO_SETTLE_MOTION.hold) /
+            HELLO_SETTLE_MOTION.duration,
+          0,
+          1,
+        );
+    const settleProgress = easeHelloSettle(settleRawProgress);
+    const group = groupRef.current;
+
+    if (group) {
+      const responsiveScale = Math.min(1.05, viewport.width / 9.05);
+      const startRotation = HELLO_SETTLE_MOTION.startRotation;
+      const endRotation = HELLO_SETTLE_MOTION.endRotation;
+
+      group.scale.setScalar(
+        responsiveScale *
+          THREE.MathUtils.lerp(1, HELLO_SETTLE_MOTION.scale, settleProgress),
+      );
+      group.position.y = THREE.MathUtils.lerp(
+        0,
+        HELLO_SETTLE_MOTION.lift,
+        settleProgress,
+      );
+      group.rotation.set(
+        THREE.MathUtils.lerp(startRotation[0], endRotation[0], settleProgress),
+        THREE.MathUtils.lerp(startRotation[1], endRotation[1], settleProgress),
+        THREE.MathUtils.lerp(startRotation[2], endRotation[2], settleProgress),
+      );
+    }
   });
 
   if (!environment) return null;
 
-  const scale = Math.min(1.05, viewport.width / 9.05);
+  const responsiveScale = Math.min(1.05, viewport.width / 9.05);
+  const initialProgress = reduceMotion ? 1 : 0;
+  const initialRotation = reduceMotion
+    ? HELLO_SETTLE_MOTION.endRotation
+    : HELLO_SETTLE_MOTION.startRotation;
 
   return (
-    <group rotation={[-0.025, -0.045, 0]} scale={scale}>
+    <group
+      ref={groupRef}
+      position={[0, HELLO_SETTLE_MOTION.lift * initialProgress, 0]}
+      rotation={initialRotation}
+      scale={
+        responsiveScale *
+        THREE.MathUtils.lerp(1, HELLO_SETTLE_MOTION.scale, initialProgress)
+      }
+    >
       <mesh geometry={geometries.stem.geometry} material={groupedMaterial} />
       <mesh geometry={geometries.word.geometry} material={groupedMaterial} />
     </group>
