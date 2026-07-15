@@ -6,20 +6,172 @@ import * as THREE from "three";
 
 import styles from "./GlassStrokePrototype.module.css";
 
-// PROTOTYPE 04 — one-stroke write-on and traveling reflection study.
+type GlassTuning = {
+  fresnelPower: number;
+  internalRimCenter: number;
+  internalRimWidth: number;
+  reflectionDrift: number;
+  innerDrift: number;
+  ior: number;
+  aberrationBase: number;
+  aberrationEdge: number;
+  highlightStart: number;
+  highlightEnd: number;
+  innerBandStart: number;
+  innerBandEnd: number;
+  shadowStart: number;
+  shadowEnd: number;
+  flowWidth: number;
+  flowCoreWidth: number;
+  capProfileEnd: number;
+  capLensStart: number;
+  capLensEnd: number;
+  capGlintPower: number;
+  reflectionColor: number;
+  innerColor: number;
+  baseDark: number;
+  baseLight: number;
+  reflectionMix: number;
+  innerMix: number;
+  edgeLight: number;
+  internalRimLight: number;
+  highlightLight: number;
+  shadowColor: number;
+  shadowStrength: number;
+  flowBaseLight: number;
+  flowFacingLight: number;
+  capRefraction: number;
+  capGlintLight: number;
+  flowCoreLight: number;
+  baseAlpha: number;
+  edgeAlpha: number;
+  internalRimAlpha: number;
+  highlightAlpha: number;
+  innerBandAlpha: number;
+  shadowBandAlpha: number;
+  flowAlpha: number;
+  capLensAlpha: number;
+  capGlintAlpha: number;
+  maxAlpha: number;
+};
+
+type GlassTuningKey = keyof GlassTuning;
+
+const DEFAULT_GLASS_TUNING: GlassTuning = {
+  fresnelPower: 5.8,
+  internalRimCenter: 0.34,
+  internalRimWidth: 0.075,
+  reflectionDrift: 0.035,
+  innerDrift: 0.022,
+  ior: 1.46,
+  aberrationBase: 0.012,
+  aberrationEdge: 0.038,
+  highlightStart: 0.68,
+  highlightEnd: 0.98,
+  innerBandStart: 0.58,
+  innerBandEnd: 0.92,
+  shadowStart: 0.06,
+  shadowEnd: 0.32,
+  flowWidth: 0.036,
+  flowCoreWidth: 0.011,
+  capProfileEnd: 0.58,
+  capLensStart: 0.18,
+  capLensEnd: 0.92,
+  capGlintPower: 30,
+  reflectionColor: 0.1,
+  innerColor: 0.08,
+  baseDark: 0.48,
+  baseLight: 0.96,
+  reflectionMix: 0.22,
+  innerMix: 0.08,
+  edgeLight: 0.58,
+  internalRimLight: 0.34,
+  highlightLight: 0.24,
+  shadowColor: 0.24,
+  shadowStrength: 0.2,
+  flowBaseLight: 0.1,
+  flowFacingLight: 0.14,
+  capRefraction: 0.3,
+  capGlintLight: 0.72,
+  flowCoreLight: 0.2,
+  baseAlpha: 0.004,
+  edgeAlpha: 0.25,
+  internalRimAlpha: 0.06,
+  highlightAlpha: 0.055,
+  innerBandAlpha: 0.012,
+  shadowBandAlpha: 0.012,
+  flowAlpha: 0.03,
+  capLensAlpha: 0.05,
+  capGlintAlpha: 0.22,
+  maxAlpha: 0.32,
+};
+
+const GLASS_UNIFORM_NAMES: Record<GlassTuningKey, string> = {
+  fresnelPower: "uFresnelPower",
+  internalRimCenter: "uInternalRimCenter",
+  internalRimWidth: "uInternalRimWidth",
+  reflectionDrift: "uReflectionDrift",
+  innerDrift: "uInnerDrift",
+  ior: "uIor",
+  aberrationBase: "uAberrationBase",
+  aberrationEdge: "uAberrationEdge",
+  highlightStart: "uHighlightStart",
+  highlightEnd: "uHighlightEnd",
+  innerBandStart: "uInnerBandStart",
+  innerBandEnd: "uInnerBandEnd",
+  shadowStart: "uShadowStart",
+  shadowEnd: "uShadowEnd",
+  flowWidth: "uFlowWidth",
+  flowCoreWidth: "uFlowCoreWidth",
+  capProfileEnd: "uCapProfileEnd",
+  capLensStart: "uCapLensStart",
+  capLensEnd: "uCapLensEnd",
+  capGlintPower: "uCapGlintPower",
+  reflectionColor: "uReflectionColor",
+  innerColor: "uInnerColor",
+  baseDark: "uBaseDark",
+  baseLight: "uBaseLight",
+  reflectionMix: "uReflectionMix",
+  innerMix: "uInnerMix",
+  edgeLight: "uEdgeLight",
+  internalRimLight: "uInternalRimLight",
+  highlightLight: "uHighlightLight",
+  shadowColor: "uShadowColor",
+  shadowStrength: "uShadowStrength",
+  flowBaseLight: "uFlowBaseLight",
+  flowFacingLight: "uFlowFacingLight",
+  capRefraction: "uCapRefraction",
+  capGlintLight: "uCapGlintLight",
+  flowCoreLight: "uFlowCoreLight",
+  baseAlpha: "uBaseAlpha",
+  edgeAlpha: "uEdgeAlpha",
+  internalRimAlpha: "uInternalRimAlpha",
+  highlightAlpha: "uHighlightAlpha",
+  innerBandAlpha: "uInnerBandAlpha",
+  shadowBandAlpha: "uShadowBandAlpha",
+  flowAlpha: "uFlowAlpha",
+  capLensAlpha: "uCapLensAlpha",
+  capGlintAlpha: "uCapGlintAlpha",
+  maxAlpha: "uMaxAlpha",
+};
+
+// PROTOTYPE 06 — clear material and rounded-cap study.
 const VERTEX_SHADER = /* glsl */ `
   attribute float aPathProgress;
+  attribute float aCapProgress;
   uniform float uPathOffset;
 
   varying vec3 vWorldPosition;
   varying vec3 vWorldNormal;
   varying float vPathProgress;
+  varying float vCapProgress;
 
   void main() {
     vec4 worldPosition = modelMatrix * vec4(position, 1.0);
     vWorldPosition = worldPosition.xyz;
     vWorldNormal = normalize(mat3(modelMatrix) * normal);
     vPathProgress = clamp(aPathProgress + uPathOffset, 0.0, 1.0);
+    vCapProgress = aCapProgress;
     gl_Position = projectionMatrix * viewMatrix * worldPosition;
   }
 `;
@@ -27,15 +179,59 @@ const VERTEX_SHADER = /* glsl */ `
 const FRAGMENT_SHADER = /* glsl */ `
   uniform samplerCube uEnvironment;
   uniform float uTime;
-  uniform vec3 uSkyTop;
-  uniform vec3 uSkyBottom;
-  uniform vec3 uEdgeTint;
   uniform float uSweep;
   uniform float uSweepStrength;
+  uniform float uFresnelPower;
+  uniform float uInternalRimCenter;
+  uniform float uInternalRimWidth;
+  uniform float uReflectionDrift;
+  uniform float uInnerDrift;
+  uniform float uIor;
+  uniform float uAberrationBase;
+  uniform float uAberrationEdge;
+  uniform float uHighlightStart;
+  uniform float uHighlightEnd;
+  uniform float uInnerBandStart;
+  uniform float uInnerBandEnd;
+  uniform float uShadowStart;
+  uniform float uShadowEnd;
+  uniform float uFlowWidth;
+  uniform float uFlowCoreWidth;
+  uniform float uCapProfileEnd;
+  uniform float uCapLensStart;
+  uniform float uCapLensEnd;
+  uniform float uCapGlintPower;
+  uniform float uReflectionColor;
+  uniform float uInnerColor;
+  uniform float uBaseDark;
+  uniform float uBaseLight;
+  uniform float uReflectionMix;
+  uniform float uInnerMix;
+  uniform float uEdgeLight;
+  uniform float uInternalRimLight;
+  uniform float uHighlightLight;
+  uniform float uShadowColor;
+  uniform float uShadowStrength;
+  uniform float uFlowBaseLight;
+  uniform float uFlowFacingLight;
+  uniform float uCapRefraction;
+  uniform float uCapGlintLight;
+  uniform float uFlowCoreLight;
+  uniform float uBaseAlpha;
+  uniform float uEdgeAlpha;
+  uniform float uInternalRimAlpha;
+  uniform float uHighlightAlpha;
+  uniform float uInnerBandAlpha;
+  uniform float uShadowBandAlpha;
+  uniform float uFlowAlpha;
+  uniform float uCapLensAlpha;
+  uniform float uCapGlintAlpha;
+  uniform float uMaxAlpha;
 
   varying vec3 vWorldPosition;
   varying vec3 vWorldNormal;
   varying float vPathProgress;
+  varying float vCapProgress;
 
   mat2 rotate2d(float angle) {
     float sine = sin(angle);
@@ -51,12 +247,16 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 normal = normalize(vWorldNormal);
     vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
     float facing = clamp(dot(normal, viewDirection), 0.0, 1.0);
-    float fresnel = pow(1.0 - facing, 2.65);
+    float fresnel = pow(1.0 - facing, max(uFresnelPower, 0.001));
+    float internalRim = exp(-pow(
+      (facing - uInternalRimCenter) / max(uInternalRimWidth, 0.001),
+      2.0
+    ));
 
     vec3 reflection = reflect(-viewDirection, normal);
-    reflection.xz = rotate2d(uTime * 0.035) * reflection.xz;
+    reflection.xz = rotate2d(uTime * uReflectionDrift) * reflection.xz;
 
-    float aberration = 0.012 + fresnel * 0.038;
+    float aberration = uAberrationBase + fresnel * uAberrationEdge;
     vec3 redSample = textureCube(
       uEnvironment,
       normalize(reflection + vec3(aberration, -aberration * 0.3, 0.0))
@@ -70,36 +270,84 @@ const FRAGMENT_SHADER = /* glsl */ `
 
     vec3 foldedNormal = normalize(normal + vec3(-0.24, 0.14, -0.1));
     vec3 innerReflection = reflect(-viewDirection, foldedNormal);
-    innerReflection.xy = rotate2d(-uTime * 0.022 + 0.4) * innerReflection.xy;
+    innerReflection.xy = rotate2d(-uTime * uInnerDrift + 0.4) * innerReflection.xy;
     vec3 innerLayer = textureCube(uEnvironment, innerReflection).rgb;
+    vec3 refractionDirection = refract(-viewDirection, normal, 1.0 / max(uIor, 1.001));
+    vec3 refractedLayer = textureCube(uEnvironment, normalize(refractionDirection)).rgb;
 
     float reflectedLight = glassLuma(dispersedReflection);
     float innerLight = glassLuma(innerLayer);
-    float highlight = smoothstep(0.68, 0.98, reflectedLight);
-    float innerBand = smoothstep(0.58, 0.92, innerLight);
-    float shadowBand = 1.0 - smoothstep(0.06, 0.32, innerLight);
+    float highlight = smoothstep(
+      uHighlightStart,
+      max(uHighlightEnd, uHighlightStart + 0.001),
+      reflectedLight
+    );
+    float innerBand = smoothstep(
+      uInnerBandStart,
+      max(uInnerBandEnd, uInnerBandStart + 0.001),
+      innerLight
+    );
+    float shadowBand = 1.0 - smoothstep(
+      uShadowStart,
+      max(uShadowEnd, uShadowStart + 0.001),
+      innerLight
+    );
     float sweepDistance = abs(vPathProgress - uSweep);
-    float travelingHighlight = exp(-pow(sweepDistance / 0.036, 2.0)) * uSweepStrength;
-    float travelingCore = exp(-pow(sweepDistance / 0.011, 2.0)) * uSweepStrength;
+    float travelingHighlight = exp(-pow(
+      sweepDistance / max(uFlowWidth, 0.001),
+      2.0
+    )) * uSweepStrength;
+    float travelingCore = exp(-pow(
+      sweepDistance / max(uFlowCoreWidth, 0.001),
+      2.0
+    )) * uSweepStrength;
+    float capProfile = smoothstep(0.0, max(uCapProfileEnd, 0.001), vCapProgress);
+    float capLens = capProfile * smoothstep(
+      uCapLensStart,
+      max(uCapLensEnd, uCapLensStart + 0.001),
+      facing
+    );
+    float capGlint = capProfile * pow(
+      max(dot(normal, normalize(vec3(-0.38, 0.54, 0.75))), 0.0),
+      max(uCapGlintPower, 0.001)
+    );
 
-    vec3 skyTint = mix(uSkyBottom, uSkyTop, normal.y * 0.5 + 0.5);
-    vec3 glassColor = mix(skyTint, dispersedReflection, 0.7);
-    glassColor = mix(glassColor, innerLayer, 0.28 + innerBand * 0.16);
-    glassColor += uEdgeTint * fresnel * (0.55 + innerBand * 0.35);
-    glassColor = mix(glassColor, vec3(1.0), highlight * 0.46);
-    glassColor = mix(glassColor, uSkyBottom * 0.72, shadowBand * 0.14);
+    vec3 neutralReflection = mix(
+      vec3(reflectedLight),
+      dispersedReflection,
+      uReflectionColor
+    );
+    vec3 neutralInner = mix(vec3(innerLight), innerLayer, uInnerColor);
+    vec3 glassColor = mix(vec3(uBaseDark), vec3(uBaseLight), reflectedLight);
+    glassColor = mix(glassColor, neutralReflection, uReflectionMix);
+    glassColor = mix(glassColor, neutralInner, innerBand * uInnerMix);
     glassColor = mix(
       glassColor,
-      vec3(0.9, 0.985, 1.0),
-      travelingHighlight * (0.16 + facing * 0.22)
+      vec3(1.0),
+      fresnel * uEdgeLight +
+        internalRim * uInternalRimLight +
+        highlight * uHighlightLight
     );
-    glassColor += vec3(0.16, 0.34, 0.42) * travelingCore * fresnel;
-    glassColor = mix(vec3(0.82, 0.94, 1.0), glassColor, 0.94);
+    glassColor = mix(
+      glassColor,
+      vec3(uShadowColor),
+      shadowBand * (1.0 - facing) * uShadowStrength
+    );
+    glassColor = mix(
+      glassColor,
+      vec3(1.0),
+      travelingHighlight * (uFlowBaseLight + facing * uFlowFacingLight)
+    );
+    glassColor = mix(glassColor, refractedLayer, capLens * uCapRefraction);
+    glassColor = mix(glassColor, vec3(1.0), capGlint * uCapGlintLight);
+    glassColor += vec3(uFlowCoreLight) * travelingCore * fresnel;
 
     float alpha =
-      0.045 + fresnel * 0.46 + highlight * 0.12 + innerBand * 0.035 +
-      travelingHighlight * 0.075;
-    alpha = clamp(alpha, 0.045, 0.64);
+      uBaseAlpha + fresnel * uEdgeAlpha + internalRim * uInternalRimAlpha +
+      highlight * uHighlightAlpha + innerBand * uInnerBandAlpha +
+      shadowBand * uShadowBandAlpha + travelingHighlight * uFlowAlpha +
+      capLens * uCapLensAlpha + capGlint * uCapGlintAlpha;
+    alpha = clamp(alpha, uBaseAlpha, max(uMaxAlpha, uBaseAlpha));
 
     gl_FragColor = vec4(glassColor, alpha);
   }
@@ -111,10 +359,19 @@ type SkeletonSegment = readonly [SkeletonPoint, SkeletonPoint, SkeletonPoint];
 const STEM_TUBULAR_SEGMENTS = 260;
 const WORD_TUBULAR_SEGMENTS = 820;
 const RADIAL_SEGMENTS = 36;
+const CAP_SEGMENTS = 10;
+const TUBE_BASE_RADIUS = 0.145;
 const WRITE_DELAY = 0.24;
 const WRITE_DURATION = 3.35;
 const FLOW_PAUSE = 0.55;
 const FLOW_DURATION = 5.4;
+
+function tubeRadiusAt(progress: number, baseRadius = TUBE_BASE_RADIUS) {
+  return (
+    baseRadius *
+    (0.95 + Math.sin(progress * Math.PI) * 0.08 + Math.sin(progress * Math.PI * 5) * 0.025)
+  );
+}
 
 // Centerline rebuilt from the user-provided 638 × 200 SVG.
 const HELLO_STEM_START: SkeletonPoint = [8.69214, 166.558];
@@ -207,22 +464,24 @@ function makeVariableTubeGeometry(
   baseRadius: number,
   progressStart = 0,
   progressEnd = 1,
+  capStart = true,
+  capEnd = true,
 ) {
   const frames = curve.computeFrenetFrames(tubularSegments, false);
   const positions: number[] = [];
   const normals: number[] = [];
   const pathProgresses: number[] = [];
-  const indices: number[] = [];
+  const capProgresses: number[] = [];
+  const tubeIndices: number[] = [];
   const point = new THREE.Vector3();
   const offset = new THREE.Vector3();
+  const radiusAt = (progress: number) => tubeRadiusAt(progress, baseRadius);
 
   for (let segment = 0; segment <= tubularSegments; segment += 1) {
     const progress = segment / tubularSegments;
     curve.getPointAt(progress, point);
 
-    const radius =
-      baseRadius *
-      (0.95 + Math.sin(progress * Math.PI) * 0.08 + Math.sin(progress * Math.PI * 5) * 0.025);
+    const radius = radiusAt(progress);
     const normal = frames.normals[segment];
     const binormal = frames.binormals[segment];
 
@@ -231,12 +490,13 @@ function makeVariableTubeGeometry(
       offset
         .copy(normal)
         .multiplyScalar(Math.cos(angle) * radius)
-        .addScaledVector(binormal, Math.sin(angle) * radius * 0.84);
+        .addScaledVector(binormal, Math.sin(angle) * radius);
 
       positions.push(point.x + offset.x, point.y + offset.y, point.z + offset.z);
       offset.normalize();
       normals.push(offset.x, offset.y, offset.z);
       pathProgresses.push(THREE.MathUtils.lerp(progressStart, progressEnd, progress));
+      capProgresses.push(0);
     }
   }
 
@@ -250,18 +510,241 @@ function makeVariableTubeGeometry(
       const b = nextRing + side;
       const c = nextRing + nextSide;
       const d = ring + nextSide;
-      indices.push(a, b, d, b, c, d);
+      tubeIndices.push(a, b, d, b, c, d);
     }
   }
 
+  const addRoundedCap = (atStart: boolean) => {
+    const capIndices: number[] = [];
+    const progress = atStart ? 0 : 1;
+    const frameIndex = atStart ? 0 : tubularSegments;
+    const endpointRing = frameIndex * radialSegments;
+    const endpoint = curve.getPointAt(progress);
+    const outward = curve
+      .getTangentAt(progress)
+      .normalize()
+      .multiplyScalar(atStart ? -1 : 1);
+    const frameNormal = frames.normals[frameIndex];
+    const frameBinormal = frames.binormals[frameIndex];
+    const radius = radiusAt(progress);
+    const pathProgress = atStart ? progressStart : progressEnd;
+    const radial = new THREE.Vector3();
+    const capPoint = new THREE.Vector3();
+    const capNormal = new THREE.Vector3();
+    let previousRing = endpointRing;
+
+    for (let step = 1; step < CAP_SEGMENTS; step += 1) {
+      const arc = (step / CAP_SEGMENTS) * (Math.PI / 2);
+      const ringStart = positions.length / 3;
+
+      for (let side = 0; side < radialSegments; side += 1) {
+        const angle = (side / radialSegments) * Math.PI * 2;
+        radial
+          .copy(frameNormal)
+          .multiplyScalar(Math.cos(angle))
+          .addScaledVector(frameBinormal, Math.sin(angle));
+        capPoint
+          .copy(endpoint)
+          .addScaledVector(outward, Math.sin(arc) * radius)
+          .addScaledVector(radial, Math.cos(arc) * radius);
+        capNormal
+          .copy(radial)
+          .multiplyScalar(Math.cos(arc))
+          .addScaledVector(outward, Math.sin(arc))
+          .normalize();
+
+        positions.push(capPoint.x, capPoint.y, capPoint.z);
+        normals.push(capNormal.x, capNormal.y, capNormal.z);
+        pathProgresses.push(pathProgress);
+        capProgresses.push(step / CAP_SEGMENTS);
+      }
+
+      for (let side = 0; side < radialSegments; side += 1) {
+        const nextSide = (side + 1) % radialSegments;
+        const a = previousRing + side;
+        const b = ringStart + side;
+        const c = ringStart + nextSide;
+        const d = previousRing + nextSide;
+
+        if (atStart) capIndices.push(a, d, b, b, d, c);
+        else capIndices.push(a, b, d, b, c, d);
+      }
+
+      previousRing = ringStart;
+    }
+
+    const pole = endpoint.clone().addScaledVector(outward, radius);
+    const poleIndex = positions.length / 3;
+    positions.push(pole.x, pole.y, pole.z);
+    normals.push(outward.x, outward.y, outward.z);
+    pathProgresses.push(pathProgress);
+    capProgresses.push(1);
+
+    for (let side = 0; side < radialSegments; side += 1) {
+      const nextSide = (side + 1) % radialSegments;
+      const a = previousRing + side;
+      const d = previousRing + nextSide;
+      if (atStart) capIndices.push(a, d, poleIndex);
+      else capIndices.push(a, poleIndex, d);
+    }
+
+    return capIndices;
+  };
+
+  const startCapIndices = capStart ? addRoundedCap(true) : [];
+  const endCapIndices = capEnd ? addRoundedCap(false) : [];
+  const staticIndices = [...startCapIndices, ...tubeIndices, ...endCapIndices];
+  const dynamicCapVertexStart = positions.length / 3;
+  const dynamicCapIndices: number[] = [];
+
+  for (let step = 1; step < CAP_SEGMENTS; step += 1) {
+    for (let side = 0; side < radialSegments; side += 1) {
+      positions.push(0, 0, 0);
+      normals.push(0, 0, 1);
+      pathProgresses.push(progressStart);
+      capProgresses.push(step / CAP_SEGMENTS);
+    }
+  }
+
+  const dynamicPoleIndex = positions.length / 3;
+  positions.push(0, 0, 0);
+  normals.push(0, 0, 1);
+  pathProgresses.push(progressStart);
+  capProgresses.push(1);
+
+  let previousRing = 0;
+  for (let step = 1; step < CAP_SEGMENTS; step += 1) {
+    const ringStart = dynamicCapVertexStart + (step - 1) * radialSegments;
+
+    for (let side = 0; side < radialSegments; side += 1) {
+      const nextSide = (side + 1) % radialSegments;
+      const a = previousRing + side;
+      const b = ringStart + side;
+      const c = ringStart + nextSide;
+      const d = previousRing + nextSide;
+      dynamicCapIndices.push(a, b, d, b, c, d);
+    }
+
+    previousRing = ringStart;
+  }
+
+  for (let side = 0; side < radialSegments; side += 1) {
+    const nextSide = (side + 1) % radialSegments;
+    dynamicCapIndices.push(previousRing + side, dynamicPoleIndex, previousRing + nextSide);
+  }
+
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-  geometry.setAttribute("aPathProgress", new THREE.Float32BufferAttribute(pathProgresses, 1));
-  geometry.setIndex(indices);
+  const positionAttribute = new THREE.Float32BufferAttribute(positions, 3);
+  const normalAttribute = new THREE.Float32BufferAttribute(normals, 3);
+  const pathProgressAttribute = new THREE.Float32BufferAttribute(pathProgresses, 1);
+  geometry.setAttribute("position", positionAttribute);
+  geometry.setAttribute("normal", normalAttribute);
+  geometry.setAttribute("aPathProgress", pathProgressAttribute);
+  geometry.setAttribute("aCapProgress", new THREE.Float32BufferAttribute(capProgresses, 1));
+  geometry.setIndex([...staticIndices, ...dynamicCapIndices]);
+  geometry.clearGroups();
+  geometry.addGroup(0, 0, 0);
+  geometry.addGroup(staticIndices.length, 0, 1);
   geometry.computeBoundingSphere();
 
-  return geometry;
+  const capPoint = new THREE.Vector3();
+  const radial = new THREE.Vector3();
+  const capNormal = new THREE.Vector3();
+  let leadCapSegment = -1;
+  const updateLeadCap = (segment: number) => {
+    const clampedSegment = THREE.MathUtils.clamp(segment, 0, tubularSegments);
+    const progress = clampedSegment / tubularSegments;
+    const endpoint = curve.getPointAt(progress);
+    const outward = frames.tangents[clampedSegment];
+    const frameNormal = frames.normals[clampedSegment];
+    const frameBinormal = frames.binormals[clampedSegment];
+    const radius = radiusAt(progress);
+    const pathProgress = THREE.MathUtils.lerp(progressStart, progressEnd, progress);
+    let vertexIndex = dynamicCapVertexStart;
+
+    for (let step = 1; step < CAP_SEGMENTS; step += 1) {
+      const arc = (step / CAP_SEGMENTS) * (Math.PI / 2);
+
+      for (let side = 0; side < radialSegments; side += 1) {
+        const angle = (side / radialSegments) * Math.PI * 2;
+        radial
+          .copy(frameNormal)
+          .multiplyScalar(Math.cos(angle))
+          .addScaledVector(frameBinormal, Math.sin(angle));
+        capPoint
+          .copy(endpoint)
+          .addScaledVector(outward, Math.sin(arc) * radius)
+          .addScaledVector(radial, Math.cos(arc) * radius);
+        capNormal
+          .copy(radial)
+          .multiplyScalar(Math.cos(arc))
+          .addScaledVector(outward, Math.sin(arc))
+          .normalize();
+
+        positionAttribute.setXYZ(vertexIndex, capPoint.x, capPoint.y, capPoint.z);
+        normalAttribute.setXYZ(vertexIndex, capNormal.x, capNormal.y, capNormal.z);
+        pathProgressAttribute.setX(vertexIndex, pathProgress);
+        vertexIndex += 1;
+      }
+    }
+
+    capPoint.copy(endpoint).addScaledVector(outward, radius);
+    positionAttribute.setXYZ(dynamicPoleIndex, capPoint.x, capPoint.y, capPoint.z);
+    normalAttribute.setXYZ(dynamicPoleIndex, outward.x, outward.y, outward.z);
+    pathProgressAttribute.setX(dynamicPoleIndex, pathProgress);
+
+    const indexAttribute = geometry.getIndex();
+    if (indexAttribute) {
+      const endpointRing = clampedSegment * radialSegments;
+      const firstBandOffset = staticIndices.length;
+
+      for (let side = 0; side < radialSegments; side += 1) {
+        const nextSide = (side + 1) % radialSegments;
+        const offset = firstBandOffset + side * 6;
+        const a = endpointRing + side;
+        const b = dynamicCapVertexStart + side;
+        const c = dynamicCapVertexStart + nextSide;
+        const d = endpointRing + nextSide;
+        indexAttribute.setX(offset, a);
+        indexAttribute.setX(offset + 1, b);
+        indexAttribute.setX(offset + 2, d);
+        indexAttribute.setX(offset + 3, b);
+        indexAttribute.setX(offset + 4, c);
+        indexAttribute.setX(offset + 5, d);
+      }
+
+      indexAttribute.needsUpdate = true;
+    }
+
+    positionAttribute.needsUpdate = true;
+    normalAttribute.needsUpdate = true;
+    pathProgressAttribute.needsUpdate = true;
+  };
+
+  const setReveal = (progress: number, showLeadCap: boolean) => {
+    const clampedProgress = THREE.MathUtils.clamp(progress, 0, 1);
+    const revealedSegments = Math.ceil(clampedProgress * tubularSegments);
+    const tubeIndexCount = revealedSegments * radialSegments * 6;
+    const showStaticEndCap = clampedProgress >= 0.999;
+    const mainGroup = geometry.groups[0];
+    const capGroup = geometry.groups[1];
+
+    mainGroup.count =
+      (clampedProgress > 0 ? startCapIndices.length : 0) +
+      tubeIndexCount +
+      (showStaticEndCap ? endCapIndices.length : 0);
+    capGroup.count = showLeadCap && !showStaticEndCap ? dynamicCapIndices.length : 0;
+
+    if (capGroup.count > 0 && revealedSegments !== leadCapSegment) {
+      updateLeadCap(revealedSegments);
+      leadCapSegment = revealedSegments;
+    }
+  };
+
+  return {
+    geometry,
+    setReveal,
+  };
 }
 
 function paintEnvironmentFace(index: number) {
@@ -341,17 +824,25 @@ function useReducedMotionPreference() {
   return reduceMotion;
 }
 
+function makeGlassTuningUniforms(tuning: GlassTuning) {
+  const uniforms: Record<string, { value: number }> = {};
+
+  (Object.keys(GLASS_UNIFORM_NAMES) as GlassTuningKey[]).forEach((key) => {
+    uniforms[GLASS_UNIFORM_NAMES[key]] = { value: tuning[key] };
+  });
+
+  return uniforms;
+}
+
 function makeGlassMaterial(pathOffset: number) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uEnvironment: { value: null },
       uTime: { value: 0 },
-      uSkyTop: { value: new THREE.Color("#d9f5ff") },
-      uSkyBottom: { value: new THREE.Color("#2196ed") },
-      uEdgeTint: { value: new THREE.Color("#d6f7ff") },
       uPathOffset: { value: pathOffset },
       uSweep: { value: -1 },
       uSweepStrength: { value: 0 },
+      ...makeGlassTuningUniforms(DEFAULT_GLASS_TUNING),
     },
     vertexShader: VERTEX_SHADER,
     fragmentShader: FRAGMENT_SHADER,
@@ -364,16 +855,13 @@ function makeGlassMaterial(pathOffset: number) {
 type GlassStrokeProps = {
   reduceMotion: boolean;
   runId: number;
+  tuning: GlassTuning;
 };
 
-function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
+function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
   const environment = useStudioEnvironment();
-  const startCapRef = useRef<THREE.Mesh>(null);
-  const stemEndCapRef = useRef<THREE.Mesh>(null);
-  const wordStartCapRef = useRef<THREE.Mesh>(null);
-  const leadCapRef = useRef<THREE.Mesh>(null);
   const animationStartRef = useRef<number | null>(null);
-  const { viewport } = useThree();
+  const { invalidate, viewport } = useThree();
 
   const curves = useMemo(
     () => ({
@@ -397,7 +885,7 @@ function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
         curves.stem,
         STEM_TUBULAR_SEGMENTS,
         RADIAL_SEGMENTS,
-        0.145,
+        TUBE_BASE_RADIUS,
         0,
         stemShare,
       ),
@@ -405,62 +893,24 @@ function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
         curves.word,
         WORD_TUBULAR_SEGMENTS,
         RADIAL_SEGMENTS,
-        0.145,
+        TUBE_BASE_RADIUS,
         stemShare,
         1,
+        false,
+        true,
       ),
     }),
     [curves, stemShare],
   );
-  const capGeometry = useMemo(() => {
-    const cap = new THREE.SphereGeometry(0.139, RADIAL_SEGMENTS, 24);
-    const vertexCount = cap.getAttribute("position").count;
-    cap.setAttribute(
-      "aPathProgress",
-      new THREE.Float32BufferAttribute(new Float32Array(vertexCount), 1),
-    );
-    return cap;
-  }, []);
-  const capTransforms = useMemo(
-    () => {
-      const up = new THREE.Vector3(0, 1, 0);
-      const makeRotation = (
-        curve: THREE.Curve<THREE.Vector3>,
-        progress: number,
-        direction: number,
-      ) =>
-        new THREE.Quaternion().setFromUnitVectors(
-          up,
-          curve.getTangentAt(progress).multiplyScalar(direction).normalize(),
-        );
-
-      return {
-        startPosition: curves.stem.getPointAt(0),
-        startRotation: makeRotation(curves.stem, 0, -1),
-        stemEndPosition: curves.stem.getPointAt(1),
-        stemEndRotation: makeRotation(curves.stem, 1, 1),
-        wordStartPosition: curves.word.getPointAt(0),
-        wordStartRotation: makeRotation(curves.word, 0, -1),
-      };
-    },
-    [curves],
-  );
   const materials = useMemo(
     () => ({
       tube: makeGlassMaterial(0),
-      startCap: makeGlassMaterial(0),
-      seamCaps: makeGlassMaterial(stemShare),
-      leadCap: makeGlassMaterial(0),
-    }),
-    [stemShare],
-  );
-  const animationVectors = useMemo(
-    () => ({
-      point: new THREE.Vector3(),
-      tangent: new THREE.Vector3(),
-      up: new THREE.Vector3(0, 1, 0),
     }),
     [],
+  );
+  const groupedMaterial = useMemo(
+    () => [materials.tube, materials.tube],
+    [materials],
   );
 
   useEffect(() => {
@@ -468,33 +918,31 @@ function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
       material.uniforms.uEnvironment.value = environment;
       material.needsUpdate = true;
     });
-  }, [environment, materials]);
+    invalidate();
+  }, [environment, invalidate, materials]);
+
+  useEffect(() => {
+    Object.values(materials).forEach((material) => {
+      (Object.keys(GLASS_UNIFORM_NAMES) as GlassTuningKey[]).forEach((key) => {
+        material.uniforms[GLASS_UNIFORM_NAMES[key]].value = tuning[key];
+      });
+    });
+    invalidate();
+  }, [invalidate, materials, tuning]);
 
   useEffect(() => {
     animationStartRef.current = null;
-    geometries.stem.setDrawRange(
-      0,
-      reduceMotion ? geometries.stem.index?.count ?? 0 : 0,
-    );
-    geometries.word.setDrawRange(
-      0,
-      reduceMotion ? geometries.word.index?.count ?? 0 : 0,
-    );
-
-    if (startCapRef.current) startCapRef.current.visible = reduceMotion;
-    if (stemEndCapRef.current) stemEndCapRef.current.visible = reduceMotion;
-    if (wordStartCapRef.current) wordStartCapRef.current.visible = reduceMotion;
-    if (leadCapRef.current) leadCapRef.current.visible = reduceMotion;
+    geometries.stem.setReveal(reduceMotion ? 1 : 0, false);
+    geometries.word.setReveal(reduceMotion ? 1 : 0, false);
   }, [geometries, reduceMotion, runId]);
 
   useEffect(
     () => () => {
-      geometries.stem.dispose();
-      geometries.word.dispose();
-      capGeometry.dispose();
+      geometries.stem.geometry.dispose();
+      geometries.word.geometry.dispose();
       Object.values(materials).forEach((material) => material.dispose());
     },
-    [geometries, capGeometry, materials],
+    [geometries, materials],
   );
 
   useFrame((state) => {
@@ -513,32 +961,10 @@ function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
       0,
       1,
     );
-    geometries.stem.setDrawRange(
-      0,
-      Math.ceil(stemProgress * STEM_TUBULAR_SEGMENTS) * RADIAL_SEGMENTS * 6,
-    );
-    geometries.word.setDrawRange(
-      0,
-      Math.ceil(wordProgress * WORD_TUBULAR_SEGMENTS) * RADIAL_SEGMENTS * 6,
-    );
-
-    const capVisible = progress > 0.001;
-    if (startCapRef.current) startCapRef.current.visible = capVisible;
-    if (stemEndCapRef.current) stemEndCapRef.current.visible = stemProgress >= 0.999;
-    if (wordStartCapRef.current) wordStartCapRef.current.visible = wordProgress > 0.001;
-
-    if (leadCapRef.current) {
-      leadCapRef.current.visible = capVisible;
-      const activeCurve = progress <= stemShare ? curves.stem : curves.word;
-      const activeProgress = progress <= stemShare ? stemProgress : wordProgress;
-      activeCurve.getPointAt(activeProgress, animationVectors.point);
-      activeCurve.getTangentAt(activeProgress, animationVectors.tangent).normalize();
-      leadCapRef.current.position.copy(animationVectors.point);
-      leadCapRef.current.quaternion.setFromUnitVectors(
-        animationVectors.up,
-        animationVectors.tangent,
-      );
-    }
+    const capVisible = progress > 0.001 && rawProgress < 0.999;
+    const stemActive = progress <= stemShare;
+    geometries.stem.setReveal(stemProgress, capVisible && stemActive);
+    geometries.word.setReveal(wordProgress, capVisible && !stemActive);
 
     const afterWrite = elapsed - WRITE_DELAY - WRITE_DURATION;
     let sweep = -1;
@@ -556,8 +982,6 @@ function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
       sweepStrength = Math.min(1, flowElapsed * 2.5);
     }
 
-    materials.leadCap.uniforms.uPathOffset.value = progress;
-
     Object.values(materials).forEach((material) => {
       material.uniforms.uTime.value = reduceMotion ? 0 : state.clock.elapsedTime;
       material.uniforms.uSweep.value = sweep;
@@ -571,34 +995,8 @@ function GlassStroke({ reduceMotion, runId }: GlassStrokeProps) {
 
   return (
     <group rotation={[-0.025, -0.045, 0]} scale={scale}>
-      <mesh geometry={geometries.stem} material={materials.tube} />
-      <mesh geometry={geometries.word} material={materials.tube} />
-      <mesh
-        ref={startCapRef}
-        position={capTransforms.startPosition}
-        quaternion={capTransforms.startRotation}
-        geometry={capGeometry}
-        material={materials.startCap}
-      />
-      <mesh
-        ref={stemEndCapRef}
-        position={capTransforms.stemEndPosition}
-        quaternion={capTransforms.stemEndRotation}
-        geometry={capGeometry}
-        material={materials.seamCaps}
-      />
-      <mesh
-        ref={wordStartCapRef}
-        position={capTransforms.wordStartPosition}
-        quaternion={capTransforms.wordStartRotation}
-        geometry={capGeometry}
-        material={materials.seamCaps}
-      />
-      <mesh
-        ref={leadCapRef}
-        geometry={capGeometry}
-        material={materials.leadCap}
-      />
+      <mesh geometry={geometries.stem.geometry} material={groupedMaterial} />
+      <mesh geometry={geometries.word.geometry} material={groupedMaterial} />
     </group>
   );
 }
@@ -619,14 +1017,18 @@ export function GlassStrokePrototype() {
           gl={{ alpha: true, antialias: true, stencil: false }}
           onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
         >
-          <GlassStroke reduceMotion={reduceMotion} runId={runId} />
+          <GlassStroke
+            reduceMotion={reduceMotion}
+            runId={runId}
+            tuning={DEFAULT_GLASS_TUNING}
+          />
         </Canvas>
       </div>
 
       <aside className={styles.prototypeNote} aria-label="原型状态">
-        <span>PROTOTYPE 04 · WRITE ON</span>
-        <strong>一笔写出透明冰蓝 hello</strong>
-        <small>当前只确认书写节奏、圆头笔尖与管内流光</small>
+        <span>PROTOTYPE 06 · ROUNDED CAPS</span>
+        <strong>透明 hello 的圆润端点</strong>
+        <small>当前保留玻璃字形、圆润端点与书写动画</small>
         {!reduceMotion && (
           <button
             className={styles.replayButton}
