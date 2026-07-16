@@ -1,0 +1,22 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  background: #66b7eb;
+}
+
+.sky {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 14% 8%, rgba(255, 255, 255, 0.72), transparent 36%),
+    radial-gradient(ellipse at 74% 20%, rgba(4, 91, 185, 0.24), transparent 35%),
+    radial-gradient(ellipse at 86% 92%, rgba(255, 214, 160, 0.34), transparent 46%),
+    linear-gradient(150deg, #258fe3 0%, #6dc0ee 58%, #d9c7ae 100%);
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}

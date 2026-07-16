@@ -1491,7 +1491,7 @@ function GlassStroke({
 
       if (headerLayerRef.current) {
         headerLayerRef.current.style.zIndex =
-          visibleHandoff >= 0.999 ? "3" : "0";
+          visibleHandoff >= 0.999 ? "31" : "0";
       }
     },
     [environment, headerLayerRef, headerLogoRef],
@@ -2104,101 +2104,126 @@ export function GlassStrokePrototype() {
     : `${(1 + HELLO_SETTLE_MOTION.scrollViewports) * 100}svh`;
 
   return (
-    <main
-      ref={scrollStageRef}
-      className={styles.prototype}
-      style={{ minHeight: scrollStageHeight }}
-      data-scroll-session={scrollSession.ready ? "ready" : "pending"}
-      data-scroll-start={scrollSession.startProgress.toFixed(3)}
-      data-auto-settle={scrollSession.allowAutoSettle ? "true" : "false"}
-    >
-      <h1 className={styles.srOnly}>hello 连写玻璃字形实验</h1>
+    <>
+      <div
+        className={`${styles.headerBackdrop} backdrop-blur-md`}
+        aria-hidden="true"
+      />
 
-      <div className={styles.stage}>
-        <header className={styles.siteHeader} aria-label="网站页眉">
-          <a
-            className={styles.headerIdentity}
-            href="/"
-            aria-label="aqhours 首页"
-          >
-            aqhours
-          </a>
-
-          <nav className={styles.headerNav} aria-label="主要导航">
-            <a className={styles.headerLink} href="/blog">
-              Blog
-            </a>
-            <a className={styles.headerLink} href="/studio">
-              Studio
-            </a>
-            <a className={styles.headerLink} href="/photos">
-              Photos
-            </a>
-          </nav>
-        </header>
-
-        <div
-          ref={headerLayerRef}
-          className={styles.headerLogoLayer}
-          aria-hidden="true"
+      <header className={styles.siteHeader} aria-label="网站页眉">
+        <a
+          className={styles.headerIdentity}
+          href="/"
+          aria-label="aqhours 首页"
         >
-          <div ref={headerTargetRef} className={styles.headerLogoTarget}>
-            <svg
-              ref={headerLogoRef}
-              className={styles.headerFlatLogo}
-              viewBox="0 0 638 200"
-              fill="none"
-              aria-hidden="true"
-              style={{ opacity: 0 }}
-            >
-              <path d={HELLO_STEM_SVG_PATH} />
-              <path d={HELLO_WORD_SVG_PATH} />
-            </svg>
-          </div>
+          aqhours
+        </a>
+
+        <nav className={styles.headerNav} aria-label="主要导航">
+          <a className={styles.headerLink} href="/blog">
+            Blog
+          </a>
+          <a className={styles.headerLink} href="/studio">
+            Studio
+          </a>
+          <a className={styles.headerLink} href="/photos">
+            Photos
+          </a>
+        </nav>
+      </header>
+
+      <div
+        ref={headerLayerRef}
+        className={styles.headerLogoLayer}
+        aria-hidden="true"
+      >
+        <div ref={headerTargetRef} className={styles.headerLogoTarget}>
+          <svg
+            ref={headerLogoRef}
+            className={styles.headerFlatLogo}
+            viewBox="0 0 638 200"
+            fill="none"
+            aria-hidden="true"
+            style={{ opacity: 0 }}
+          >
+            <path d={HELLO_STEM_SVG_PATH} />
+            <path d={HELLO_WORD_SVG_PATH} />
+          </svg>
         </div>
-        <div className={styles.visualLayer} aria-hidden="true">
-          {scrollSession.ready && (
-            <Canvas
-              camera={{
-                fov: 32,
-                near: 0.1,
-                far: 100,
-                position: [0, 0, CLOUD_CAMERA_Z],
-              }}
-              dpr={[1, 1.75]}
-              frameloop={reduceMotion ? "demand" : "always"}
-              gl={{ alpha: true, antialias: true, stencil: false }}
-              onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-            >
-              <Suspense fallback={null}>
-                <ThreeCloudBackdrop
-                  reduceMotion={reduceMotion}
-                  initialScrollProgress={scrollSession.startProgress}
-                  scrollProgressRef={scrollProgressRef}
-                />
-              </Suspense>
-              <GlassStroke
-                reduceMotion={reduceMotion}
-                tuning={DEFAULT_GLASS_TUNING}
-                initialScrollProgress={scrollSession.startProgress}
-                scrollProgressRef={scrollProgressRef}
-                headerTargetRef={headerTargetRef}
-                headerLogoRef={headerLogoRef}
-                headerLayerRef={headerLayerRef}
-                onSettleStart={startAutoScroll}
-              />
-            </Canvas>
-          )}
-        </div>
+      </div>
+
+      <div className={styles.glassVisualLayer} aria-hidden="true">
         {scrollSession.ready && (
-          <PersonalIntroduction
-            reduceMotion={reduceMotion}
-            initialScrollProgress={scrollSession.startProgress}
-            scrollProgressRef={scrollProgressRef}
-          />
+          <Canvas
+            camera={{
+              fov: 32,
+              near: 0.1,
+              far: 100,
+              position: [0, 0, CLOUD_CAMERA_Z],
+            }}
+            dpr={[1, 1.75]}
+            frameloop={reduceMotion ? "demand" : "always"}
+            gl={{ alpha: true, antialias: true, stencil: false }}
+            onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+          >
+            <GlassStroke
+              reduceMotion={reduceMotion}
+              tuning={DEFAULT_GLASS_TUNING}
+              initialScrollProgress={scrollSession.startProgress}
+              scrollProgressRef={scrollProgressRef}
+              headerTargetRef={headerTargetRef}
+              headerLogoRef={headerLogoRef}
+              headerLayerRef={headerLayerRef}
+              onSettleStart={startAutoScroll}
+            />
+          </Canvas>
         )}
       </div>
 
-    </main>
+      <main
+        ref={scrollStageRef}
+        className={styles.prototype}
+        style={{ minHeight: scrollStageHeight }}
+        data-scroll-session={scrollSession.ready ? "ready" : "pending"}
+        data-scroll-start={scrollSession.startProgress.toFixed(3)}
+        data-auto-settle={scrollSession.allowAutoSettle ? "true" : "false"}
+      >
+        <h1 className={styles.srOnly}>hello 连写玻璃字形实验</h1>
+
+        <div className={styles.stage}>
+          <div className={styles.visualLayer} aria-hidden="true">
+            {scrollSession.ready && (
+              <Canvas
+                camera={{
+                  fov: 32,
+                  near: 0.1,
+                  far: 100,
+                  position: [0, 0, CLOUD_CAMERA_Z],
+                }}
+                dpr={[1, 1.75]}
+                frameloop={reduceMotion ? "demand" : "always"}
+                gl={{ alpha: true, antialias: true, stencil: false }}
+                onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+              >
+                <Suspense fallback={null}>
+                  <ThreeCloudBackdrop
+                    reduceMotion={reduceMotion}
+                    initialScrollProgress={scrollSession.startProgress}
+                    scrollProgressRef={scrollProgressRef}
+                  />
+                </Suspense>
+              </Canvas>
+            )}
+          </div>
+          {scrollSession.ready && (
+            <PersonalIntroduction
+              reduceMotion={reduceMotion}
+              initialScrollProgress={scrollSession.startProgress}
+              scrollProgressRef={scrollProgressRef}
+            />
+          )}
+        </div>
+      </main>
+    </>
   );
 }

@@ -1,0 +1,161 @@
+.ending {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  background: transparent;
+  color: rgba(239, 250, 255, 0.86);
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+.footer {
+  position: absolute;
+  z-index: 5;
+  right: clamp(20px, 4vw, 56px);
+  bottom: clamp(18px, 3.2vh, 32px);
+  left: clamp(20px, 4vw, 56px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  color: rgba(235, 248, 253, 0.72);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  text-shadow: 0 1px 14px rgba(2, 47, 76, 0.34);
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.legal a {
+  color: inherit;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.legal a:active {
+  transform: scale(0.97);
+}
+
+.separator {
+  opacity: 0.38;
+}
+
+.credit {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.creditLabel {
+  color: rgba(231, 247, 253, 0.42);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.creditSignature {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(242, 252, 255, 0.82);
+}
+
+.solMark {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.solMark::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(244, 253, 255, 0.94);
+  box-shadow: 0 0 9px rgba(194, 238, 255, 0.76);
+  transform: translate(-50%, -50%);
+}
+
+.solMark::after {
+  content: "";
+  position: absolute;
+  inset: 3px -1px;
+  border: 1px solid rgba(203, 240, 252, 0.48);
+  border-radius: 50%;
+  transform: rotate(-28deg) scaleY(0.48);
+}
+
+.creditName {
+  color: rgba(246, 253, 255, 0.92);
+  font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.creditSlash {
+  color: rgba(226, 246, 252, 0.24);
+  font-size: 10px;
+}
+
+.creditModel {
+  color: rgba(226, 246, 252, 0.48);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .legal a:hover {
+    color: #fff;
+  }
+}
+
+@media (max-width: 720px) {
+  .footer {
+    right: 18px;
+    bottom: 18px;
+    left: 18px;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .legal {
+    justify-content: center;
+    gap: 5px 7px;
+  }
+
+  .credit {
+    order: -1;
+    gap: 8px;
+  }
+}

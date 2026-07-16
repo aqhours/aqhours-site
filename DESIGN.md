@@ -40,7 +40,8 @@ exact components, tokens, typography, or page structure.
 
 ## Header
 
-- The homepage has a lightweight transparent header.
+- The homepage has a lightweight frosted header fixed to the top of the viewport across all
+  three screens. The shared atmospheric background remains visible through it.
 - The 3D glass `hello` follows one continuous scroll-linked motion: it rises from its
   low hero position, shrinks, and completes a counterclockwise flip. The rise and flip
   finish at 91% in a true front-facing pose; from 91% to 96%, the object only shrinks.
@@ -51,8 +52,24 @@ exact components, tokens, typography, or page structure.
 - Header navigation contains only `Blog`, `Studio`, and `Photos` links for this checkpoint.
   A simple `aqhours` personal identifier sits at the opposite edge, while the settled
   `hello` mark remains centered.
-- A soft dark shadow layer starts at the top edge and fades downward behind the header so
-  the white identity and links remain legible over the atmospheric hero.
+- The compact header height is responsive from `60px` to `72px`; screens at `720px` wide or
+  below use `58px`. Navigation typography and spacing remain unchanged.
+- The entire fixed header is backed by one continuous medium frosted layer (`12px` backdrop
+  blur) with a restrained dark-blue translucent gradient. The overlay extends one full header
+  width beyond both horizontal edges, matching the supplied Air markup pattern and preventing
+  visible blur cutoffs at the viewport boundary.
+- The frost is a real absolutely positioned child of the header rather than a masked pseudo
+  element. It samples the page directly, has no border, mask, or box shadow, and its translucent
+  gradient reaches full transparency at the bottom so it never reads as a framed rectangle.
+- Apply the blur through Tailwind's `backdrop-blur-md` utility, matching the supplied Air HTML
+  and ensuring the generated stylesheet retains the backdrop-filter declarations.
+- Keep the moving 3D glass stroke above the header frost while leaving the cloud field and
+  personal-introduction copy below it. The header navigation stays above both. This requires
+  separate cloud and glass Canvas layers rather than raising the combined scene.
+- Extend the frost `28px` below the header and mask that extension from opaque to transparent,
+  feathering the blur boundary without adding a visible edge or shadow.
+- The centered flat `hello` mark does not receive a separate card or badge; it shares the same
+  full-width glass field as the identity and navigation.
 
 ## Glass material
 
@@ -91,11 +108,22 @@ exact components, tokens, typography, or page structure.
   - Master's student in Computer Science & Technology.
   - Creating with curiosity, living with music, and learning to love the gym.
 
+## Ending
+
+- All three screens share one continuous fixed atmospheric background; the ending
+  must not restart or duplicate the sky gradient at its boundary.
+- The third and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
+  shell imagery, or other replacement environmental element yet. It keeps the shared sky
+  unobstructed until a matching Drei-based direction is reviewed.
+- The ending includes the supplied registration links, a copyright line, and the design
+  credit `Co-created with Sol / GPT-5 Codex`. The credit is a small editorial signature with
+  a custom solar-orbit mark, not a badge, button, glass surface, or third-party logo.
+
 ## Not decided
 
 - Whether the homepage has one lighting scene or four.
 - The sky, clouds, landscape, and other environmental elements.
 - Whether the write-on animation remains in the final hero.
 - Hero copy.
-- Scroll behavior and transitions after the personal-introduction layer.
+- Scroll behavior and transitions after the ocean ending.
 - The content, order, and visual treatment of later sections.
