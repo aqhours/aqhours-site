@@ -1370,7 +1370,7 @@ type GlassStrokeProps = {
   scrollProgressRef: MutableRefObject<number>;
   headerTargetRef: RefObject<HTMLDivElement | null>;
   headerLogoRef: RefObject<SVGSVGElement | null>;
-  headerLayerRef: RefObject<HTMLElement | null>;
+  headerLayerRef: RefObject<HTMLDivElement | null>;
   onSettleStart: () => void;
 };
 
@@ -2091,7 +2091,7 @@ export function GlassStrokePrototype() {
   const reduceMotion = useReducedMotionPreference();
   const headerTargetRef = useRef<HTMLDivElement>(null);
   const headerLogoRef = useRef<SVGSVGElement>(null);
-  const headerLayerRef = useRef<HTMLElement>(null);
+  const headerLayerRef = useRef<HTMLDivElement>(null);
   const {
     scrollStageRef,
     scrollProgressRef,
@@ -2115,13 +2115,34 @@ export function GlassStrokePrototype() {
       <h1 className={styles.srOnly}>hello 连写玻璃字形实验</h1>
 
       <div className={styles.stage}>
-        <header
+        <header className={styles.siteHeader} aria-label="网站页眉">
+          <a
+            className={styles.headerIdentity}
+            href="/"
+            aria-label="aqhours 首页"
+          >
+            aqhours
+          </a>
+
+          <nav className={styles.headerNav} aria-label="主要导航">
+            <a className={styles.headerLink} href="/blog">
+              Blog
+            </a>
+            <a className={styles.headerLink} href="/studio">
+              Studio
+            </a>
+            <a className={styles.headerLink} href="/photos">
+              Photos
+            </a>
+          </nav>
+        </header>
+
+        <div
           ref={headerLayerRef}
-          className={styles.siteHeader}
-          aria-label="网站页眉"
+          className={styles.headerLogoLayer}
+          aria-hidden="true"
         >
           <div ref={headerTargetRef} className={styles.headerLogoTarget}>
-            <span className={styles.srOnly}>aqhours</span>
             <svg
               ref={headerLogoRef}
               className={styles.headerFlatLogo}
@@ -2134,7 +2155,7 @@ export function GlassStrokePrototype() {
               <path d={HELLO_WORD_SVG_PATH} />
             </svg>
           </div>
-        </header>
+        </div>
         <div className={styles.visualLayer} aria-hidden="true">
           {scrollSession.ready && (
             <Canvas

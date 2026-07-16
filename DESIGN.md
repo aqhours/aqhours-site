@@ -48,7 +48,11 @@ exact components, tokens, typography, or page structure.
   pause to a smaller, flat, monochrome-white rendering of the user-provided `hello` skeleton.
   During the handoff, the glass object is visually above the flat mark. The final header
   mark has no glass material.
-- Header navigation content remains undecided.
+- Header navigation contains only `Blog`, `Studio`, and `Photos` links for this checkpoint.
+  A simple `aqhours` personal identifier sits at the opposite edge, while the settled
+  `hello` mark remains centered.
+- A soft dark shadow layer starts at the top edge and fades downward behind the header so
+  the white identity and links remain legible over the atmospheric hero.
 
 ## Glass material
 
@@ -92,6 +96,6 @@ exact components, tokens, typography, or page structure.
 - Whether the homepage has one lighting scene or four.
 - The sky, clouds, landscape, and other environmental elements.
 - Whether the write-on animation remains in the final hero.
-- Navigation and hero copy.
+- Hero copy.
 - Scroll behavior and transitions after the personal-introduction layer.
 - The content, order, and visual treatment of later sections.
