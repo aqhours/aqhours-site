@@ -18,7 +18,21 @@ pnpm install
 pnpm run dev
 ```
 
-Production service:
+Automatic production deployment:
+
+Push a clean, reviewed revision to `main`. GitHub Actions runs the type-check and
+static build, then connects to the server with the restricted
+`github-actions-homepage` key and rebuilds the Compose service. The workflow can
+also be started manually from the Actions page.
+
+The `production` GitHub Environment provides:
+
+- Secret `AQHOURS_SSH_PRIVATE_KEY`.
+- Secret `AQHOURS_SSH_KNOWN_HOSTS`.
+- Variable `AQHOURS_SSH_HOST`.
+- Variable `AQHOURS_SSH_USER`.
+
+Manual deployment fallback:
 
 ```bash
 pnpm run deploy
