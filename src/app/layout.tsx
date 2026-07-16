@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Serif_SC } from "next/font/google";
+import { Caveat, Inter, Manrope } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -8,11 +8,18 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-const notoSerifSC = Noto_Serif_SC({
+const manrope = Manrope({
   display: "swap",
-  preload: false,
-  variable: "--font-noto-serif-sc",
-  weight: ["400", "500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  weight: "variable",
+});
+
+const caveat = Caveat({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  weight: "700",
 });
 
 const themeInitScript = `
@@ -46,7 +53,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={`${inter.variable} ${notoSerifSC.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${manrope.variable} ${caveat.variable}`}>
+        {children}
+      </body>
     </html>
   );
 }

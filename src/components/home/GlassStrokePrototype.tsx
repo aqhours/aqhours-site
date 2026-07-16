@@ -1,9 +1,29 @@
 "use client";
 
+import { Cloud, Clouds } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MutableRefObject,
+  type RefObject,
+} from "react";
 import * as THREE from "three";
 
+import {
+  PROFILE_REVEAL_THRESHOLD,
+  resolveCloudFieldOffset,
+  resolveHeaderTransition,
+  resolveHelloScrollSession,
+  resolveProfileRevealVisibility,
+  type HelloScrollSession,
+} from "./helloScrollSession";
+import { HELLO_TILT_COMPENSATION_RADIANS } from "./helloGeometry";
 import styles from "./GlassStrokePrototype.module.css";
 
 type GlassTuning = {
@@ -85,8 +105,8 @@ const DEFAULT_GLASS_TUNING: GlassTuning = {
   reflectionMix: 0.22,
   innerMix: 0.08,
   edgeLight: 0.58,
-  internalRimLight: 0.34,
-  highlightLight: 0.24,
+  internalRimLight: 0.42,
+  highlightLight: 0.32,
   shadowColor: 0.24,
   shadowStrength: 0.2,
   flowBaseLight: 0.1,
@@ -95,15 +115,15 @@ const DEFAULT_GLASS_TUNING: GlassTuning = {
   capGlintLight: 0.72,
   flowCoreLight: 0.2,
   baseAlpha: 0.004,
-  edgeAlpha: 0.25,
-  internalRimAlpha: 0.06,
-  highlightAlpha: 0.055,
+  edgeAlpha: 0.34,
+  internalRimAlpha: 0.085,
+  highlightAlpha: 0.08,
   innerBandAlpha: 0.012,
   shadowBandAlpha: 0.012,
   flowAlpha: 0.03,
   capLensAlpha: 0.05,
-  capGlintAlpha: 0.22,
-  maxAlpha: 0.32,
+  capGlintAlpha: 0.28,
+  maxAlpha: 0.4,
 };
 
 const GLASS_UNIFORM_NAMES: Record<GlassTuningKey, string> = {
@@ -155,7 +175,7 @@ const GLASS_UNIFORM_NAMES: Record<GlassTuningKey, string> = {
   maxAlpha: "uMaxAlpha",
 };
 
-// PROTOTYPE 06 — clear material and rounded-cap study.
+// Transparent glass tube material.
 const VERTEX_SHADER = /* glsl */ `
   attribute float aPathProgress;
   attribute float aCapProgress;
@@ -181,6 +201,7 @@ const FRAGMENT_SHADER = /* glsl */ `
   uniform float uTime;
   uniform float uSweep;
   uniform float uSweepStrength;
+  uniform float uObjectOpacity;
   uniform float uFresnelPower;
   uniform float uInternalRimCenter;
   uniform float uInternalRimWidth;
@@ -349,7 +370,7 @@ const FRAGMENT_SHADER = /* glsl */ `
       capLens * uCapLensAlpha + capGlint * uCapGlintAlpha;
     alpha = clamp(alpha, uBaseAlpha, max(uMaxAlpha, uBaseAlpha));
 
-    gl_FragColor = vec4(glassColor, alpha);
+    gl_FragColor = vec4(glassColor, alpha * uObjectOpacity);
   }
 `;
 
@@ -360,22 +381,254 @@ const STEM_TUBULAR_SEGMENTS = 260;
 const WORD_TUBULAR_SEGMENTS = 820;
 const RADIAL_SEGMENTS = 36;
 const CAP_SEGMENTS = 10;
-const TUBE_BASE_RADIUS = 0.145;
+const TUBE_BASE_RADIUS = 0.17;
 const WRITE_DELAY = 0.24;
 const WRITE_DURATION = 3.35;
 const FLOW_PAUSE = 0.55;
 const FLOW_DURATION = 5.4;
+const FLOW_EDGE_PADDING = 0.08;
+const FLOW_FADE_PORTION = 0.16;
+
+const HELLO_DEPTH_RANGE = {
+  start: -0.7,
+  end: 0.7,
+} as const;
+
+const CLOUD_STREAM_MOTION = {
+  duration: 13.4,
+  startZ: -28,
+  // Move straight toward the camera, then recycle just before reaching it.
+  endZ: 7.4,
+} as const;
+
+const CLOUD_FIELD_SCALE = 1.22;
+const CLOUD_OPACITY_SCALE = 1.55;
+const CLOUD_NEAR_FADE = 3.2;
+const CLOUD_ALPHA_TEST = 0.055;
+const CLOUD_FIELD_REVEAL_DURATION = 2.4;
+const CLOUD_CAMERA_Z = 8.6;
+
+type CloudStreamSpec = {
+  seed: number;
+  phase: number;
+  segments: number;
+  x: number;
+  y: number;
+  bounds: [number, number, number];
+  volume: number;
+  smallestVolume: number;
+  color: string;
+  opacity: number;
+  speed: number;
+  scale: [number, number, number];
+};
+
+const CLOUD_STREAMS: readonly CloudStreamSpec[] = [
+  {
+    seed: 7,
+    phase: 0,
+    segments: 18,
+    x: -4.45,
+    y: 2.05,
+    bounds: [1.9, 0.52, 0.9],
+    volume: 2,
+    smallestVolume: 0.54,
+    color: "#f7fbff",
+    opacity: 0.36,
+    speed: 0.035,
+    scale: [1.15, 0.9, 1],
+  },
+  {
+    seed: 19,
+    phase: 0.14,
+    segments: 16,
+    x: 4.35,
+    y: 1.45,
+    bounds: [1.65, 0.42, 0.8],
+    volume: 1.5,
+    smallestVolume: 0.22,
+    color: "#eef8ff",
+    opacity: 0.32,
+    speed: 0.03,
+    scale: [1.05, 0.82, 1],
+  },
+  {
+    seed: 31,
+    phase: 0.29,
+    segments: 14,
+    x: 0.35,
+    y: 3.6,
+    bounds: [1.45, 0.36, 0.7],
+    volume: 1.25,
+    smallestVolume: 0.2,
+    color: "#f4faff",
+    opacity: 0.24,
+    speed: 0.025,
+    scale: [0.9, 0.72, 1],
+  },
+  {
+    seed: 43,
+    phase: 0.43,
+    segments: 14,
+    x: -4.6,
+    y: -1.75,
+    bounds: [1.7, 0.44, 0.78],
+    volume: 1.45,
+    smallestVolume: 0.2,
+    color: "#edf8ff",
+    opacity: 0.23,
+    speed: 0.028,
+    scale: [1.05, 0.78, 1],
+  },
+  {
+    seed: 59,
+    phase: 0.58,
+    segments: 14,
+    x: 4.55,
+    y: -1.95,
+    bounds: [1.55, 0.4, 0.76],
+    volume: 1.35,
+    smallestVolume: 0.2,
+    color: "#f5fbff",
+    opacity: 0.22,
+    speed: 0.024,
+    scale: [1, 0.76, 1],
+  },
+  {
+    seed: 71,
+    phase: 0.72,
+    segments: 12,
+    x: -2.6,
+    y: -3.4,
+    bounds: [1.35, 0.34, 0.68],
+    volume: 1.15,
+    smallestVolume: 0.18,
+    color: "#eef9ff",
+    opacity: 0.17,
+    speed: 0.02,
+    scale: [0.86, 0.66, 1],
+  },
+  {
+    seed: 89,
+    phase: 0.86,
+    segments: 12,
+    x: 2.75,
+    y: 2.75,
+    bounds: [1.3, 0.32, 0.64],
+    volume: 1.1,
+    smallestVolume: 0.18,
+    color: "#f7fcff",
+    opacity: 0.16,
+    speed: 0.018,
+    scale: [0.82, 0.64, 1],
+  },
+  {
+    seed: 101,
+    phase: 0.07,
+    segments: 12,
+    x: -5.25,
+    y: 0.15,
+    bounds: [1.65, 0.42, 0.76],
+    volume: 1.5,
+    smallestVolume: 0.22,
+    color: "#f4faff",
+    opacity: 0.22,
+    speed: 0.024,
+    scale: [1.02, 0.76, 1],
+  },
+  {
+    seed: 113,
+    phase: 0.21,
+    segments: 12,
+    x: 5.2,
+    y: 0.35,
+    bounds: [1.6, 0.4, 0.74],
+    volume: 1.45,
+    smallestVolume: 0.21,
+    color: "#eef8ff",
+    opacity: 0.21,
+    speed: 0.022,
+    scale: [1, 0.74, 1],
+  },
+  {
+    seed: 127,
+    phase: 0.36,
+    segments: 12,
+    x: -3.35,
+    y: 3.35,
+    bounds: [1.5, 0.38, 0.72],
+    volume: 1.35,
+    smallestVolume: 0.2,
+    color: "#f7fcff",
+    opacity: 0.19,
+    speed: 0.02,
+    scale: [0.94, 0.7, 1],
+  },
+  {
+    seed: 139,
+    phase: 0.51,
+    segments: 12,
+    x: 3.55,
+    y: -3.25,
+    bounds: [1.55, 0.4, 0.74],
+    volume: 1.4,
+    smallestVolume: 0.21,
+    color: "#f3faff",
+    opacity: 0.2,
+    speed: 0.023,
+    scale: [0.98, 0.72, 1],
+  },
+  {
+    seed: 151,
+    phase: 0.79,
+    segments: 12,
+    x: -0.55,
+    y: -3.95,
+    bounds: [1.45, 0.36, 0.7],
+    volume: 1.3,
+    smallestVolume: 0.19,
+    color: "#edf8ff",
+    opacity: 0.18,
+    speed: 0.019,
+    scale: [0.9, 0.68, 1],
+  },
+  {
+    seed: 163,
+    phase: 0.93,
+    segments: 12,
+    x: 1.25,
+    y: 4.05,
+    bounds: [1.4, 0.35, 0.68],
+    volume: 1.25,
+    smallestVolume: 0.19,
+    color: "#f6fbff",
+    opacity: 0.17,
+    speed: 0.018,
+    scale: [0.88, 0.66, 1],
+  },
+];
 
 // POST-WRITE MOTION — edit these values to tune the transition checkpoint.
 const HELLO_SETTLE_MOTION = {
-  hold: 0.25,
-  duration: 2.2,
+  hold: 0.1,
+  autoScrollDuration: 3.2,
+  startScale: 0.86,
   scale: 0.25,
-  lift: 0.52,
-  startRotation: [-0.025, -0.045, 0] as const,
-  // One complete Y-axis flip, ending slightly turned so the glass keeps its depth.
-  endRotation: [-0.06, -Math.PI * 2 - 0.15, 0] as const,
+  startY: -0.52,
+  headerFallbackYRatio: 0.42,
+  scrollViewports: 1,
+  scrollDamping: 18,
+  startRotation: [0, 0, HELLO_TILT_COMPENSATION_RADIANS] as const,
+  // The same front-facing pose needs the same optical correction at both ends.
+  endRotation: [0, Math.PI * 2, HELLO_TILT_COMPENSATION_RADIANS] as const,
 };
+
+const PROFILE_REVEAL_MOTION = {
+  start: PROFILE_REVEAL_THRESHOLD,
+  end: 0.96,
+  lineTravel: 260,
+  lineStagger: 0.06,
+} as const;
 
 function easeHelloSettle(progress: number) {
   // cubic-bezier(0.77, 0, 0.175, 1), solved by bisection.
@@ -405,6 +658,17 @@ function easeHelloSettle(progress: number) {
   }
 
   return sample(time, 0, 1);
+}
+
+function smootherStep(progress: number) {
+  const clampedProgress = THREE.MathUtils.clamp(progress, 0, 1);
+
+  return (
+    clampedProgress *
+    clampedProgress *
+    clampedProgress *
+    (clampedProgress * (clampedProgress * 6 - 15) + 10)
+  );
 }
 
 function tubeRadiusAt(progress: number, baseRadius = TUBE_BASE_RADIUS) {
@@ -458,6 +722,31 @@ const HELLO_WORD_SEGMENTS: SkeletonSegment[] = [
   [[603.549, 125.872], [622.709, 114.661], [630.047, 96.7242]],
 ];
 
+function makeSkeletonSvgPath(
+  startPoint: SkeletonPoint,
+  segments: SkeletonSegment[],
+) {
+  return [
+    `M ${startPoint[0]} ${startPoint[1]}`,
+    ...segments.map(
+      ([controlA, controlB, endpoint]) =>
+        `C ${controlA[0]} ${controlA[1]} ${controlB[0]} ${controlB[1]} ${endpoint[0]} ${endpoint[1]}`,
+    ),
+  ].join(" ");
+}
+
+const HELLO_STEM_SVG_PATH = makeSkeletonSvgPath(
+  HELLO_STEM_START,
+  HELLO_STEM_SEGMENTS,
+);
+const HELLO_WORD_SVG_PATH = makeSkeletonSvgPath(
+  HELLO_WORD_START,
+  HELLO_WORD_SEGMENTS,
+);
+
+const HELLO_SEGMENT_COUNT =
+  HELLO_STEM_SEGMENTS.length + HELLO_WORD_SEGMENTS.length;
+
 function makeHelloCurve(
   startPoint: SkeletonPoint,
   segments: SkeletonSegment[],
@@ -469,8 +758,18 @@ function makeHelloCurve(
   const originX = 319.5;
   const centerY = 100;
   const depthAt = (index: number) => {
-    const position = index + depthOffset;
-    return Math.sin(position * 0.82) * 0.045 + Math.sin(position * 0.23) * 0.025;
+    const progress = THREE.MathUtils.clamp(
+      (index + depthOffset) / HELLO_SEGMENT_COUNT,
+      0,
+      1,
+    );
+    const easedProgress = smootherStep(progress);
+
+    return THREE.MathUtils.lerp(
+      HELLO_DEPTH_RANGE.start,
+      HELLO_DEPTH_RANGE.end,
+      easedProgress,
+    );
   };
   const toWorld = ([x, y]: SkeletonPoint, depth: number) => {
     const worldY = (centerY - y) * scale;
@@ -883,6 +1182,7 @@ function makeGlassMaterial(pathOffset: number) {
       uPathOffset: { value: pathOffset },
       uSweep: { value: -1 },
       uSweepStrength: { value: 0 },
+      uObjectOpacity: { value: 1 },
       ...makeGlassTuningUniforms(DEFAULT_GLASS_TUNING),
     },
     vertexShader: VERTEX_SHADER,
@@ -893,17 +1193,203 @@ function makeGlassMaterial(pathOffset: number) {
   });
 }
 
-type GlassStrokeProps = {
+type ThreeCloudBackdropProps = {
   reduceMotion: boolean;
-  runId: number;
-  tuning: GlassTuning;
+  initialScrollProgress: number;
+  scrollProgressRef: MutableRefObject<number>;
 };
 
-function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
+function ThreeCloudBackdrop({
+  reduceMotion,
+  initialScrollProgress,
+  scrollProgressRef,
+}: ThreeCloudBackdropProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const cloudFieldRef = useRef<THREE.Group>(null);
+  const cloudRefs = useRef<Array<THREE.Group | null>>([]);
+  const cloudMaterialsRef = useRef<THREE.Material[]>([]);
+  const cloudRevealStartRef = useRef<number | null>(null);
+  const cloudStreamElapsedRef = useRef(0);
+  const displayedProgressRef = useRef(initialScrollProgress);
+
+  useEffect(() => {
+    displayedProgressRef.current = initialScrollProgress;
+  }, [initialScrollProgress]);
+
+  useFrame((state, delta) => {
+    const target = reduceMotion
+      ? initialScrollProgress
+      : scrollProgressRef.current;
+    const progress = reduceMotion
+      ? initialScrollProgress
+      : THREE.MathUtils.damp(
+          displayedProgressRef.current,
+          target,
+          9,
+          delta,
+        );
+    displayedProgressRef.current = progress;
+
+    if (cloudMaterialsRef.current.length === 0 && cloudFieldRef.current) {
+      const materials = new Set<THREE.Material>();
+
+      cloudFieldRef.current.traverse((child) => {
+        if (!(child instanceof THREE.Mesh)) return;
+
+        const childMaterials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
+        childMaterials.forEach((material) => materials.add(material));
+      });
+
+      cloudMaterialsRef.current = [...materials];
+      cloudRevealStartRef.current = state.clock.elapsedTime;
+      cloudMaterialsRef.current.forEach((material) => {
+        material.transparent = true;
+        material.alphaTest = CLOUD_ALPHA_TEST;
+        material.opacity = reduceMotion ? 1 : 0;
+        material.needsUpdate = true;
+      });
+    }
+
+    if (cloudMaterialsRef.current.length > 0) {
+      const revealElapsed =
+        state.clock.elapsedTime -
+        (cloudRevealStartRef.current ?? state.clock.elapsedTime);
+      const revealProgress = reduceMotion
+        ? 1
+        : THREE.MathUtils.clamp(
+            revealElapsed / CLOUD_FIELD_REVEAL_DURATION,
+            0,
+            1,
+          );
+      const revealOpacity = smootherStep(revealProgress);
+
+      cloudMaterialsRef.current.forEach((material) => {
+        material.opacity = revealOpacity;
+      });
+    }
+
+    if (groupRef.current) {
+      groupRef.current.position.y = resolveCloudFieldOffset(progress);
+    }
+
+    if (!reduceMotion) cloudStreamElapsedRef.current += delta;
+
+    const streamProgress =
+      cloudStreamElapsedRef.current / CLOUD_STREAM_MOTION.duration;
+
+    const placeCloud = (
+      cloud: THREE.Group | null,
+      cloudSpec: CloudStreamSpec,
+    ) => {
+      if (!cloud) return;
+
+      const phase = (streamProgress + cloudSpec.phase) % 1;
+      const z = THREE.MathUtils.lerp(
+        CLOUD_STREAM_MOTION.startZ,
+        CLOUD_STREAM_MOTION.endZ,
+        phase,
+      );
+      cloud.position.set(cloudSpec.x, cloudSpec.y, z);
+      cloud.scale.set(
+        cloudSpec.scale[0] * CLOUD_FIELD_SCALE,
+        cloudSpec.scale[1] * CLOUD_FIELD_SCALE,
+        cloudSpec.scale[2] * CLOUD_FIELD_SCALE,
+      );
+    };
+
+    CLOUD_STREAMS.forEach((cloud, index) => {
+      placeCloud(cloudRefs.current[index], cloud);
+    });
+  });
+
+  return (
+    <>
+      <fog attach="fog" args={["#72b9e5", 10, 34]} />
+      <ambientLight color="#dff2ff" intensity={1.7} />
+      <directionalLight
+        color="#fff3dd"
+        intensity={2.6}
+        position={[-4, 6, 5]}
+      />
+      <group
+        ref={groupRef}
+        position={[0, resolveCloudFieldOffset(initialScrollProgress), 0]}
+      >
+        <Clouds
+          ref={cloudFieldRef}
+          texture="/textures/cloud.png"
+          material={THREE.MeshLambertMaterial}
+          limit={176}
+          frustumCulled={false}
+          renderOrder={-2}
+        >
+          {CLOUD_STREAMS.map((cloud, index) => (
+            <Cloud
+              key={cloud.seed}
+              ref={(instance) => {
+                cloudRefs.current[index] = instance;
+              }}
+              seed={cloud.seed}
+              segments={cloud.segments}
+              bounds={cloud.bounds}
+              volume={cloud.volume}
+              smallestVolume={cloud.smallestVolume}
+              color={cloud.color}
+              opacity={Math.min(
+                cloud.opacity * CLOUD_OPACITY_SCALE,
+                0.62,
+              )}
+              fade={CLOUD_NEAR_FADE}
+              speed={reduceMotion ? 0 : cloud.speed}
+              position={[
+                cloud.x,
+                cloud.y,
+                THREE.MathUtils.lerp(
+                  CLOUD_STREAM_MOTION.startZ,
+                  CLOUD_STREAM_MOTION.endZ,
+                  cloud.phase,
+                ),
+              ]}
+              scale={cloud.scale.map(
+                (axis) => axis * CLOUD_FIELD_SCALE,
+              ) as [number, number, number]}
+            />
+          ))}
+        </Clouds>
+      </group>
+    </>
+  );
+}
+
+type GlassStrokeProps = {
+  reduceMotion: boolean;
+  tuning: GlassTuning;
+  initialScrollProgress: number;
+  scrollProgressRef: MutableRefObject<number>;
+  headerTargetRef: RefObject<HTMLDivElement | null>;
+  headerLogoRef: RefObject<SVGSVGElement | null>;
+  headerLayerRef: RefObject<HTMLElement | null>;
+  onSettleStart: () => void;
+};
+
+function GlassStroke({
+  reduceMotion,
+  tuning,
+  initialScrollProgress,
+  scrollProgressRef,
+  headerTargetRef,
+  headerLogoRef,
+  headerLayerRef,
+  onSettleStart,
+}: GlassStrokeProps) {
   const environment = useStudioEnvironment();
   const animationStartRef = useRef<number | null>(null);
+  const settleStartedRef = useRef(false);
+  const displayedSettleProgressRef = useRef(initialScrollProgress);
   const groupRef = useRef<THREE.Group>(null);
-  const { invalidate, viewport } = useThree();
+  const { invalidate, size, viewport } = useThree();
 
   const curves = useMemo(
     () => ({
@@ -944,12 +1430,77 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
     }),
     [curves, stemShare],
   );
+  const helloWidth = useMemo(() => {
+    const bounds = new THREE.Box3();
+
+    [geometries.stem.geometry, geometries.word.geometry].forEach((geometry) => {
+      geometry.computeBoundingBox();
+      if (geometry.boundingBox) bounds.union(geometry.boundingBox);
+    });
+
+    return Math.max(bounds.max.x - bounds.min.x, 0.001);
+  }, [geometries]);
+  const headerTransformRef = useRef({
+    x: 0,
+    y: viewport.height * HELLO_SETTLE_MOTION.headerFallbackYRatio,
+    scale:
+      Math.min(1.05, viewport.width / 9.05) * HELLO_SETTLE_MOTION.scale,
+  });
+  const updateHeaderTransform = useCallback(() => {
+    const target = headerTargetRef.current;
+    const responsiveScale = Math.min(1.05, viewport.width / 9.05);
+
+    if (!target || size.width <= 0 || size.height <= 0) {
+      headerTransformRef.current = {
+        x: 0,
+        y: viewport.height * HELLO_SETTLE_MOTION.headerFallbackYRatio,
+        scale: responsiveScale * HELLO_SETTLE_MOTION.scale,
+      };
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const targetWorldWidth = (rect.width / size.width) * viewport.width;
+
+    headerTransformRef.current = {
+      x: (centerX / size.width - 0.5) * viewport.width,
+      y: (0.5 - centerY / size.height) * viewport.height,
+      scale: targetWorldWidth / helloWidth,
+    };
+  }, [headerTargetRef, helloWidth, size.height, size.width, viewport.height, viewport.width]);
+
+  useLayoutEffect(() => {
+    updateHeaderTransform();
+    invalidate();
+  }, [invalidate, updateHeaderTransform]);
   const materials = useMemo(
     () => ({
       tube: makeGlassMaterial(0),
     }),
     [],
   );
+  const applyHeaderHandoff = useCallback(
+    (handoff: number) => {
+      const visibleHandoff = environment ? handoff : 0;
+
+      if (headerLogoRef.current) {
+        headerLogoRef.current.style.opacity = visibleHandoff.toFixed(4);
+      }
+
+      if (headerLayerRef.current) {
+        headerLayerRef.current.style.zIndex =
+          visibleHandoff >= 0.999 ? "3" : "0";
+      }
+    },
+    [environment, headerLayerRef, headerLogoRef],
+  );
+  useLayoutEffect(() => {
+    const transition = resolveHeaderTransition(initialScrollProgress);
+    materials.tube.uniforms.uObjectOpacity.value = 1 - transition.handoff;
+    applyHeaderHandoff(transition.handoff);
+  }, [applyHeaderHandoff, initialScrollProgress, materials]);
   const groupedMaterial = useMemo(
     () => [materials.tube, materials.tube],
     [materials],
@@ -974,9 +1525,11 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
 
   useEffect(() => {
     animationStartRef.current = null;
+    settleStartedRef.current = false;
+    displayedSettleProgressRef.current = initialScrollProgress;
     geometries.stem.setReveal(reduceMotion ? 1 : 0, false);
     geometries.word.setReveal(reduceMotion ? 1 : 0, false);
-  }, [geometries, reduceMotion, runId]);
+  }, [geometries, initialScrollProgress, reduceMotion]);
 
   useEffect(
     () => () => {
@@ -987,7 +1540,7 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
     [geometries, materials],
   );
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (animationStartRef.current === null) {
       animationStartRef.current = state.clock.elapsedTime;
     }
@@ -1020,8 +1573,27 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
       sweepStrength = 1 - afterWrite / FLOW_PAUSE;
     } else if (!reduceMotion && afterWrite >= FLOW_PAUSE) {
       const flowElapsed = afterWrite - FLOW_PAUSE;
-      sweep = (flowElapsed % FLOW_DURATION) / FLOW_DURATION;
-      sweepStrength = Math.min(1, flowElapsed * 2.5);
+      const flowProgress = (flowElapsed % FLOW_DURATION) / FLOW_DURATION;
+      const easedFlowProgress = smootherStep(flowProgress);
+      const fadeIn = THREE.MathUtils.smoothstep(
+        flowProgress,
+        0,
+        FLOW_FADE_PORTION,
+      );
+      const fadeOut =
+        1 -
+        THREE.MathUtils.smoothstep(
+          flowProgress,
+          1 - FLOW_FADE_PORTION,
+          1,
+        );
+
+      sweep = THREE.MathUtils.lerp(
+        -FLOW_EDGE_PADDING,
+        1 + FLOW_EDGE_PADDING,
+        easedFlowProgress,
+      );
+      sweepStrength = fadeIn * fadeOut;
     }
 
     Object.values(materials).forEach((material) => {
@@ -1030,35 +1602,72 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
       material.uniforms.uSweepStrength.value = sweepStrength;
     });
 
-    const settleRawProgress = reduceMotion
-      ? 1
-      : THREE.MathUtils.clamp(
-          (afterWrite - HELLO_SETTLE_MOTION.hold) /
-            HELLO_SETTLE_MOTION.duration,
-          0,
-          1,
-        );
-    const settleProgress = easeHelloSettle(settleRawProgress);
+    const settleReady = afterWrite >= HELLO_SETTLE_MOTION.hold;
+
+    if (!reduceMotion && settleReady && !settleStartedRef.current) {
+      settleStartedRef.current = true;
+      onSettleStart();
+    }
+
+    const settleTarget = reduceMotion
+      ? initialScrollProgress
+      : scrollProgressRef.current;
+    const settleProgress = reduceMotion
+      ? initialScrollProgress
+      : THREE.MathUtils.damp(
+          displayedSettleProgressRef.current,
+          settleTarget,
+          HELLO_SETTLE_MOTION.scrollDamping,
+          delta,
+    );
+    displayedSettleProgressRef.current = settleProgress;
+    const headerTransition = resolveHeaderTransition(settleProgress);
+    materials.tube.uniforms.uObjectOpacity.value =
+      1 - headerTransition.handoff;
+
+    applyHeaderHandoff(headerTransition.handoff);
+
     const group = groupRef.current;
 
     if (group) {
       const responsiveScale = Math.min(1.05, viewport.width / 9.05);
+      const headerTransform = headerTransformRef.current;
       const startRotation = HELLO_SETTLE_MOTION.startRotation;
       const endRotation = HELLO_SETTLE_MOTION.endRotation;
 
       group.scale.setScalar(
-        responsiveScale *
-          THREE.MathUtils.lerp(1, HELLO_SETTLE_MOTION.scale, settleProgress),
+        THREE.MathUtils.lerp(
+          responsiveScale * HELLO_SETTLE_MOTION.startScale,
+          headerTransform.scale,
+          headerTransition.scale,
+        ),
+      );
+      group.position.x = THREE.MathUtils.lerp(
+        0,
+        headerTransform.x,
+        headerTransition.travel,
       );
       group.position.y = THREE.MathUtils.lerp(
-        0,
-        HELLO_SETTLE_MOTION.lift,
-        settleProgress,
+        HELLO_SETTLE_MOTION.startY,
+        headerTransform.y,
+        headerTransition.travel,
       );
       group.rotation.set(
-        THREE.MathUtils.lerp(startRotation[0], endRotation[0], settleProgress),
-        THREE.MathUtils.lerp(startRotation[1], endRotation[1], settleProgress),
-        THREE.MathUtils.lerp(startRotation[2], endRotation[2], settleProgress),
+        THREE.MathUtils.lerp(
+          startRotation[0],
+          endRotation[0],
+          headerTransition.rotation,
+        ),
+        THREE.MathUtils.lerp(
+          startRotation[1],
+          endRotation[1],
+          headerTransition.rotation,
+        ),
+        THREE.MathUtils.lerp(
+          startRotation[2],
+          endRotation[2],
+          headerTransition.rotation,
+        ),
       );
     }
   });
@@ -1066,65 +1675,509 @@ function GlassStroke({ reduceMotion, runId, tuning }: GlassStrokeProps) {
   if (!environment) return null;
 
   const responsiveScale = Math.min(1.05, viewport.width / 9.05);
-  const initialProgress = reduceMotion ? 1 : 0;
-  const initialRotation = reduceMotion
-    ? HELLO_SETTLE_MOTION.endRotation
-    : HELLO_SETTLE_MOTION.startRotation;
+  const initialProgress = initialScrollProgress;
+  const initialTransition = resolveHeaderTransition(initialProgress);
+  const initialHeaderTransform = headerTransformRef.current;
+  const startRotation = HELLO_SETTLE_MOTION.startRotation;
+  const endRotation = HELLO_SETTLE_MOTION.endRotation;
+  const initialRotation = [
+    THREE.MathUtils.lerp(
+      startRotation[0],
+      endRotation[0],
+      initialTransition.rotation,
+    ),
+    THREE.MathUtils.lerp(
+      startRotation[1],
+      endRotation[1],
+      initialTransition.rotation,
+    ),
+    THREE.MathUtils.lerp(
+      startRotation[2],
+      endRotation[2],
+      initialTransition.rotation,
+    ),
+  ] as const;
 
   return (
     <group
       ref={groupRef}
-      position={[0, HELLO_SETTLE_MOTION.lift * initialProgress, 0]}
+      position={[
+        THREE.MathUtils.lerp(
+          0,
+          initialHeaderTransform.x,
+          initialTransition.travel,
+        ),
+        THREE.MathUtils.lerp(
+          HELLO_SETTLE_MOTION.startY,
+          initialHeaderTransform.y,
+          initialTransition.travel,
+        ),
+        0,
+      ]}
       rotation={initialRotation}
       scale={
-        responsiveScale *
-        THREE.MathUtils.lerp(1, HELLO_SETTLE_MOTION.scale, initialProgress)
+        THREE.MathUtils.lerp(
+          responsiveScale * HELLO_SETTLE_MOTION.startScale,
+          initialHeaderTransform.scale,
+          initialTransition.scale,
+        )
       }
     >
-      <mesh geometry={geometries.stem.geometry} material={groupedMaterial} />
-      <mesh geometry={geometries.word.geometry} material={groupedMaterial} />
+      <mesh
+        geometry={geometries.stem.geometry}
+        material={groupedMaterial}
+        renderOrder={2}
+      />
+      <mesh
+        geometry={geometries.word.geometry}
+        material={groupedMaterial}
+        renderOrder={2}
+      />
     </group>
   );
 }
 
-export function GlassStrokePrototype() {
-  const reduceMotion = useReducedMotionPreference();
-  const [runId, setRunId] = useState(0);
+type PersonalIntroductionProps = {
+  reduceMotion: boolean;
+  initialScrollProgress: number;
+  scrollProgressRef: MutableRefObject<number>;
+};
+
+function PersonalIntroduction({
+  reduceMotion,
+  initialScrollProgress,
+  scrollProgressRef,
+}: PersonalIntroductionProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const lineRefs = useRef<Array<HTMLParagraphElement | null>>([]);
+  const visibleRef = useRef(
+    reduceMotion || resolveProfileRevealVisibility(initialScrollProgress),
+  );
+
+  const setVisible = useCallback(
+    (visible: boolean) => {
+      visibleRef.current = visible;
+
+      if (contentRef.current) {
+        contentRef.current.dataset.visible = visible ? "true" : "false";
+      }
+    },
+    [],
+  );
+
+  const applyProgress = useCallback(
+    (scrollProgress: number) => {
+      const shouldBeVisible =
+        reduceMotion || resolveProfileRevealVisibility(scrollProgress);
+
+      if (visibleRef.current !== shouldBeVisible) {
+        setVisible(shouldBeVisible);
+      }
+
+      const rawProgress = reduceMotion
+        ? 1
+        : THREE.MathUtils.clamp(
+            (scrollProgress - PROFILE_REVEAL_MOTION.start) /
+              (PROFILE_REVEAL_MOTION.end - PROFILE_REVEAL_MOTION.start),
+            0,
+            1,
+          );
+      const lineDuration =
+        1 - PROFILE_REVEAL_MOTION.lineStagger * (lineRefs.current.length - 1);
+
+      lineRefs.current.forEach((line, index) => {
+        if (!line) return;
+
+        const lineProgress = smootherStep(
+          THREE.MathUtils.clamp(
+            (rawProgress - index * PROFILE_REVEAL_MOTION.lineStagger) /
+              lineDuration,
+            0,
+            1,
+          ),
+        );
+        const translateY =
+          (1 - lineProgress) * PROFILE_REVEAL_MOTION.lineTravel;
+
+        line.style.transform = `translate3d(0, ${translateY.toFixed(2)}px, 0)`;
+      });
+    },
+    [reduceMotion, setVisible],
+  );
+
+  useLayoutEffect(() => {
+    setVisible(
+      reduceMotion || resolveProfileRevealVisibility(initialScrollProgress),
+    );
+    applyProgress(initialScrollProgress);
+  }, [applyProgress, initialScrollProgress, reduceMotion, setVisible]);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    let frame = 0;
+    const update = () => {
+      applyProgress(scrollProgressRef.current);
+      frame = window.requestAnimationFrame(update);
+    };
+
+    frame = window.requestAnimationFrame(update);
+    return () => window.cancelAnimationFrame(frame);
+  }, [applyProgress, reduceMotion, scrollProgressRef]);
 
   return (
-    <main className={styles.prototype}>
+    <section className={styles.profileLayer} aria-labelledby="profile-title">
+      <div
+        ref={contentRef}
+        className={styles.profileContent}
+        data-visible={
+          reduceMotion || resolveProfileRevealVisibility(initialScrollProgress)
+            ? "true"
+            : "false"
+        }
+      >
+        <h2 id="profile-title" className={styles.srOnly}>
+          About me
+        </h2>
+        <p
+          ref={(element) => {
+            lineRefs.current[0] = element;
+          }}
+          className={styles.profileLine}
+        >
+          <span className={styles.profileSegment}>
+            B.Sc. in
+          </span>
+          {" "}
+          <span className={styles.profileSegment}>
+            <span className={styles.profileHandwritten}>
+              Computer Science &amp; Technology
+            </span>
+            .
+          </span>
+        </p>
+        <p
+          ref={(element) => {
+            lineRefs.current[1] = element;
+          }}
+          className={styles.profileLine}
+        >
+          <span className={styles.profileSegment}>
+            Master&apos;s student in
+          </span>
+          {" "}
+          <span className={styles.profileSegment}>
+            <span className={styles.profileHandwritten}>
+              Computer Science &amp; Technology
+            </span>
+            .
+          </span>
+        </p>
+        <p
+          ref={(element) => {
+            lineRefs.current[2] = element;
+          }}
+          className={styles.profileLine}
+        >
+          <span className={styles.profileSegment}>
+            Creating with curiosity,
+          </span>{" "}
+          <span className={styles.profileSegment}>
+            living with music,
+          </span>{" "}
+          <span className={styles.profileSegment}>
+            and learning to love the gym.
+          </span>
+        </p>
+      </div>
+    </section>
+  );
+}
+
+const SCROLL_INTENT_KEYS = new Set([
+  "ArrowDown",
+  "ArrowUp",
+  "End",
+  "Home",
+  "PageDown",
+  "PageUp",
+  " ",
+]);
+
+function useHelloScrollControl(reduceMotion: boolean) {
+  const scrollStageRef = useRef<HTMLElement>(null);
+  const scrollProgressRef = useRef(0);
+  const autoScrollFrameRef = useRef<number | null>(null);
+  const autoScrollActiveRef = useRef(false);
+  const autoSettleAllowedRef = useRef(false);
+  const userHasTakenControlRef = useRef(false);
+  const [scrollSession, setScrollSession] = useState<
+    HelloScrollSession & { ready: boolean }
+  >({
+    ready: false,
+    startProgress: 0,
+    allowAutoSettle: false,
+  });
+
+  const updateScrollProgress = useCallback(() => {
+    if (reduceMotion) {
+      scrollProgressRef.current = 1;
+      return 1;
+    }
+
+    const stage = scrollStageRef.current;
+    if (!stage) return scrollProgressRef.current;
+
+    const stageTop = window.scrollY + stage.getBoundingClientRect().top;
+    const scrollDistance = Math.max(stage.offsetHeight - window.innerHeight, 1);
+    const progress = THREE.MathUtils.clamp(
+      (window.scrollY - stageTop) / scrollDistance,
+      0,
+      1,
+    );
+    scrollProgressRef.current = progress;
+    return progress;
+  }, [reduceMotion]);
+
+  const cancelAutoScroll = useCallback(() => {
+    autoScrollActiveRef.current = false;
+
+    if (autoScrollFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoScrollFrameRef.current);
+      autoScrollFrameRef.current = null;
+    }
+  }, []);
+
+  const startAutoScroll = useCallback(() => {
+    if (
+      reduceMotion ||
+      !autoSettleAllowedRef.current ||
+      userHasTakenControlRef.current
+    ) {
+      return;
+    }
+
+    const stage = scrollStageRef.current;
+    if (!stage) return;
+
+    cancelAutoScroll();
+
+    const stageTop = window.scrollY + stage.getBoundingClientRect().top;
+    const scrollDistance = Math.max(stage.offsetHeight - window.innerHeight, 1);
+    const startY = window.scrollY;
+    const targetY = stageTop + scrollDistance;
+    const startTime = performance.now();
+
+    autoScrollActiveRef.current = true;
+
+    const advance = (time: number) => {
+      if (!autoScrollActiveRef.current) return;
+
+      const rawProgress = THREE.MathUtils.clamp(
+        (time - startTime) /
+          (HELLO_SETTLE_MOTION.autoScrollDuration * 1000),
+        0,
+        1,
+      );
+      const easedProgress = easeHelloSettle(rawProgress);
+      window.scrollTo({
+        top: THREE.MathUtils.lerp(startY, targetY, easedProgress),
+        behavior: "auto",
+      });
+      updateScrollProgress();
+
+      if (rawProgress < 1) {
+        autoScrollFrameRef.current = window.requestAnimationFrame(advance);
+      } else {
+        autoScrollActiveRef.current = false;
+        autoScrollFrameRef.current = null;
+        scrollProgressRef.current = 1;
+      }
+    };
+
+    autoScrollFrameRef.current = window.requestAnimationFrame(advance);
+  }, [cancelAutoScroll, reduceMotion, updateScrollProgress]);
+
+  useLayoutEffect(() => {
+    if (reduceMotion) {
+      scrollProgressRef.current = 1;
+      autoSettleAllowedRef.current = false;
+      setScrollSession({
+        ready: true,
+        startProgress: 1,
+        allowAutoSettle: false,
+      });
+      return;
+    }
+
+    const restoredProgress = updateScrollProgress();
+    const resolvedSession = resolveHelloScrollSession(restoredProgress);
+    const allowAutoSettle =
+      resolvedSession.allowAutoSettle && !userHasTakenControlRef.current;
+
+    scrollProgressRef.current = resolvedSession.startProgress;
+    autoSettleAllowedRef.current = allowAutoSettle;
+    setScrollSession({
+      ready: true,
+      startProgress: resolvedSession.startProgress,
+      allowAutoSettle,
+    });
+  }, [reduceMotion, updateScrollProgress]);
+
+  useEffect(() => {
+    const disableAutoSettle = () => {
+      if (!autoSettleAllowedRef.current) return;
+
+      autoSettleAllowedRef.current = false;
+      setScrollSession((current) => ({
+        ...current,
+        allowAutoSettle: false,
+      }));
+    };
+
+    const handleScroll = () => {
+      const progress = updateScrollProgress();
+
+      if (
+        !autoScrollActiveRef.current &&
+        !resolveHelloScrollSession(progress).allowAutoSettle
+      ) {
+        disableAutoSettle();
+      }
+    };
+
+    const handleUserIntent = () => {
+      userHasTakenControlRef.current = true;
+      disableAutoSettle();
+      cancelAutoScroll();
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (SCROLL_INTENT_KEYS.has(event.key)) handleUserIntent();
+    };
+    const handleVisibilityChange = () => {
+      if (document.hidden) cancelAutoScroll();
+    };
+    const handlePageShow = () => handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("wheel", handleUserIntent, { passive: true });
+    window.addEventListener("touchstart", handleUserIntent, { passive: true });
+    window.addEventListener("pointerdown", handleUserIntent, { passive: true });
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("pageshow", handlePageShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      cancelAutoScroll();
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("wheel", handleUserIntent);
+      window.removeEventListener("touchstart", handleUserIntent);
+      window.removeEventListener("pointerdown", handleUserIntent);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("pageshow", handlePageShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [cancelAutoScroll, updateScrollProgress]);
+
+  return {
+    scrollStageRef,
+    scrollProgressRef,
+    scrollSession,
+    startAutoScroll,
+  };
+}
+
+export function GlassStrokePrototype() {
+  const reduceMotion = useReducedMotionPreference();
+  const headerTargetRef = useRef<HTMLDivElement>(null);
+  const headerLogoRef = useRef<SVGSVGElement>(null);
+  const headerLayerRef = useRef<HTMLElement>(null);
+  const {
+    scrollStageRef,
+    scrollProgressRef,
+    scrollSession,
+    startAutoScroll,
+  } = useHelloScrollControl(reduceMotion);
+
+  const scrollStageHeight = reduceMotion
+    ? "100svh"
+    : `${(1 + HELLO_SETTLE_MOTION.scrollViewports) * 100}svh`;
+
+  return (
+    <main
+      ref={scrollStageRef}
+      className={styles.prototype}
+      style={{ minHeight: scrollStageHeight }}
+      data-scroll-session={scrollSession.ready ? "ready" : "pending"}
+      data-scroll-start={scrollSession.startProgress.toFixed(3)}
+      data-auto-settle={scrollSession.allowAutoSettle ? "true" : "false"}
+    >
       <h1 className={styles.srOnly}>hello 连写玻璃字形实验</h1>
 
-      <div className={styles.stage} aria-hidden="true">
-        <Canvas
-          camera={{ fov: 32, near: 0.1, far: 100, position: [0, 0, 8.6] }}
-          dpr={[1, 1.75]}
-          frameloop={reduceMotion ? "demand" : "always"}
-          gl={{ alpha: true, antialias: true, stencil: false }}
-          onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+      <div className={styles.stage}>
+        <header
+          ref={headerLayerRef}
+          className={styles.siteHeader}
+          aria-label="网站页眉"
         >
-          <GlassStroke
+          <div ref={headerTargetRef} className={styles.headerLogoTarget}>
+            <span className={styles.srOnly}>aqhours</span>
+            <svg
+              ref={headerLogoRef}
+              className={styles.headerFlatLogo}
+              viewBox="0 0 638 200"
+              fill="none"
+              aria-hidden="true"
+              style={{ opacity: 0 }}
+            >
+              <path d={HELLO_STEM_SVG_PATH} />
+              <path d={HELLO_WORD_SVG_PATH} />
+            </svg>
+          </div>
+        </header>
+        <div className={styles.visualLayer} aria-hidden="true">
+          {scrollSession.ready && (
+            <Canvas
+              camera={{
+                fov: 32,
+                near: 0.1,
+                far: 100,
+                position: [0, 0, CLOUD_CAMERA_Z],
+              }}
+              dpr={[1, 1.75]}
+              frameloop={reduceMotion ? "demand" : "always"}
+              gl={{ alpha: true, antialias: true, stencil: false }}
+              onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+            >
+              <Suspense fallback={null}>
+                <ThreeCloudBackdrop
+                  reduceMotion={reduceMotion}
+                  initialScrollProgress={scrollSession.startProgress}
+                  scrollProgressRef={scrollProgressRef}
+                />
+              </Suspense>
+              <GlassStroke
+                reduceMotion={reduceMotion}
+                tuning={DEFAULT_GLASS_TUNING}
+                initialScrollProgress={scrollSession.startProgress}
+                scrollProgressRef={scrollProgressRef}
+                headerTargetRef={headerTargetRef}
+                headerLogoRef={headerLogoRef}
+                headerLayerRef={headerLayerRef}
+                onSettleStart={startAutoScroll}
+              />
+            </Canvas>
+          )}
+        </div>
+        {scrollSession.ready && (
+          <PersonalIntroduction
             reduceMotion={reduceMotion}
-            runId={runId}
-            tuning={DEFAULT_GLASS_TUNING}
+            initialScrollProgress={scrollSession.startProgress}
+            scrollProgressRef={scrollProgressRef}
           />
-        </Canvas>
+        )}
       </div>
 
-      <aside className={styles.prototypeNote} aria-label="原型状态">
-        <span>PROTOTYPE 06 · ROUNDED CAPS</span>
-        <strong>透明 hello 的圆润端点</strong>
-        <small>当前保留玻璃字形、圆润端点与书写动画</small>
-        {!reduceMotion && (
-          <button
-            className={styles.replayButton}
-            type="button"
-            onClick={() => setRunId((current) => current + 1)}
-          >
-            重播书写
-          </button>
-        )}
-      </aside>
     </main>
   );
 }

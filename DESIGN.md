@@ -34,6 +34,21 @@ exact components, tokens, typography, or page structure.
   depth, and readable front/back overlap. A styled 2D SVG stroke is not sufficient.
 - The final result must visibly read as 3D; having a 3D mesh internally is not enough
   if the lighting and material still make it look flat.
+- The full-size hero lettering sits below the visual center. Its settled, reduced form
+  moves to the center of the site header.
+- After the write-on stroke completes, keep only a very brief pause before the spiral rise.
+
+## Header
+
+- The homepage has a lightweight transparent header.
+- The 3D glass `hello` follows one continuous scroll-linked motion: it rises from its
+  low hero position, shrinks, and completes a counterclockwise flip. The rise and flip
+  finish at 91% in a true front-facing pose; from 91% to 96%, the object only shrinks.
+- As soon as the glass object reaches that position, it hands off without a stationary
+  pause to a smaller, flat, monochrome-white rendering of the user-provided `hello` skeleton.
+  During the handoff, the glass object is visually above the flat mark. The final header
+  mark has no glass material.
+- Header navigation content remains undecided.
 
 ## Glass material
 
@@ -46,11 +61,37 @@ exact components, tokens, typography, or page structure.
 - The optical impression references the volumetric glass lettering on Air, without
   reusing Air's model, material assets, or scene resources.
 
+## Personal introduction layer
+
+- The first `100vh` of scrolling transitions from the hero into a personal-introduction
+  layer within the same fixed stage.
+- As `hello` flips, shrinks, and rises, the introduction stays centered and floats into place
+  with a clear but contained local offset. Lines enter in sequence, and semantic phrases
+  within each line enter in sequence. The phrases do not fade and do not use a mask: each
+  becomes visible at a slightly lower local position, then completes a small upward movement.
+  The main, long-distance position remains tied exactly to scrolling. Reaching its entrance
+  point triggers only the small local movement, which completes independently even if scrolling
+  stops; it does not carry the introduction to its final position. Returning above the trigger
+  hides it at that exact same scroll threshold and resets the entrance for the next visit. Do
+  not move it in from outside the viewport or use blur.
+- The introduction is three simple lines without a separate title hierarchy and sits
+  above the visual center to reserve space below for future content.
+- The introduction uses large, display-scale Manrope Bold while preserving exactly three
+  lines on desktop. In the first two lines,
+  `Computer Science & Technology` uses Caveat Bold as the only handwritten accent;
+  all remaining text stays sans serif.
+- Hero atmospheric elements must leave the viewport through scroll-linked spatial movement,
+  not a scroll-linked opacity fade, and be absent by the completed introduction state.
+- The introduction contains only the following reviewed information:
+  - B.Sc. in Computer Science & Technology.
+  - Master's student in Computer Science & Technology.
+  - Creating with curiosity, living with music, and learning to love the gym.
+
 ## Not decided
 
 - Whether the homepage has one lighting scene or four.
 - The sky, clouds, landscape, and other environmental elements.
 - Whether the write-on animation remains in the final hero.
-- Navigation, hero copy, and personal introduction.
-- Scroll behavior and transitions beyond the hero.
+- Navigation and hero copy.
+- Scroll behavior and transitions after the personal-introduction layer.
 - The content, order, and visual treatment of later sections.

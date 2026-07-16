@@ -1,0 +1,1 @@
+export const HELLO_TILT_COMPENSATION_RADIANS = (2.05 * Math.PI) / 180;
