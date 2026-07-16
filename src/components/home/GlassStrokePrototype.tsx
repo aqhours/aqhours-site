@@ -611,7 +611,7 @@ const CLOUD_STREAMS: readonly CloudStreamSpec[] = [
 // POST-WRITE MOTION — edit these values to tune the transition checkpoint.
 const HELLO_SETTLE_MOTION = {
   hold: 0.1,
-  autoScrollDuration: 3.2,
+  autoScrollDuration: 2.8,
   startScale: 0.86,
   scale: 0.25,
   startY: -0.52,
@@ -631,7 +631,7 @@ const PROFILE_REVEAL_MOTION = {
 } as const;
 
 function easeHelloSettle(progress: number) {
-  // cubic-bezier(0.77, 0, 0.175, 1), solved by bisection.
+  // cubic-bezier(0.62, 0.14, 0.175, 1), solved by bisection.
   if (progress <= 0) return 0;
   if (progress >= 1) return 1;
 
@@ -649,7 +649,7 @@ function easeHelloSettle(progress: number) {
   let time = progress;
 
   for (let iteration = 0; iteration < 8; iteration += 1) {
-    if (sample(time, 0.77, 0.175) < progress) {
+    if (sample(time, 0.62, 0.175) < progress) {
       lower = time;
     } else {
       upper = time;
@@ -657,7 +657,7 @@ function easeHelloSettle(progress: number) {
     time = (lower + upper) * 0.5;
   }
 
-  return sample(time, 0, 1);
+  return sample(time, 0.14, 1);
 }
 
 function smootherStep(progress: number) {
