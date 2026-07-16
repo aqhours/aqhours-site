@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   HELLO_TILT_COMPENSATION_RADIANS,
+  resolveHelloGeometryTransition,
 } from "../src/components/home/helloGeometry.ts";
 
 const CAMERA_Z = 8.6;
@@ -58,4 +59,15 @@ test("levels the perspective slope with a small whole-object rotation", () => {
 
   assert.ok(Math.abs(uncompensatedAngle) > 1.5);
   assert.ok(Math.abs(compensatedAngle) < 0.25);
+});
+
+test("finishes the flip in the exact flat SVG pose", () => {
+  assert.deepEqual(resolveHelloGeometryTransition(0), {
+    flatten: 0,
+    zRotation: HELLO_TILT_COMPENSATION_RADIANS,
+  });
+  assert.deepEqual(resolveHelloGeometryTransition(1), {
+    flatten: 1,
+    zRotation: 0,
+  });
 });

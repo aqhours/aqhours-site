@@ -20,7 +20,11 @@ function DesignCredit() {
 
 export function HomepageEnding() {
   return (
-    <section className={styles.ending} aria-labelledby="homepage-ending-title">
+    <section
+      id="homepage-ending"
+      className={styles.ending}
+      aria-labelledby="homepage-ending-title"
+    >
       <h2 id="homepage-ending-title" className={styles.srOnly}>
         Homepage ending
       </h2>

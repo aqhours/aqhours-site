@@ -43,12 +43,16 @@ exact components, tokens, typography, or page structure.
 - The homepage has a lightweight frosted header fixed to the top of the viewport across all
   three screens. The shared atmospheric background remains visible through it.
 - The 3D glass `hello` follows one continuous scroll-linked motion: it rises from its
-  low hero position, shrinks, and completes a counterclockwise flip. The rise and flip
-  finish at 91% in a true front-facing pose; from 91% to 96%, the object only shrinks.
-- As soon as the glass object reaches that position, it hands off without a stationary
-  pause to a smaller, flat, monochrome-white rendering of the user-provided `hello` skeleton.
-  During the handoff, the glass object is visually above the flat mark. The final header
-  mark has no glass material.
+  low hero position, shrinks, and completes a counterclockwise flip. During that flip, its
+  spatial centerline resolves into the same plane as the flat SVG and its initial optical
+  Z-axis compensation resolves to zero. The flip finishes first at 85% stage progress in a true
+  front-facing pose. The rise toward the header and the shrink are one synchronized motion sharing
+  the same progress curve, and both finish at 90%. The completed transform then stays fixed until
+  the 91% header handoff.
+- At 91% stage progress, snap the hello visual progress exactly to 100% and replace the
+  glass object in one frame with a smaller, flat,
+  monochrome-white rendering of the user-provided `hello` skeleton. The two renderings do not
+  crossfade or overlap during the replacement. The final header mark has no glass material.
 - Header navigation contains only `Blog`, `Studio`, and `Photos` links for this checkpoint.
   A simple `aqhours` personal identifier sits at the opposite edge, while the settled
   `hello` mark remains centered.
@@ -63,9 +67,10 @@ exact components, tokens, typography, or page structure.
   gradient reaches full transparency at the bottom so it never reads as a framed rectangle.
 - Apply the blur through Tailwind's `backdrop-blur-md` utility, matching the supplied Air HTML
   and ensuring the generated stylesheet retains the backdrop-filter declarations.
-- Keep the moving 3D glass stroke above the header frost while leaving the cloud field and
-  personal-introduction copy below it. The header navigation stays above both. This requires
-  separate cloud and glass Canvas layers rather than raising the combined scene.
+- The cloud field and 3D glass stroke share one fixed Canvas and one Three.js scene. That Canvas
+  stays below the personal-introduction copy. The header frost remains hidden while the 3D glass
+  stroke is present; it appears only after the handoff to the flat header mark has completed. The
+  flat mark and header navigation stay above the frost.
 - Extend the frost `28px` below the header and mask that extension from opaque to transparent,
   feathering the blur boundary without adding a visible edge or shadow.
 - The centered flat `hello` mark does not receive a separate card or badge; it shares the same
@@ -84,29 +89,44 @@ exact components, tokens, typography, or page structure.
 
 ## Personal introduction layer
 
+- The automatic hero-to-introduction scroll uses one velocity-continuous segmented curve. It
+  passes through an explicit 85% rotation checkpoint at 1.609s, then reaches
+  the 91% header handoff at 1.691s of the 1.9s total. From 91–100%, one uninterrupted 209ms tail
+  segment carries the introduction to its final position, with no intermediate 95% control point. The curve changes
+  speed without a discontinuous gear shift and still stops without a long deceleration tail. When raw stage
+  progress reaches 91%, only the hello visual
+  progress snaps exactly to 1 and completes its header handoff; authoritative stage progress
+  continues to 100%. At that hello handoff milestone the introduction remains exactly 9vh below
+  its target, and automatic scrolling ends only when the introduction reaches its target.
+- One scroll motion controller owns automatic scrolling, desktop wheel inertia, the authoritative
+  stage progress, and progress subscriptions. Three.js and DOM consumers must not add independent
+  scroll smoothing or permanent polling loops on top of that shared progress.
+- Desktop wheel scrolling is inertial and interruptible across the full page: successive wheel
+  input in either direction accumulates into a moving target that the page follows smoothly,
+  with a clearly perceptible glide after input ends, while reversing the wheel immediately gives
+  the new direction control. The first micro input in a new direction receives a restrained minimum
+  glide so its smoothing remains perceptible, without repeatedly amplifying continued input. Touch
+  scrolling keeps the operating system's native inertia, keyboard scrolling remains native, and
+  reduced-motion mode does not add custom scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a personal-introduction
   layer within the same fixed stage.
-- As `hello` flips, shrinks, and rises, the introduction stays centered and floats into place
-  with a clear but contained local offset. Lines enter in sequence, and semantic phrases
-  within each line enter in sequence. The phrases do not fade and do not use a mask: each
-  becomes visible at a slightly lower local position, then completes a small upward movement.
-  The main, long-distance position remains tied exactly to scrolling. Reaching its entrance
-  point triggers only the small local movement, which completes independently even if scrolling
-  stops; it does not carry the introduction to its final position. Returning above the trigger
-  hides it at that exact same scroll threshold and resets the entrance for the next visit. Do
-  not move it in from outside the viewport or use blur.
-- The introduction is three simple lines without a separate title hierarchy and sits
-  above the visual center to reserve space below for future content.
-- The introduction uses large, display-scale Manrope Bold while preserving exactly three
-  lines on desktop. In the first two lines,
-  `Computer Science & Technology` uses Caveat Bold as the only handwritten accent;
-  all remaining text stays sans serif.
+- The personal introduction contains only the sentence `I am aqhours.` and a lightweight
+  `explore` button beneath it. `aqhours` is the only handwritten Caveat Bold text; the rest
+  of the sentence remains display-scale Manrope Bold.
+- `I am`, the handwritten name, and the `explore` button enter in that order with a short
+  stagger while sharing one cohesive Fade Up motion.
+- The `explore` control links to the currently final screen. Its surface stays restrained and
+  does not become a decorative glass card.
+- The concise introduction remains above the visual center. Its final entrance motion is still
+  to be reviewed separately. The block sits closer to the settled header `hello` than before.
+  Its reveal and reverse-scroll exit use different thresholds: after appearing, it remains visible
+  while moving clearly farther down and hides only below its original reveal position. The shared
+  scroll mapping must preserve a visibly distinct distance between those two positions. It appears
+  at 45% stage progress while still substantially below its final resting position. Its vertical
+  travel is viewport-relative rather than fixed-pixel: reveal is exactly 40vh below rest, while
+  reverse-scroll exit occurs at 39% progress exactly 60vh below rest.
 - Hero atmospheric elements must leave the viewport through scroll-linked spatial movement,
   not a scroll-linked opacity fade, and be absent by the completed introduction state.
-- The introduction contains only the following reviewed information:
-  - B.Sc. in Computer Science & Technology.
-  - Master's student in Computer Science & Technology.
-  - Creating with curiosity, living with music, and learning to love the gym.
 
 ## Ending
 
