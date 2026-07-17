@@ -29,7 +29,6 @@ test("uses one velocity-continuous curve through the rotation checkpoint", () =>
     0.91,
   );
   assert.equal(resolveAutoScrollProgress(1), 1);
-  assert.ok(resolveAutoScrollProgress(0.5) > 0.4);
 
   let previousProgress = 0;
   for (let step = 1; step <= 1000; step += 1) {
@@ -54,6 +53,28 @@ test("uses one velocity-continuous curve through the rotation checkpoint", () =>
 
     assert.ok(Math.abs(velocityBefore - velocityAfter) < 1e-3);
   }
+
+  const velocityAt = (time) =>
+    (resolveAutoScrollProgress(time + delta) -
+      resolveAutoScrollProgress(time - delta)) /
+    (2 * delta);
+  let previousVelocity = velocityAt(AUTO_SCROLL_ROTATION_END_TIME);
+
+  for (let step = 1; step <= 100; step += 1) {
+    const time =
+      AUTO_SCROLL_ROTATION_END_TIME +
+      (AUTO_SCROLL_HANDOFF_TIME - AUTO_SCROLL_ROTATION_END_TIME) *
+        (step / 100);
+    const velocity = velocityAt(time);
+
+    assert.ok(velocity >= previousVelocity - 1e-3);
+    previousVelocity = velocity;
+  }
+
+  const tailMidpoint = (AUTO_SCROLL_HANDOFF_TIME + 1) / 2;
+  assert.ok(Math.abs(resolveAutoScrollProgress(tailMidpoint) - 0.955) < 1e-9);
+  const tailQuarter = (AUTO_SCROLL_HANDOFF_TIME + tailMidpoint) / 2;
+  assert.ok(Math.abs(velocityAt(tailMidpoint) - velocityAt(tailQuarter)) < 1e-6);
 });
 
 test("moves manual scrolling toward its target without overshooting", () => {
@@ -148,9 +169,9 @@ test("moves the profile clearly lower before reverse-scroll hiding", () => {
   const revealOffsetVh = resolveProfileTravelOffsetVh(0.45);
   const hideOffsetVh = resolveProfileTravelOffsetVh(0.39);
 
-  assert.equal(revealOffsetVh, 40);
+  assert.equal(revealOffsetVh, 50);
   assert.equal(hideOffsetVh, 60);
-  assert.ok(Math.abs(resolveProfileTravelOffsetVh(0.91) - 9) < 1e-9);
+  assert.ok(Math.abs(resolveProfileTravelOffsetVh(0.91) - 6) < 1e-9);
   assert.equal(resolveProfileTravelOffsetVh(1), 0);
 });
 
@@ -164,7 +185,7 @@ test("keeps the profile moving toward its target through the hello handoff", () 
     previousOffset = offset;
   }
 
-  assert.ok(resolveProfileTravelOffsetVh(0.975) < 9);
+  assert.ok(resolveProfileTravelOffsetVh(0.975) < 6);
   assert.ok(resolveProfileTravelOffsetVh(0.975) > 0);
 });
 

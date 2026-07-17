@@ -620,7 +620,7 @@ const CLOUD_STREAMS: readonly CloudStreamSpec[] = [
 // POST-WRITE MOTION — edit these values to tune the transition checkpoint.
 const HELLO_SETTLE_MOTION = {
   hold: 0.1,
-  autoScrollDuration: 1.9,
+  autoScrollDuration: 1.5,
   startScale: 0.86,
   scale: 0.25,
   startY: -0.52,

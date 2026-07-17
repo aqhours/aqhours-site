@@ -90,13 +90,15 @@ exact components, tokens, typography, or page structure.
 ## Personal introduction layer
 
 - The automatic hero-to-introduction scroll uses one velocity-continuous segmented curve. It
-  passes through an explicit 85% rotation checkpoint at 1.609s, then reaches
-  the 91% header handoff at 1.691s of the 1.9s total. From 91–100%, one uninterrupted 209ms tail
-  segment carries the introduction to its final position, with no intermediate 95% control point. The curve changes
-  speed without a discontinuous gear shift and still stops without a long deceleration tail. When raw stage
+  passes through an explicit 85% rotation checkpoint at 1.334s, then accelerates from a normalized
+  speed of 1.2 to 1.4 through the remaining scale-and-travel phase, reaching the 91% header handoff
+  at 1.404s of the 1.5s total. From 91–100%, one uninterrupted 96ms constant-speed tail carries the
+  introduction to its final position, with no intermediate 95% control point or tail deceleration.
+  The checkpoint times are derived from their progress distances and velocities rather than tuned
+  independently. When raw stage
   progress reaches 91%, only the hello visual
   progress snaps exactly to 1 and completes its header handoff; authoritative stage progress
-  continues to 100%. At that hello handoff milestone the introduction remains exactly 9vh below
+  continues to 100%. At that hello handoff milestone the introduction remains exactly 6vh below
   its target, and automatic scrolling ends only when the introduction reaches its target.
 - One scroll motion controller owns automatic scrolling, desktop wheel inertia, the authoritative
   stage progress, and progress subscriptions. Three.js and DOM consumers must not add independent
@@ -123,7 +125,7 @@ exact components, tokens, typography, or page structure.
   while moving clearly farther down and hides only below its original reveal position. The shared
   scroll mapping must preserve a visibly distinct distance between those two positions. It appears
   at 45% stage progress while still substantially below its final resting position. Its vertical
-  travel is viewport-relative rather than fixed-pixel: reveal is exactly 40vh below rest, while
+  travel is viewport-relative rather than fixed-pixel: reveal is exactly 50vh below rest, while
   reverse-scroll exit occurs at 39% progress exactly 60vh below rest.
 - Hero atmospheric elements must leave the viewport through scroll-linked spatial movement,
   not a scroll-linked opacity fade, and be absent by the completed introduction state.
