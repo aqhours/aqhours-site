@@ -169,8 +169,8 @@ exact components, tokens, typography, or page structure.
 - A compact `70svh` third screen sits between the personal introduction and education. It presents
   the centered line `A few of my favorite things.` above two continuous logo marquees. The technology
   row travels left while the culture and entertainment row travels right, with soft horizontal masks
-  at both viewport edges. All supplied SVG marks, including Ghostty and Shining Nikki, render as monochrome white
-  silhouettes in equal-width rhythm slots. The copy
+  at both viewport edges. All supplied SVG marks, including Figma, Ghostty, Aqours Finale Live,
+  and Shining Nikki, render as monochrome white silhouettes in equal-width rhythm slots. The copy
   and the paired marquee block each receive a one-time Fade Up when entering the viewport, with the
   marquee following the copy by a short delay. Continuous marquee movement is linear, pauses on hover,
   and becomes static under reduced motion.

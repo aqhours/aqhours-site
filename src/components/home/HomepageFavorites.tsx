@@ -34,6 +34,12 @@ const TECHNOLOGY_LOGOS: FavoriteLogo[] = [
     height: "58%",
   },
   {
+    name: "Figma",
+    src: "/logo_svg/Figma-logo.svg",
+    width: "34%",
+    height: "80%",
+  },
+  {
     name: "ChatGPT",
     src: "/logo_svg/ChatGPT-Logo.svg",
     width: "34%",
@@ -108,6 +114,12 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
     src: "/logo_svg/Aqours_logo.svg",
     width: "72%",
     height: "72%",
+  },
+  {
+    name: "Aqours Finale Live",
+    src: "/logo_svg/aqours_finale_live_logo.svg",
+    width: "82%",
+    height: "66%",
   },
   {
     name: "Infinity Nikki",
