@@ -1,0 +1,164 @@
+.favorites {
+  position: relative;
+  display: grid;
+  min-height: 70svh;
+  place-items: center;
+  overflow: hidden;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.content {
+  width: 100%;
+  padding-block: clamp(64px, 9svh, 104px);
+}
+
+.heading {
+  margin: 0;
+  padding-inline: clamp(20px, 4vw, 64px);
+  font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
+  font-size: clamp(20px, 2vw, 30px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  text-align: center;
+  text-shadow:
+    0 1px 2px rgba(8, 48, 78, 0.18),
+    0 10px 30px rgba(11, 63, 99, 0.16);
+}
+
+.marquees {
+  display: grid;
+  gap: clamp(24px, 3.8svh, 40px);
+  margin-top: clamp(42px, 6svh, 64px);
+}
+
+.marqueeRow {
+  width: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 clamp(32px, 7vw, 112px),
+    #000 calc(100% - clamp(32px, 7vw, 112px)),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 clamp(32px, 7vw, 112px),
+    #000 calc(100% - clamp(32px, 7vw, 112px)),
+    transparent 100%
+  );
+}
+
+.marqueeTrack {
+  display: flex;
+  width: max-content;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.marqueeTrack[data-direction="left"] {
+  animation: favorite-marquee-left 22s linear infinite;
+  animation-delay: -6s;
+}
+
+.marqueeTrack[data-direction="right"] {
+  animation: favorite-marquee-right 22s linear infinite;
+  animation-delay: -13s;
+}
+
+.logoGroup {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.logoItem {
+  display: grid;
+  flex: 0 0 clamp(136px, 13vw, 204px);
+  width: clamp(136px, 13vw, 204px);
+  height: clamp(54px, 5.8vw, 78px);
+  place-items: center;
+}
+
+.logoMark {
+  display: block;
+  width: var(--favorite-logo-width);
+  height: var(--favorite-logo-height);
+  background: rgba(255, 255, 255, 0.96);
+  mask-image: var(--favorite-logo-image);
+  mask-mode: var(--favorite-logo-mask-mode, alpha);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--favorite-logo-image);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes favorite-marquee-left {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes favorite-marquee-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .marqueeRow:hover .marqueeTrack {
+    animation-play-state: paused;
+  }
+}
+
+@media (max-width: 720px) {
+  .content {
+    padding-block: 56px;
+  }
+
+  .marquees {
+    gap: 22px;
+    margin-top: 38px;
+  }
+
+  .logoItem {
+    flex-basis: 136px;
+    width: 136px;
+    height: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marqueeTrack {
+    will-change: auto;
+  }
+
+  .marqueeTrack {
+    animation: none;
+  }
+}
