@@ -9,6 +9,13 @@ Static personal homepage service deployed under `/opt/apps/homepage`.
 - `src/`: Next.js source files.
 - `out/`: generated static export from `pnpm run build`.
 
+The Docker build keeps two complementary caches. The regular layer cache skips
+the dependency installation while the package manifests are unchanged. A
+BuildKit cache mount named `pnpm-store` keeps downloaded package content across
+install-layer invalidations, so a lockfile change only needs to download new or
+changed packages. The first build after introducing or clearing this cache is a
+cold fill and can still take longer.
+
 ## Commands
 
 Local development:
