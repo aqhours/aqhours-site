@@ -41,7 +41,7 @@ exact components, tokens, typography, or page structure.
 ## Header
 
 - The homepage has a lightweight frosted header fixed to the top of the viewport across all
-  three screens. The shared atmospheric background remains visible through it.
+  four screens. The shared atmospheric background remains visible through it.
 - The 3D glass `hello` follows one continuous scroll-linked motion: it rises from its
   low hero position, shrinks, and completes a counterclockwise flip. During that flip, its
   spatial centerline resolves into the same plane as the flat SVG and its initial optical
@@ -140,6 +140,12 @@ exact components, tokens, typography, or page structure.
   3D tilt with perspective and a spring-smoothed return when the pointer leaves the window. It has
   its own Fade Up entrance after the introduction and location line, while touch and reduced-motion
   experiences remain still.
+- The personal-introduction screen has one dedicated cloud near each horizontal edge. The left and
+  right clouds are compact, clearly edged, and sit at visibly different heights. They remain near
+  their sides with only a slow, low-amplitude ambient drift, reveal with the second screen, and stay
+  behind its content. Their vertical position follows the second screen's sticky scroll travel, so
+  they move upward with that screen and are fully absent from the third screen. Reduced-motion mode
+  keeps their ambient drift still while preserving the page-linked scroll position.
 - `I am`, the handwritten name, and the location line enter in that order with a short stagger
   while sharing one cohesive Fade Up motion.
 - The concise introduction remains above the visual center. Its final entrance motion is still
@@ -151,14 +157,18 @@ exact components, tokens, typography, or page structure.
   travel is viewport-relative rather than fixed-pixel: reveal is exactly 50vh below rest, while
   reverse-scroll exit occurs at 39% progress exactly 60vh below rest.
 - Hero atmospheric elements must leave the viewport through scroll-linked spatial movement,
-  not a scroll-linked opacity fade, and be absent by the completed introduction state.
+  not a scroll-linked opacity fade, and be absent by the completed introduction state. The two
+  dedicated side clouds on the personal-introduction screen are a separate atmospheric layer.
 
 ## Ending
 
-- All three screens share one continuous fixed atmospheric background; the ending
+- All four screens share one continuous fixed atmospheric background; the later screens
   must not restart or duplicate the sky gradient at its boundary.
-- The third and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
-  shell imagery, or other replacement environmental element yet. It keeps the shared sky
+- A new, content-free third screen sits between the personal introduction and the ending. It is
+  one full viewport tall, keeps the shared sky unobstructed, and serves only as a future design
+  area at this checkpoint.
+- The fourth and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
+  shell imagery, or other replacement environmental element yet. It also keeps the shared sky
   unobstructed until a matching Drei-based direction is reviewed.
 - The ending includes the supplied registration links, a copyright line, and the design
   credit `Co-created with Sol / GPT-5 Codex`. The credit is a small editorial signature with

@@ -417,6 +417,10 @@ const CLOUD_NEAR_FADE = 3.2;
 const CLOUD_ALPHA_TEST = 0.055;
 const CLOUD_FIELD_REVEAL_DURATION = 2.4;
 const CLOUD_CAMERA_Z = 8.6;
+const PROFILE_CLOUD_REVEAL_START = 0.42;
+const PROFILE_CLOUD_REVEAL_END = 0.68;
+const PROFILE_CLOUD_ALPHA_TEST = 0.1;
+const PROFILE_CLOUD_Z = -0.6;
 
 type CloudStreamSpec = {
   seed: number;
@@ -615,6 +619,76 @@ const CLOUD_STREAMS: readonly CloudStreamSpec[] = [
     opacity: 0.17,
     speed: 0.018,
     scale: [0.88, 0.66, 1],
+  },
+];
+
+type ProfileCloudSpec = {
+  /** Stable random layout for the small cloud puffs. */
+  seed: number;
+  /** Horizontal side of the viewport: -1 is left, 1 is right. */
+  side: -1 | 1;
+  /** Starting phase for the ambient drift, expressed as a 0–1 cycle. */
+  phase: number;
+  /** Number of sprite puffs used to build the cloud. */
+  segments: number;
+  /** Horizontal position as a fraction of the Three.js viewport width. */
+  xRatio: number;
+  /** Base vertical position in Three.js world units; positive is upward. */
+  y: number;
+  /** Local x/y/z area in which Drei distributes the sprite puffs. */
+  bounds: [number, number, number];
+  /** Overall puff-volume multiplier used by Drei. */
+  volume: number;
+  /** Minimum relative puff volume before the overall multiplier is applied. */
+  smallestVolume: number;
+  /** Base cloud tint. */
+  color: string;
+  /** Per-puff opacity before the screen-level reveal/exit opacity. */
+  opacity: number;
+  /** Speed of Drei's internal puff growth and rotation. */
+  speed: number;
+  /** Final x/y/z scale applied to the complete cloud group. */
+  scale: [number, number, number];
+  /** Maximum horizontal ambient-drift distance in world units. */
+  driftX: number;
+  /** Maximum vertical ambient-drift distance in world units. */
+  driftY: number;
+};
+
+const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
+  {
+    seed: 211,
+    side: -1,
+    phase: 0.18,
+    segments: 18,
+    xRatio: 0.44,
+    y: 0,
+    bounds: [1.4, 0.36, 0.66],
+    volume: 1.35,
+    smallestVolume: 0.2,
+    color: "#f7fbff",
+    opacity: 0.34,
+    speed: 0.025,
+    scale: [0.5, 0.6, 0.5],
+    driftX: 0.1,
+    driftY: 0.06,
+  },
+  {
+    seed: 223,
+    side: 1,
+    phase: 0.64,
+    segments: 16,
+    xRatio: 0.5,
+    y: -0.58,
+    bounds: [1.3, 0.34, 0.62],
+    volume: 1.25,
+    smallestVolume: 0.19,
+    color: "#f4faff",
+    opacity: 0.34,
+    speed: 0.022,
+    scale: [0.72, 0.55, 0.7],
+    driftX: 0.08,
+    driftY: 0.05,
   },
 ];
 
@@ -1377,6 +1451,132 @@ function ThreeCloudBackdrop({
   );
 }
 
+type ThreeProfileCloudsProps = ThreeCloudBackdropProps & {
+  scrollStageRef: RefObject<HTMLElement | null>;
+};
+
+function ThreeProfileClouds({
+  reduceMotion,
+  initialScrollProgress,
+  scrollProgressRef,
+  scrollStageRef,
+}: ThreeProfileCloudsProps) {
+  const { viewport } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
+  const cloudFieldRef = useRef<THREE.Group>(null);
+  const cloudRefs = useRef<Array<THREE.Group | null>>([]);
+  const cloudMaterialsRef = useRef<THREE.Material[]>([]);
+
+  useFrame((state) => {
+    const progress = reduceMotion
+      ? initialScrollProgress
+      : scrollProgressRef.current;
+    const revealProgress = THREE.MathUtils.clamp(
+      (progress - PROFILE_CLOUD_REVEAL_START) /
+        (PROFILE_CLOUD_REVEAL_END - PROFILE_CLOUD_REVEAL_START),
+      0,
+      1,
+    );
+    const stageBottom = scrollStageRef.current?.getBoundingClientRect().bottom;
+    const stageExitProgress = stageBottom == null
+      ? 0
+      : THREE.MathUtils.clamp(
+          (viewport.height - (stageBottom / state.size.height) * viewport.height) /
+            viewport.height,
+          0,
+          1,
+        );
+    const exitFade =
+      1 -
+      smootherStep(
+        THREE.MathUtils.clamp((stageExitProgress - 0.72) / 0.28, 0, 1),
+      );
+    const opacity = smootherStep(revealProgress) * exitFade;
+    const stageTravelY = stageExitProgress * viewport.height;
+
+    if (cloudMaterialsRef.current.length === 0 && cloudFieldRef.current) {
+      const materials = new Set<THREE.Material>();
+
+      cloudFieldRef.current.traverse((child) => {
+        if (!(child instanceof THREE.Mesh)) return;
+
+        const childMaterials = Array.isArray(child.material)
+          ? child.material
+          : [child.material];
+        childMaterials.forEach((material) => materials.add(material));
+      });
+
+      cloudMaterialsRef.current = [...materials];
+      cloudMaterialsRef.current.forEach((material) => {
+        material.transparent = true;
+        material.alphaTest = PROFILE_CLOUD_ALPHA_TEST;
+        material.needsUpdate = true;
+      });
+    }
+
+    if (groupRef.current) groupRef.current.visible = opacity > 0.001;
+    cloudMaterialsRef.current.forEach((material) => {
+      material.opacity = opacity;
+    });
+
+    PROFILE_CLOUDS.forEach((cloud, index) => {
+      const instance = cloudRefs.current[index];
+      if (!instance) return;
+
+      const phase = cloud.phase * Math.PI * 2;
+      const elapsed = reduceMotion ? 0 : state.clock.elapsedTime;
+      const baseX = viewport.width * cloud.xRatio * cloud.side;
+      instance.position.set(
+        baseX + Math.sin(elapsed * 0.085 + phase) * cloud.driftX,
+        cloud.y +
+          stageTravelY +
+          Math.sin(elapsed * 0.11 + phase) * cloud.driftY,
+        PROFILE_CLOUD_Z,
+      );
+    });
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      visible={initialScrollProgress >= PROFILE_CLOUD_REVEAL_START}
+    >
+      <Clouds
+        ref={cloudFieldRef}
+        texture="/textures/cloud.png"
+        material={THREE.MeshLambertMaterial}
+        limit={48}
+        frustumCulled={false}
+        renderOrder={-1}
+      >
+        {PROFILE_CLOUDS.map((cloud, index) => (
+          <Cloud
+            key={cloud.seed}
+            ref={(instance) => {
+              cloudRefs.current[index] = instance;
+            }}
+            seed={cloud.seed}
+            segments={cloud.segments}
+            bounds={cloud.bounds}
+            volume={cloud.volume}
+            smallestVolume={cloud.smallestVolume}
+            color={cloud.color}
+            opacity={cloud.opacity}
+            fade={CLOUD_NEAR_FADE}
+            speed={reduceMotion ? 0 : cloud.speed}
+            position={[
+              viewport.width * cloud.xRatio * cloud.side,
+              cloud.y,
+              PROFILE_CLOUD_Z,
+            ]}
+            scale={cloud.scale}
+          />
+        ))}
+      </Clouds>
+    </group>
+  );
+}
+
 type GlassStrokeProps = {
   reduceMotion: boolean;
   tuning: GlassTuning;
@@ -1965,6 +2165,12 @@ export function GlassStrokePrototype() {
                 reduceMotion={reduceMotion}
                 initialScrollProgress={scrollSession.startProgress}
                 scrollProgressRef={scrollProgressRef}
+              />
+              <ThreeProfileClouds
+                reduceMotion={reduceMotion}
+                initialScrollProgress={scrollSession.startProgress}
+                scrollProgressRef={scrollProgressRef}
+                scrollStageRef={scrollStageRef}
               />
             </Suspense>
             <GlassStroke
