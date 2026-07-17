@@ -173,6 +173,12 @@ exact components, tokens, typography, or page structure.
 - The ending includes the supplied registration links, a copyright line, and the design
   credit `Co-created with Sol / GPT-5 Codex`. The credit is a small editorial signature with
   a custom solar-orbit mark, not a badge, button, glass surface, or third-party logo.
+- The ending metadata uses crisp near-white text with enough contrast to remain readable over the
+  shared sky while retaining the page's lightweight typography. Chinese metadata uses an explicit
+  sans-serif CJK fallback stack. The public-security registration link must use the exact icon asset
+  supplied by the site owner, with no substitute drawing. It is rendered as a real, explicitly sized
+  image beside the link text rather than injected through a CSS pseudo-element. The footer remains a
+  bare editorial line without a card, blur panel, or heavy divider.
 
 ## Not decided
 
