@@ -112,13 +112,36 @@ exact components, tokens, typography, or page structure.
   reduced-motion mode does not add custom scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a personal-introduction
   layer within the same fixed stage.
-- The personal introduction contains only the sentence `I am aqhours.` and a lightweight
-  `explore` button beneath it. `aqhours` is the only handwritten Caveat Bold text; the rest
-  of the sentence remains display-scale Manrope Bold.
-- `I am`, the handwritten name, and the `explore` button enter in that order with a short
-  stagger while sharing one cohesive Fade Up motion.
-- The `explore` control links to the currently final screen. Its surface stays restrained and
-  does not become a decorative glass card.
+- The personal introduction contains the sentence `I am aqhours.`, a separate
+  `Living in Honggutan, Nanchang` line close beneath it, and a large interactive map card in the
+  lower half of the screen. It does not include an `explore` control. `aqhours` is the only
+  handwritten Caveat Bold text; the rest of the sentence remains display-scale Manrope Bold.
+- The map uses the official Google Maps JavaScript API, configured through the public,
+  referrer-restricted `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. It is centered at longitude `115.83`, latitude `28.65`
+  with an initial zoom of `13.4`. The built-in camera and zoom controls are hidden while mouse-wheel,
+  trackpad, touch, keyboard zoom, and panning remain available. Per the owner's approved Google
+  authorization, the visible Google attribution and copyright layer may be hidden. The map is
+  presented as the bare map surface without an outer card, translucent frame, or shadow. The map
+  crop itself has one restrained `2px` grey-white border.
+  Its location line remains outside the map and closer to the personal-introduction sentence.
+- The `Living in` lead uses the same white Manrope treatment, size, weight, and tracking as the
+  location text. The location line sits exactly `45px` below `I am aqhours.`, and the map begins
+  exactly `45px` below the location line.
+- The map itself uses a rounded crop and an aqhours-specific pastel style: mint-green land,
+  pale-cyan water, blue-grey road hierarchy, and dark, high-contrast place labels. A white-ringed
+  compact blue position dot marks the configured Honggutan coordinate, while a small `Nanchang, China`
+  label sits inside the lower-left map area without obscuring the required Google attribution.
+  The position dot has two staggered, continuously expanding blue pulse rings with a soft radial
+  falloff. The center remains still, and reduced-motion mode removes the pulse.
+  Base-map labels use English. The map uses a production JavaScript Map ID and its associated
+  Google Cloud style. The position dot and both pulse rings are one custom DOM-backed
+  `AdvancedMarkerElement`; no legacy Marker or separate map Overlay is used.
+- On fine-pointer devices, the map receives a restrained, viewport-wide mouse-position-driven
+  3D tilt with perspective and a spring-smoothed return when the pointer leaves the window. It has
+  its own Fade Up entrance after the introduction and location line, while touch and reduced-motion
+  experiences remain still.
+- `I am`, the handwritten name, and the location line enter in that order with a short stagger
+  while sharing one cohesive Fade Up motion.
 - The concise introduction remains above the visual center. Its final entrance motion is still
   to be reviewed separately. The block sits closer to the settled header `hello` than before.
   Its reveal and reverse-scroll exit use different thresholds: after appearing, it remains visible

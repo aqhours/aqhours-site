@@ -2,7 +2,12 @@ name: homepage
 
 services:
   homepage:
-    build: .
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID:?Google Maps Map ID is required}
+      secrets:
+        - google_maps_api_key
     image: aqhours-homepage:0.1
     restart: unless-stopped
     networks:
@@ -11,3 +16,7 @@ services:
 networks:
   aqhours-web:
     external: true
+
+secrets:
+  google_maps_api_key:
+    file: ./secrets/google-maps-api-key
