@@ -116,6 +116,12 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
     height: "68%",
   },
   {
+    name: "Shining Nikki",
+    src: "/logo_svg/闪耀暖暖logo.svg",
+    width: "40%",
+    height: "82%",
+  },
+  {
     name: "Apple",
     src: "/logo_svg/apple-logo-svgrepo-com.svg",
     width: "34%",
