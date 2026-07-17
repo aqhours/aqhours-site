@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Caveat, Inter, Manrope } from "next/font/google";
+import { Caveat, Inter, Manrope, Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -20,6 +20,13 @@ const caveat = Caveat({
   subsets: ["latin"],
   variable: "--font-caveat",
   weight: "700",
+});
+
+const robotoCondensed = Roboto_Condensed({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-roboto-condensed",
+  weight: "variable",
 });
 
 const themeInitScript = `
@@ -53,7 +60,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className={`${inter.variable} ${manrope.variable} ${caveat.variable}`}>
+      <body
+        className={`${inter.variable} ${manrope.variable} ${caveat.variable} ${robotoCondensed.variable}`}
+      >
         {children}
       </body>
     </html>

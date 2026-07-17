@@ -29,7 +29,7 @@ import {
   useScrollMotionController,
   type SubscribeScrollProgress,
 } from "./useScrollMotionController";
-import { LocationCard, LocationPin } from "./LocationCard";
+import { LocationCard } from "./LocationCard";
 import styles from "./GlassStrokePrototype.module.css";
 
 type GlassTuning = {
@@ -2051,14 +2051,12 @@ function PersonalIntroduction({
                   <span className={styles.profileHandwritten}>aqhours</span>.
                 </span>
               </p>
+              <p className={styles.profileDescription}>
+                A passionate Software Designer and CSer
+              </p>
               <div className={styles.profileLocation}>
                 <span className={styles.profileLocationLead}>Living in</span>
-                <span className={styles.profileLocationPlace}>
-                  <span className={styles.profileLocationPin}>
-                    <LocationPin />
-                  </span>
-                  Honggutan, Nanchang
-                </span>
+                <span className={styles.profileLocationPlace}>Honggutan, Nanchang</span>
               </div>
             </>
           )}

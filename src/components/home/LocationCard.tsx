@@ -53,20 +53,6 @@ function createPositionMarker() {
   return marker;
 }
 
-export function LocationPin() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M20 10.1c0 5.3-8 11.4-8 11.4S4 15.4 4 10.1a8 8 0 1 1 16 0Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="10" r="2.6" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  );
-}
-
 function InteractiveMap() {
   const containerRef = useRef<HTMLDivElement>(null);
 

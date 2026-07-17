@@ -41,7 +41,7 @@ exact components, tokens, typography, or page structure.
 ## Header
 
 - The homepage has a lightweight frosted header fixed to the top of the viewport across all
-  four screens. The shared atmospheric background remains visible through it.
+  five screens. The shared atmospheric background remains visible through it.
 - The 3D glass `hello` follows one continuous scroll-linked motion: it rises from its
   low hero position, shrinks, and completes a counterclockwise flip. During that flip, its
   spatial centerline resolves into the same plane as the flat SVG and its initial optical
@@ -112,10 +112,12 @@ exact components, tokens, typography, or page structure.
   reduced-motion mode does not add custom scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a personal-introduction
   layer within the same fixed stage.
-- The personal introduction contains the sentence `I am aqhours.`, a separate
-  `Living in Honggutan, Nanchang` line close beneath it, and a large interactive map card in the
-  lower half of the screen. It does not include an `explore` control. `aqhours` is the only
-  handwritten Caveat Bold text; the rest of the sentence remains display-scale Manrope Bold.
+- The personal introduction is a compact three-line stack: `I am aqhours.`,
+  `A passionate Software Designer and CSer`, and `Living in Honggutan, Nanchang`, followed by a
+  large interactive map card in the lower half of the screen. All three lines inherit the former
+  location-line Manrope size, weight, and tracking. `aqhours` remains the only handwritten Caveat
+  Bold text and uses a `1.28em` size multiplier for emphasis. The screen does not
+  include an `explore` control.
 - The map uses the official Google Maps JavaScript API, configured through the public,
   referrer-restricted `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. It is centered at longitude `115.83`, latitude `28.65`
   with an initial zoom of `13.4`. The built-in camera and zoom controls are hidden while mouse-wheel,
@@ -124,9 +126,9 @@ exact components, tokens, typography, or page structure.
   presented as the bare map surface without an outer card, translucent frame, or shadow. The map
   crop itself has one restrained `2px` grey-white border.
   Its location line remains outside the map and closer to the personal-introduction sentence.
-- The `Living in` lead uses the same white Manrope treatment, size, weight, and tracking as the
-  location text. The location line sits exactly `45px` below `I am aqhours.`, and the map begins
-  exactly `45px` below the location line.
+- The three introduction lines use one responsive, tightly spaced vertical rhythm. The `Living in`
+  lead uses the same white Manrope treatment, size, weight, and tracking as the location text. The
+  map begins exactly `45px` below the third line.
 - The map itself uses a rounded crop and an aqhours-specific pastel style: mint-green land,
   pale-cyan water, blue-grey road hierarchy, and dark, high-contrast place labels. A white-ringed
   compact blue position dot marks the configured Honggutan coordinate, while a small `Nanchang, China`
@@ -146,8 +148,8 @@ exact components, tokens, typography, or page structure.
   behind its content. Their vertical position follows the second screen's sticky scroll travel, so
   they move upward with that screen and are fully absent from the third screen. Reduced-motion mode
   keeps their ambient drift still while preserving the page-linked scroll position.
-- `I am`, the handwritten name, and the location line enter in that order with a short stagger
-  while sharing one cohesive Fade Up motion.
+- The identity, role description, and location lines enter in that order with a short stagger while
+  sharing one cohesive Fade Up motion.
 - The concise introduction remains above the visual center. Its final entrance motion is still
   to be reviewed separately. The block sits closer to the settled header `hello` than before.
   Its reveal and reverse-scroll exit use different thresholds: after appearing, it remains visible
@@ -162,12 +164,37 @@ exact components, tokens, typography, or page structure.
 
 ## Ending
 
-- All four screens share one continuous fixed atmospheric background; the later screens
+- All five screens share one continuous fixed atmospheric background; the later screens
   must not restart or duplicate the sky gradient at its boundary.
-- A new, content-free third screen sits between the personal introduction and the ending. It is
-  one full viewport tall, keeps the shared sky unobstructed, and serves only as a future design
-  area at this checkpoint.
-- The fourth and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
+- A compact `70svh` third screen sits between the personal introduction and education. It presents
+  the centered line `A few of my favorite things.` above two continuous logo marquees. The technology
+  row travels left while the culture and entertainment row travels right, with soft horizontal masks
+  at both viewport edges. All supplied SVG marks, including Ghostty, render as monochrome white
+  silhouettes in equal-width rhythm slots. The copy
+  and the paired marquee block each receive a one-time Fade Up when entering the viewport, with the
+  marquee following the copy by a short delay. Continuous marquee movement is linear, pauses on hover,
+  and becomes static under reduced motion.
+- The fourth screen expresses the education statement in three uppercase English lines:
+  `COMPUTER SCIENCE. / B.S. COMPLETED. / M.S. IN PROGRESS.` The accessible label expands both
+  degree abbreviations and states that both belong to Computer Science and Technology. The three
+  similarly measured lines use Roboto Condensed at one display-scale size constrained by both
+  `10.7vw` and `25svh`, retaining their natural glyph proportions without horizontal or vertical
+  scaling. The viewport-height constraint prevents the complete group from overrunning short screens.
+  The line-height matches the font size so the condensed
+  glyph bounds remain intact. The typography stays in normal document flow rather
+  than a sticky frame, so the complete group continuously
+  travels upward with the screen. Each complete clipped row, including its text layers, translates
+  from `100%` below to its resting position. A low-contrast base and a near-white clone with a
+  moving linear-gradient mask create a brief vertical trail that resolves into crisp text. The
+  clone has no dark text shadow because an oversized blur collects into a visible horizontal band.
+  The education scroll timeline starts when the fourth-screen section first enters at the bottom of
+  the viewport, rather than waiting until its top reaches the viewport top. The text group sits
+  `18svh` below the section start, so its first row follows the settled map after a short transition
+  instead of leaving a full blank viewport between the two screens. The three scroll-driven
+  entrances overlap in sequence and finish by the time the fourth screen fully occupies the viewport.
+  The section is `160svh`; reduced-motion mode
+  shows the completed text centered in a regular `100svh` section.
+- The fifth and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
   shell imagery, or other replacement environmental element yet. It also keeps the shared sky
   unobstructed until a matching Drei-based direction is reviewed.
 - The ending includes the supplied registration links, a copyright line, and the design
