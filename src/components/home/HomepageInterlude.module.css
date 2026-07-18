@@ -8,18 +8,17 @@
 .education {
   position: absolute;
   top: 18svh;
-  right: clamp(18px, 4vw, 64px);
-  left: clamp(18px, 4vw, 64px);
+  right: clamp(8px, 0.5vw, 16px);
+  left: clamp(8px, 0.5vw, 16px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   margin: 0;
   color: rgba(255, 255, 255, 0.98);
-  font-family: var(--font-roboto-condensed), "Arial Narrow", sans-serif;
-  font-size: clamp(80px, min(10.7vw, 25svh), 230px);
-  font-stretch: condensed;
-  font-weight: 820;
-  letter-spacing: -0.055em;
+  font-size: clamp(80px, min(18.4vw, 33svh), 360px);
+  font-synthesis: none;
+  font-weight: 800;
+  letter-spacing: calc(-0.06em + 6px);
   line-height: 1;
   text-align: left;
 }
@@ -32,6 +31,18 @@
   overflow: hidden;
   white-space: nowrap;
   will-change: transform;
+}
+
+.line + .line {
+  margin-top: -0.18em;
+}
+
+.line:nth-child(n + 2) {
+  font-size: min(
+    23vw,
+    400px,
+    max(1.067em, calc((90svh - 1em) / 1.64))
+  );
 }
 
 .lineBase,
@@ -54,9 +65,13 @@
   .education {
     right: 16px;
     left: 16px;
-    font-size: min(10.7vw, 25svh);
-    letter-spacing: -0.06em;
+    font-size: min(15.2vw, 27svh);
+    letter-spacing: calc(-0.06em + 2px);
     line-height: 1;
+  }
+
+  .line:nth-child(n + 2) {
+    font-size: 1.067em;
   }
 }
 

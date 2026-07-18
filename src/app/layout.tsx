@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Caveat, Inter, Manrope, Roboto_Condensed } from "next/font/google";
+import { Caveat, Inter, Manrope } from "next/font/google";
 import { timeThemeInitScript } from "@/components/home/timeTheme";
 import "./globals.css";
 
@@ -23,13 +23,6 @@ const caveat = Caveat({
   weight: "700",
 });
 
-const robotoCondensed = Roboto_Condensed({
-  display: "swap",
-  subsets: ["latin"],
-  variable: "--font-roboto-condensed",
-  weight: "variable",
-});
-
 export const metadata: Metadata = {
   title: "aqhours",
   description: "与你相伴的时光，如此珍贵，如此难忘。",
@@ -45,9 +38,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: timeThemeInitScript }} />
       </head>
-      <body
-        className={`${inter.variable} ${manrope.variable} ${caveat.variable} ${robotoCondensed.variable}`}
-      >
+      <body className={`${inter.variable} ${manrope.variable} ${caveat.variable}`}>
         {children}
       </body>
     </html>

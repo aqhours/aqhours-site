@@ -235,16 +235,23 @@ exact components, tokens, typography, or page structure.
   animations pause together while the pair is outside the viewport and resume together from their paused
   positions. Pointer interaction does not affect playback; reduced motion keeps both rows static.
 - The fourth screen expresses the education statement in three uppercase English lines:
-  `COMPUTER SCIENCE. / B.S. COMPLETED. / M.S. IN PROGRESS.` The accessible label expands both
-  degree abbreviations and states that both belong to Computer Science and Technology. The three
-  similarly measured lines use Roboto Condensed at one display-scale size constrained by both
-  `10.7vw` and `25svh`, retaining their natural glyph proportions without horizontal or vertical
-  scaling. The viewport-height constraint prevents the complete group from overrunning short screens.
-  The line-height matches the font size so the condensed
-  glyph bounds remain intact. The typography stays in normal document flow rather
+  `COMPUTER SCIENCE. / B.S. EARNED. / M.S. STUDENT.` The accessible label expands both
+  degree abbreviations and states that both belong to Computer Science and Technology. The lines
+  use a locally subsetted SF Pro Compressed Heavy face instantiated at width-axis value `37`.
+  The first row's display-scale size is constrained by both `18.4vw` and `33svh`, capped at `360px`,
+  so it reaches the narrow horizontal margins. The shorter second and third rows share one responsive
+  larger size, capped by `23vw` and `400px`, which brings the settled three-line group to approximately
+  `90svh` on landscape viewports. The text retains its natural glyph proportions without horizontal or vertical
+  scaling. Only one Latin WOFF2 file is shipped for this section, and it is not preloaded with the
+  first screen. The viewport-height constraint prevents the complete group from overrunning short screens.
+  The line-height matches the font size so the condensed glyph bounds remain intact. Tracking is increased
+  by `2px` from the prior `-0.06em` value. Adjacent rows overlap their layout spacing by `0.18em`, tightening
+  the settled group without reducing or clipping each row's box.
+  The typography stays in normal document flow rather
   than a sticky frame, so the complete group continuously
   travels upward with the screen. Each complete clipped row, including its text layers, translates
-  from `100%` below to its resting position. A low-contrast base and a near-white clone with a
+  from `100%` below to its resting position. The position reaches rest at `72%` of that row's entrance
+  progress, so the large transient gaps close early while the mask reveal continues. A low-contrast base and a near-white clone with a
   moving linear-gradient mask create a brief vertical trail that resolves into crisp text. The
   clone has no dark text shadow because an oversized blur collects into a visible horizontal band.
   The education scroll timeline starts when the fourth-screen section first enters at the bottom of
