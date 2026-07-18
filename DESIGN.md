@@ -178,7 +178,8 @@ exact components, tokens, typography, or page structure.
   The position dot has two staggered, continuously expanding blue pulse rings with a soft radial
   falloff. The center remains still, and reduced-motion mode removes the pulse.
   Base-map labels use English. The map uses a production JavaScript Map ID and its associated
-  Google Cloud style. The position dot and both pulse rings are one custom DOM-backed
+  Google Cloud style. The night time-theme recreates the map with Google Maps' dark color scheme;
+  dawn, day, and dusk use its light color scheme. The position dot and both pulse rings are one custom DOM-backed
   `AdvancedMarkerElement`; no legacy Marker or separate map Overlay is used.
 - On fine-pointer devices, the map receives a restrained, viewport-wide mouse-position-driven
   3D tilt with perspective and a spring-smoothed return when the pointer leaves the window. It has

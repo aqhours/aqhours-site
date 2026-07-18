@@ -63,46 +63,76 @@ function InteractiveMap() {
     let disposed = false;
     let map: google.maps.Map | null = null;
     let marker: google.maps.marker.AdvancedMarkerElement | null = null;
+    let activeColorScheme: "DARK" | "LIGHT" | null = null;
+    let renderMap: (() => void) | null = null;
+
+    const clearMap = () => {
+      if (marker) marker.map = null;
+      if (map) google.maps.event.clearInstanceListeners(map);
+      marker = null;
+      map = null;
+      container.replaceChildren();
+    };
 
     void loadMapsLibraries(GOOGLE_MAPS_API_KEY).then(
       ([{ Map }, { AdvancedMarkerElement }]) => {
         if (disposed || !containerRef.current) return;
 
-        map = new Map(containerRef.current, {
-          center: HONGGUTAN_CENTER,
-          zoom: 11.5,
-          mapId: GOOGLE_MAPS_MAP_ID,
-          backgroundColor: "#e5f0eb",
-          disableDefaultUI: true,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-          cameraControl: false,
-          rotateControl: false,
-          scaleControl: false,
-          zoomControl: false,
-          clickableIcons: false,
-          gestureHandling: "greedy",
-          keyboardShortcuts: true,
-        });
+        renderMap = () => {
+          const colorScheme =
+            document.documentElement.dataset.theme === "night"
+              ? "DARK"
+              : "LIGHT";
+          if (colorScheme === activeColorScheme) return;
 
-        marker = new AdvancedMarkerElement({
-          map,
-          position: HONGGUTAN_CENTER,
-          content: createPositionMarker(),
-          anchorLeft: "-50%",
-          anchorTop: "-50%",
-          gmpClickable: false,
-          zIndex: 5,
+          clearMap();
+          activeColorScheme = colorScheme;
+          map = new Map(container, {
+            center: HONGGUTAN_CENTER,
+            zoom: 11.5,
+            mapId: GOOGLE_MAPS_MAP_ID,
+            colorScheme,
+            backgroundColor: colorScheme === "DARK" ? "#071b35" : "#e5f0eb",
+            disableDefaultUI: true,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            cameraControl: false,
+            rotateControl: false,
+            scaleControl: false,
+            zoomControl: false,
+            clickableIcons: false,
+            gestureHandling: "greedy",
+            keyboardShortcuts: true,
+          });
+
+          marker = new AdvancedMarkerElement({
+            map,
+            position: HONGGUTAN_CENTER,
+            content: createPositionMarker(),
+            anchorLeft: "-50%",
+            anchorTop: "-50%",
+            gmpClickable: false,
+            zIndex: 5,
+          });
+        };
+
+        renderMap();
+        themeObserver.observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
         });
       }
     );
 
+    const themeObserver = new MutationObserver(() => {
+      if (!disposed) renderMap?.();
+    });
+
     return () => {
       disposed = true;
-      if (marker) marker.map = null;
-      if (map) google.maps.event.clearInstanceListeners(map);
-      container.replaceChildren();
+      themeObserver.disconnect();
+      clearMap();
     };
   }, []);
 
