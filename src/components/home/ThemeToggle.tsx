@@ -49,7 +49,7 @@ const INDICATOR_SIZE = 32;
 const INDICATOR_BASE_TRANSLATE = 3;
 const INDICATOR_EASING = "cubic-bezier(0.22, 1, 0.36, 1)";
 const SHAPE_DURATION = 600;
-const SHAPE_PEAK_OFFSET = 0.15;
+const SHAPE_PEAK_OFFSET = 0.5;
 const HEIGHT_BY_DISTANCE = [32, 35, 40, 45] as const;
 const DOWNWARD_OFFSET_BY_DISTANCE = [3, 6, 8, 10] as const;
 const UPWARD_OFFSET_BY_DISTANCE = [3, -8, -20, -32] as const;
@@ -117,14 +117,16 @@ export function TimeThemeSwitcher() {
           easing: INDICATOR_EASING,
         },
         {
-          borderRadius: "18px",
-          opacity: 0.72,
-          offset: SHAPE_PEAK_OFFSET,
+          borderRadius: "20px",
+          opacity: 0.8,
+          scale:"0.8 1.2",
+          offset: 0.5,
           easing: INDICATOR_EASING,
         },
         {
           borderRadius: "8px",
           opacity: 1,
+          scale: "1 1",
           offset: 1,
         },
       ],
