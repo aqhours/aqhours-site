@@ -39,6 +39,17 @@ exact components, tokens, typography, or page structure.
 - The full-size hero lettering sits below the visual center. Its settled, reduced form
   moves to the center of the site header.
 - After the write-on stroke completes, keep only a very brief pause before the spiral rise.
+- The hero cloud field uses a restrained number of substantial cloud banks rather than many small
+  puffs. The banks occupy the full hero viewport across horizontal, vertical, and depth layers while
+  remaining behind the glass lettering. Each bank reads as a large cloud mass at hero scale rather
+  than a row of small cotton-like puffs, so `hello` appears suspended inside a cloud-filled sky.
+- Keep the scene camera fixed during the write-on. The banks advance independently toward the camera,
+  grow through perspective, and visibly leave through a viewport edge or the near plane. A bank may
+  recycle to the far depth only after it is no longer visible, maintaining continuous full-screen coverage.
+  Recycled banks use a smooth far-depth opacity fade-in rather than popping back into the scene. No bank
+  starts close enough to the center of the camera to wash out the refreshed hero view.
+- On hero-to-introduction scroll, the complete hero cloud field retains its existing spatial exit:
+  it moves upward as one field and leaves without a scroll-linked opacity fade.
 
 ## Header
 

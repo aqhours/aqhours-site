@@ -26,6 +26,10 @@ import {
   resolveHelloGeometryTransition,
 } from "./helloGeometry";
 import {
+  HERO_CLOUD_BANKS,
+  HERO_CLOUD_FIELD,
+} from "./heroCloudConfig";
+import {
   useScrollMotionController,
   type SubscribeScrollProgress,
 } from "./useScrollMotionController";
@@ -404,223 +408,12 @@ const HELLO_DEPTH_RANGE = {
   end: 0.7,
 } as const;
 
-const CLOUD_STREAM_MOTION = {
-  duration: 13.4,
-  startZ: -28,
-  // Move straight toward the camera, then recycle just before reaching it.
-  endZ: 7.4,
-} as const;
-
-const CLOUD_FIELD_SCALE = 1.22;
-const CLOUD_OPACITY_SCALE = 1.55;
-const CLOUD_NEAR_FADE = 3.2;
-const CLOUD_ALPHA_TEST = 0.055;
-const CLOUD_FIELD_REVEAL_DURATION = 2.4;
 const CLOUD_CAMERA_Z = 8.6;
 const PROFILE_CLOUD_REVEAL_START = 0.42;
 const PROFILE_CLOUD_REVEAL_END = 0.68;
 const PROFILE_CLOUD_ALPHA_TEST = 0.1;
+const PROFILE_CLOUD_NEAR_FADE = 3.2;
 const PROFILE_CLOUD_Z = -0.6;
-
-type CloudStreamSpec = {
-  seed: number;
-  phase: number;
-  segments: number;
-  x: number;
-  y: number;
-  bounds: [number, number, number];
-  volume: number;
-  smallestVolume: number;
-  color: string;
-  opacity: number;
-  speed: number;
-  scale: [number, number, number];
-};
-
-const CLOUD_STREAMS: readonly CloudStreamSpec[] = [
-  {
-    seed: 7,
-    phase: 0,
-    segments: 18,
-    x: -4.45,
-    y: 2.05,
-    bounds: [1.9, 0.52, 0.9],
-    volume: 2,
-    smallestVolume: 0.54,
-    color: "#f7fbff",
-    opacity: 0.36,
-    speed: 0.035,
-    scale: [1.15, 0.9, 1],
-  },
-  {
-    seed: 19,
-    phase: 0.14,
-    segments: 16,
-    x: 4.35,
-    y: 1.45,
-    bounds: [1.65, 0.42, 0.8],
-    volume: 1.5,
-    smallestVolume: 0.22,
-    color: "#eef8ff",
-    opacity: 0.32,
-    speed: 0.03,
-    scale: [1.05, 0.82, 1],
-  },
-  {
-    seed: 31,
-    phase: 0.29,
-    segments: 14,
-    x: 0.35,
-    y: 3.6,
-    bounds: [1.45, 0.36, 0.7],
-    volume: 1.25,
-    smallestVolume: 0.2,
-    color: "#f4faff",
-    opacity: 0.24,
-    speed: 0.025,
-    scale: [0.9, 0.72, 1],
-  },
-  {
-    seed: 43,
-    phase: 0.43,
-    segments: 14,
-    x: -4.6,
-    y: -1.75,
-    bounds: [1.7, 0.44, 0.78],
-    volume: 1.45,
-    smallestVolume: 0.2,
-    color: "#edf8ff",
-    opacity: 0.23,
-    speed: 0.028,
-    scale: [1.05, 0.78, 1],
-  },
-  {
-    seed: 59,
-    phase: 0.58,
-    segments: 14,
-    x: 4.55,
-    y: -1.95,
-    bounds: [1.55, 0.4, 0.76],
-    volume: 1.35,
-    smallestVolume: 0.2,
-    color: "#f5fbff",
-    opacity: 0.22,
-    speed: 0.024,
-    scale: [1, 0.76, 1],
-  },
-  {
-    seed: 71,
-    phase: 0.72,
-    segments: 12,
-    x: -2.6,
-    y: -3.4,
-    bounds: [1.35, 0.34, 0.68],
-    volume: 1.15,
-    smallestVolume: 0.18,
-    color: "#eef9ff",
-    opacity: 0.17,
-    speed: 0.02,
-    scale: [0.86, 0.66, 1],
-  },
-  {
-    seed: 89,
-    phase: 0.86,
-    segments: 12,
-    x: 2.75,
-    y: 2.75,
-    bounds: [1.3, 0.32, 0.64],
-    volume: 1.1,
-    smallestVolume: 0.18,
-    color: "#f7fcff",
-    opacity: 0.16,
-    speed: 0.018,
-    scale: [0.82, 0.64, 1],
-  },
-  {
-    seed: 101,
-    phase: 0.07,
-    segments: 12,
-    x: -5.25,
-    y: 0.15,
-    bounds: [1.65, 0.42, 0.76],
-    volume: 1.5,
-    smallestVolume: 0.22,
-    color: "#f4faff",
-    opacity: 0.22,
-    speed: 0.024,
-    scale: [1.02, 0.76, 1],
-  },
-  {
-    seed: 113,
-    phase: 0.21,
-    segments: 12,
-    x: 5.2,
-    y: 0.35,
-    bounds: [1.6, 0.4, 0.74],
-    volume: 1.45,
-    smallestVolume: 0.21,
-    color: "#eef8ff",
-    opacity: 0.21,
-    speed: 0.022,
-    scale: [1, 0.74, 1],
-  },
-  {
-    seed: 127,
-    phase: 0.36,
-    segments: 12,
-    x: -3.35,
-    y: 3.35,
-    bounds: [1.5, 0.38, 0.72],
-    volume: 1.35,
-    smallestVolume: 0.2,
-    color: "#f7fcff",
-    opacity: 0.19,
-    speed: 0.02,
-    scale: [0.94, 0.7, 1],
-  },
-  {
-    seed: 139,
-    phase: 0.51,
-    segments: 12,
-    x: 3.55,
-    y: -3.25,
-    bounds: [1.55, 0.4, 0.74],
-    volume: 1.4,
-    smallestVolume: 0.21,
-    color: "#f3faff",
-    opacity: 0.2,
-    speed: 0.023,
-    scale: [0.98, 0.72, 1],
-  },
-  {
-    seed: 151,
-    phase: 0.79,
-    segments: 12,
-    x: -0.55,
-    y: -3.95,
-    bounds: [1.45, 0.36, 0.7],
-    volume: 1.3,
-    smallestVolume: 0.19,
-    color: "#edf8ff",
-    opacity: 0.18,
-    speed: 0.019,
-    scale: [0.9, 0.68, 1],
-  },
-  {
-    seed: 163,
-    phase: 0.93,
-    segments: 12,
-    x: 1.25,
-    y: 4.05,
-    bounds: [1.4, 0.35, 0.68],
-    volume: 1.25,
-    smallestVolume: 0.19,
-    color: "#f6fbff",
-    opacity: 0.17,
-    speed: 0.018,
-    scale: [0.88, 0.66, 1],
-  },
-];
 
 type ProfileCloudSpec = {
   /** Stable random layout for the small cloud puffs. */
@@ -1301,6 +1094,10 @@ type ThreeCloudBackdropProps = {
   scrollProgressRef: MutableRefObject<number>;
 };
 
+type HeroCloudPuffRuntime = {
+  opacity: number;
+};
+
 function ThreeCloudBackdrop({
   reduceMotion,
   initialScrollProgress,
@@ -1309,8 +1106,10 @@ function ThreeCloudBackdrop({
   const groupRef = useRef<THREE.Group>(null);
   const cloudFieldRef = useRef<THREE.Group>(null);
   const cloudRefs = useRef<Array<THREE.Group | null>>([]);
+  const cloudPuffsRef = useRef<
+    Array<Array<HeroCloudPuffRuntime | undefined>>
+  >([]);
   const cloudMaterialsRef = useRef<THREE.Material[]>([]);
-  const cloudRevealStartRef = useRef<number | null>(null);
   const cloudStreamElapsedRef = useRef(0);
 
   useFrame((state, delta) => {
@@ -1331,74 +1130,69 @@ function ThreeCloudBackdrop({
       });
 
       cloudMaterialsRef.current = [...materials];
-      cloudRevealStartRef.current = state.clock.elapsedTime;
       cloudMaterialsRef.current.forEach((material) => {
         material.transparent = true;
-        material.alphaTest = CLOUD_ALPHA_TEST;
-        material.opacity = reduceMotion ? 1 : 0;
+        material.alphaTest = HERO_CLOUD_FIELD.alphaTest;
+        material.opacity = 1;
         material.needsUpdate = true;
       });
     }
 
-    if (cloudMaterialsRef.current.length > 0) {
-      const revealElapsed =
-        state.clock.elapsedTime -
-        (cloudRevealStartRef.current ?? state.clock.elapsedTime);
-      const revealProgress = reduceMotion
-        ? 1
-        : THREE.MathUtils.clamp(
-            revealElapsed / CLOUD_FIELD_REVEAL_DURATION,
-            0,
-            1,
-          );
-      const revealOpacity = smootherStep(revealProgress);
-
-      cloudMaterialsRef.current.forEach((material) => {
-        material.opacity = revealOpacity;
-      });
-    }
-
-    if (groupRef.current) {
-      groupRef.current.position.y = resolveCloudFieldOffset(progress);
-    }
-
     if (!reduceMotion) cloudStreamElapsedRef.current += delta;
 
+    const cloudMotionElapsed = cloudStreamElapsedRef.current;
     const streamProgress =
-      cloudStreamElapsedRef.current / CLOUD_STREAM_MOTION.duration;
+      cloudMotionElapsed / HERO_CLOUD_FIELD.duration;
 
-    const placeCloud = (
-      cloud: THREE.Group | null,
-      cloudSpec: CloudStreamSpec,
-    ) => {
-      if (!cloud) return;
-
-      const phase = (streamProgress + cloudSpec.phase) % 1;
-      const z = THREE.MathUtils.lerp(
-        CLOUD_STREAM_MOTION.startZ,
-        CLOUD_STREAM_MOTION.endZ,
-        phase,
+    if (groupRef.current) {
+      groupRef.current.position.set(
+        0,
+        resolveCloudFieldOffset(progress),
+        0,
       );
-      cloud.position.set(cloudSpec.x, cloudSpec.y, z);
-      cloud.scale.set(
-        cloudSpec.scale[0] * CLOUD_FIELD_SCALE,
-        cloudSpec.scale[1] * CLOUD_FIELD_SCALE,
-        cloudSpec.scale[2] * CLOUD_FIELD_SCALE,
-      );
-    };
+    }
 
-    CLOUD_STREAMS.forEach((cloud, index) => {
-      placeCloud(cloudRefs.current[index], cloud);
+    HERO_CLOUD_BANKS.forEach((cloud, index) => {
+      const instance = cloudRefs.current[index];
+      if (!instance) return;
+
+      const phase = cloud.depthPhase * Math.PI * 2;
+      const driftElapsed = cloudMotionElapsed * cloud.driftSpeed;
+      const streamPhase = (streamProgress + cloud.depthPhase) % 1;
+      const streamZ = THREE.MathUtils.lerp(
+        HERO_CLOUD_FIELD.farZ,
+        HERO_CLOUD_FIELD.nearZ,
+        streamPhase,
+      );
+      const fadeInProgress = reduceMotion
+        ? 1
+        : smootherStep(
+            THREE.MathUtils.clamp(
+              streamPhase / HERO_CLOUD_FIELD.fadeInPortion,
+              0,
+              1,
+            ),
+          );
+
+      cloudPuffsRef.current[index]?.forEach((puff) => {
+        if (puff) puff.opacity = cloud.opacity * fadeInProgress;
+      });
+
+      instance.position.set(
+        cloud.position[0] + Math.sin(driftElapsed + phase) * cloud.drift[0],
+        cloud.position[1] +
+          Math.cos(driftElapsed * 0.82 + phase) * cloud.drift[1],
+        streamZ,
+      );
     });
   });
 
   return (
     <>
-      <fog attach="fog" args={["#72b9e5", 10, 34]} />
-      <ambientLight color="#dff2ff" intensity={1.7} />
+      <ambientLight color="#ffffff" intensity={1.35} />
       <directionalLight
-        color="#fff3dd"
-        intensity={2.6}
+        color="#fff8ee"
+        intensity={1.8}
         position={[-4, 6, 5]}
       />
       <group
@@ -1409,11 +1203,11 @@ function ThreeCloudBackdrop({
           ref={cloudFieldRef}
           texture="/textures/cloud.png"
           material={THREE.MeshLambertMaterial}
-          limit={176}
+          limit={HERO_CLOUD_FIELD.spriteLimit}
           frustumCulled={false}
           renderOrder={-2}
         >
-          {CLOUD_STREAMS.map((cloud, index) => (
+          {HERO_CLOUD_BANKS.map((cloud, index) => (
             <Cloud
               key={cloud.seed}
               ref={(instance) => {
@@ -1424,25 +1218,32 @@ function ThreeCloudBackdrop({
               bounds={cloud.bounds}
               volume={cloud.volume}
               smallestVolume={cloud.smallestVolume}
-              color={cloud.color}
-              opacity={Math.min(
-                cloud.opacity * CLOUD_OPACITY_SCALE,
-                0.62,
-              )}
-              fade={CLOUD_NEAR_FADE}
+              color={HERO_CLOUD_FIELD.color}
+              opacity={cloud.opacity}
+              distribute={(puff, puffIndex) => {
+                const bankPuffs = (cloudPuffsRef.current[index] ??= []);
+                bankPuffs[puffIndex] = puff;
+
+                // Drei treats an undefined result as "keep the seeded layout".
+                return undefined as never;
+              }}
+              fade={HERO_CLOUD_FIELD.nearFade}
+              growth={HERO_CLOUD_FIELD.growth}
               speed={reduceMotion ? 0 : cloud.speed}
               position={[
-                cloud.x,
-                cloud.y,
+                cloud.position[0],
+                cloud.position[1],
                 THREE.MathUtils.lerp(
-                  CLOUD_STREAM_MOTION.startZ,
-                  CLOUD_STREAM_MOTION.endZ,
-                  cloud.phase,
+                  HERO_CLOUD_FIELD.farZ,
+                  HERO_CLOUD_FIELD.nearZ,
+                  cloud.depthPhase,
                 ),
               ]}
-              scale={cloud.scale.map(
-                (axis) => axis * CLOUD_FIELD_SCALE,
-              ) as [number, number, number]}
+              scale={[
+                cloud.scale[0] * HERO_CLOUD_FIELD.sizeScale,
+                cloud.scale[1] * HERO_CLOUD_FIELD.sizeScale,
+                cloud.scale[2] * HERO_CLOUD_FIELD.sizeScale,
+              ]}
             />
           ))}
         </Clouds>
@@ -1562,7 +1363,7 @@ function ThreeProfileClouds({
             smallestVolume={cloud.smallestVolume}
             color={cloud.color}
             opacity={cloud.opacity}
-            fade={CLOUD_NEAR_FADE}
+              fade={PROFILE_CLOUD_NEAR_FADE}
             speed={reduceMotion ? 0 : cloud.speed}
             position={[
               viewport.width * cloud.xRatio * cloud.side,
