@@ -254,6 +254,13 @@ exact components, tokens, typography, or page structure.
   progress, so the large transient gaps close early while the mask reveal continues. A low-contrast base and a near-white clone with a
   moving linear-gradient mask create a brief vertical trail that resolves into crisp text. The
   clone has no dark text shadow because an oversized blur collects into a visible horizontal band.
+  One elongated Drei cloud occupies the open area to the right of the shorter degree row. It reuses the
+  existing cloud texture inside the shared fixed Three.js Canvas. Its screen-space position is derived
+  from the education section's document position, so scrolling carries it upward with the complete
+  fourth screen rather than leaving it fixed in the viewport. Drei's `speed` and `growth` animate the
+  internal puffs into a slow rolling cloud mass, while a separate low-amplitude sine translation drifts
+  the complete group horizontally. Reduced-motion preserves the scroll-linked position but stops both
+  the internal rolling motion and horizontal drift.
   The education scroll timeline starts when the fourth-screen section first enters at the bottom of
   the viewport, rather than waiting until its top reaches the viewport top. The text group sits
   `18svh` below the section start, so its first row follows the settled map after a short transition

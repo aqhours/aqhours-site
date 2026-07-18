@@ -415,6 +415,30 @@ const PROFILE_CLOUD_ALPHA_TEST = 0.1;
 const PROFILE_CLOUD_NEAR_FADE = 3.2;
 const PROFILE_CLOUD_Z = -0.6;
 
+// EDUCATION CLOUD — one Drei cloud anchored to the fourth screen.
+const EDUCATION_CLOUD = {
+  sectionId: "homepage-interlude",
+  centerYVh: 0.78,
+  mobileCenterYVh: 0.49,
+  xRatio: 0.36,
+  mobileXRatio: 0.34,
+  z: -0.6,
+  driftX: 0.2,
+  driftSpeed: 0.285,
+  seed: 307,
+  segments: 18,
+  bounds: [1.8, 0.9, 0.68] as [number, number, number],
+  volume: 3.78,
+  smallestVolume: 0.19,
+  growth: 0.58,
+  speed: 0.3,
+  color: "#f5faff",
+  opacity: 0.58,
+  fade: 3.2,
+  // scale: [0.72, 0.56, 0.66] as [number, number, number],
+  scale: [0.5, 0.5, 0.5] as [number, number, number],
+} as const;
+
 type ProfileCloudSpec = {
   /** Stable random layout for the small cloud puffs. */
   seed: number;
@@ -454,15 +478,15 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
     side: -1,
     phase: 0.18,
     segments: 18,
-    xRatio: 0.44,
+    xRatio: 0.50,
     y: 0,
-    bounds: [1.4, 0.36, 0.66],
-    volume: 1.35,
+    bounds: [1, 0.36, 0.66],
+    volume: 0.6,
     smallestVolume: 0.2,
     color: "#f7fbff",
     opacity: 0.34,
-    speed: 0.025,
-    scale: [0.5, 0.6, 0.5],
+    speed: 0.1,
+    scale: [0.5, 0.5, 0.5],
     driftX: 0.1,
     driftY: 0.06,
   },
@@ -472,14 +496,14 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
     phase: 0.64,
     segments: 16,
     xRatio: 0.5,
-    y: -0.58,
-    bounds: [1.3, 0.34, 0.62],
-    volume: 1.25,
+    y: -0.6,
+    bounds: [1, 0.34, 0.62],
+    volume: 0.4,
     smallestVolume: 0.19,
     color: "#f4faff",
     opacity: 0.34,
-    speed: 0.022,
-    scale: [0.72, 0.55, 0.7],
+    speed: 0.15,
+    scale: [0.5, 0.5, 0.5],
     driftX: 0.08,
     driftY: 0.05,
   },
@@ -1378,6 +1402,100 @@ function ThreeProfileClouds({
   );
 }
 
+function ThreeEducationCloud({ reduceMotion }: { reduceMotion: boolean }) {
+  const invalidate = useThree((state) => state.invalidate);
+  const cloudRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  const sectionTopRef = useRef(0);
+  const targetRef = useRef(new THREE.Vector3(0, 0, EDUCATION_CLOUD.z));
+
+  useEffect(() => {
+    const section = document.getElementById(EDUCATION_CLOUD.sectionId);
+    if (!section) return;
+
+    const measureSection = () => {
+      sectionTopRef.current = section.getBoundingClientRect().top + window.scrollY;
+      invalidate();
+    };
+    const handleReducedMotionScroll = () => invalidate();
+
+    measureSection();
+    window.addEventListener("resize", measureSection, { passive: true });
+    if (reduceMotion) {
+      window.addEventListener("scroll", handleReducedMotionScroll, {
+        passive: true,
+      });
+    }
+    void document.fonts.ready.then(measureSection);
+
+    return () => {
+      window.removeEventListener("resize", measureSection);
+      window.removeEventListener("scroll", handleReducedMotionScroll);
+    };
+  }, [invalidate, reduceMotion]);
+
+  useFrame((state) => {
+    const cloud = cloudRef.current;
+    const group = groupRef.current;
+    if (!cloud || !group || sectionTopRef.current === 0) return;
+
+    const isMobile = state.size.width <= 720;
+    const centerYVh = isMobile
+      ? EDUCATION_CLOUD.mobileCenterYVh
+      : EDUCATION_CLOUD.centerYVh;
+    const xRatio = isMobile
+      ? EDUCATION_CLOUD.mobileXRatio
+      : EDUCATION_CLOUD.xRatio;
+    const centerYPx =
+      sectionTopRef.current - window.scrollY + state.size.height * centerYVh;
+    const currentViewport = state.viewport.getCurrentViewport(
+      state.camera,
+      targetRef.current,
+    );
+    const elapsed = reduceMotion ? 0 : state.clock.elapsedTime;
+    const driftX =
+      Math.sin(elapsed * EDUCATION_CLOUD.driftSpeed) *
+      EDUCATION_CLOUD.driftX;
+
+    cloud.position.set(
+      currentViewport.width * xRatio + driftX,
+      (0.5 - centerYPx / state.size.height) * currentViewport.height,
+      EDUCATION_CLOUD.z,
+    );
+    cloud.updateMatrixWorld(true);
+    group.visible =
+      centerYPx > -state.size.height * 0.35 &&
+      centerYPx < state.size.height * 1.35;
+  }, -2);
+
+  return (
+    <group ref={groupRef} visible={false}>
+      <Clouds
+        texture="/textures/cloud.png"
+        material={THREE.MeshLambertMaterial}
+        limit={EDUCATION_CLOUD.segments}
+        frustumCulled={false}
+        renderOrder={-1}
+      >
+        <Cloud
+          ref={cloudRef}
+          seed={EDUCATION_CLOUD.seed}
+          segments={EDUCATION_CLOUD.segments}
+          bounds={EDUCATION_CLOUD.bounds}
+          volume={EDUCATION_CLOUD.volume}
+          smallestVolume={EDUCATION_CLOUD.smallestVolume}
+          growth={EDUCATION_CLOUD.growth}
+          speed={reduceMotion ? 0 : EDUCATION_CLOUD.speed}
+          color={EDUCATION_CLOUD.color}
+          opacity={EDUCATION_CLOUD.opacity}
+          fade={EDUCATION_CLOUD.fade}
+          scale={EDUCATION_CLOUD.scale}
+        />
+      </Clouds>
+    </group>
+  );
+}
+
 type GlassStrokeProps = {
   reduceMotion: boolean;
   tuning: GlassTuning;
@@ -1971,6 +2089,7 @@ export function GlassStrokePrototype() {
                 scrollProgressRef={scrollProgressRef}
                 scrollStageRef={scrollStageRef}
               />
+              <ThreeEducationCloud reduceMotion={reduceMotion} />
             </Suspense>
             <GlassStroke
               reduceMotion={reduceMotion}
