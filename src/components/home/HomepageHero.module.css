@@ -93,11 +93,19 @@
 }
 
 .headerNav {
+  --header-nav-gap: clamp(20px, 2.3vw, 36px);
+
   display: flex;
   justify-self: end;
   align-items: center;
-  gap: clamp(20px, 2.3vw, 36px);
+  gap: var(--header-nav-gap);
   pointer-events: auto;
+}
+
+.headerNavGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--header-nav-gap);
 }
 
 .headerLink {
@@ -327,6 +335,10 @@
 }
 
 @media (max-width: 720px) {
+  .siteHeader {
+    grid-template-columns: 1fr;
+  }
+
   .siteHeader,
   .headerLogoLayer {
     height: 58px;
@@ -342,7 +354,26 @@
   }
 
   .headerNav {
-    gap: 18px;
+    --header-nav-gap: clamp(10px, 2.5vw, 18px);
+
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .headerIdentity {
+    display: none;
+  }
+
+  .headerNavGroup:first-child {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  .headerNavGroup:last-child {
+    grid-column: 3;
+    justify-self: end;
   }
 
   .profileLayer {
@@ -396,10 +427,12 @@
   }
 
   .headerNav {
-    gap: 9px;
+    --header-nav-gap: 7px;
+
+    grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr);
   }
 
   .headerLink {
-    font-size: 12px;
+    font-size: 11px;
   }
 }

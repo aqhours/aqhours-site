@@ -66,9 +66,10 @@ exact components, tokens, typography, or page structure.
   glass object in one frame with a smaller, flat,
   monochrome-white rendering of the user-provided `hello` skeleton. The two renderings do not
   crossfade or overlap during the replacement. The final header mark has no glass material.
-- Header navigation contains only `Blog`, `Studio`, and `Photos` links for this checkpoint.
-  A simple `aqhours` personal identifier sits at the opposite edge, while the settled
-  `hello` mark remains centered.
+- Header navigation contains the text links `Blog`, `Studio`, `Photos`, `GitHub`, and `Email`,
+  without icons or external-link arrows. `GitHub` points to the `aqhours` GitHub profile and
+  `Email` uses the public `aqhours@gmail.com` mail address. A simple `aqhours` personal identifier
+  sits at the opposite edge, while the settled `hello` mark remains centered.
 - The compact header height is responsive from `60px` to `72px`; screens at `720px` wide or
   below use `58px`. Navigation typography and spacing remain unchanged.
 - The entire fixed header is backed by one continuous medium frosted layer (`12px` backdrop

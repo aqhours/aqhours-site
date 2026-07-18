@@ -2040,15 +2040,31 @@ export function HomepageHero() {
         </a>
 
         <nav className={styles.headerNav} aria-label="主要导航">
-          <a className={styles.headerLink} href="/blog">
-            Blog
-          </a>
-          <a className={styles.headerLink} href="/studio">
-            Studio
-          </a>
-          <a className={styles.headerLink} href="/photos">
-            Photos
-          </a>
+          <span className={styles.headerNavGroup}>
+            <a className={styles.headerLink} href="/blog">
+              Blog
+            </a>
+            <a className={styles.headerLink} href="/studio">
+              Studio
+            </a>
+            <a className={styles.headerLink} href="/photos">
+              Photos
+            </a>
+          </span>
+          <span className={styles.headerNavGroup}>
+            <a
+              className={styles.headerLink}
+              href="https://github.com/aqhours"
+            >
+              GitHub
+            </a>
+            <a
+              className={styles.headerLink}
+              href="mailto:aqhours@gmail.com"
+            >
+              Email
+            </a>
+          </span>
         </nav>
       </header>
 
