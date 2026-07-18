@@ -10,12 +10,14 @@ import {
 
 import {
   resolveAutoScrollProgress,
-  resolveInertialScrollPosition,
   resolveInertialScrollTarget,
+  resolveSpringScrollState,
   resolveScrollMotionSession,
   type ScrollMotionSession,
-  WHEEL_INERTIA_DAMPING,
+  WHEEL_INPUT_VELOCITY_GAIN,
+  WHEEL_MAX_VELOCITY,
   WHEEL_MIN_GLIDE_DISTANCE,
+  WHEEL_SPRING_RESPONSE,
 } from "./scrollMotion";
 
 const SCROLL_INTENT_KEYS = new Set([
@@ -28,6 +30,7 @@ const SCROLL_INTENT_KEYS = new Set([
   " ",
 ]);
 const MANUAL_SCROLL_STOP_DISTANCE = 0.35;
+const MANUAL_SCROLL_STOP_VELOCITY = 5;
 const WHEEL_LINE_HEIGHT = 16;
 
 type ScrollProgressListener = (progress: number) => void;
@@ -56,6 +59,7 @@ export function useScrollMotionController({
   const manualScrollFrameRef = useRef<number | null>(null);
   const manualScrollTargetRef = useRef(0);
   const manualScrollLastTimeRef = useRef<number | null>(null);
+  const scrollVelocityRef = useRef(0);
   const autoSettleAllowedRef = useRef(false);
   const userHasTakenControlRef = useRef(false);
   const [scrollSession, setScrollSession] = useState<
@@ -118,6 +122,7 @@ export function useScrollMotionController({
 
     manualScrollTargetRef.current = window.scrollY;
     manualScrollLastTimeRef.current = null;
+    scrollVelocityRef.current = 0;
   }, []);
 
   const queueManualScroll = useCallback(
@@ -131,15 +136,33 @@ export function useScrollMotionController({
         manualScrollTargetRef.current = window.scrollY;
       }
 
-      manualScrollTargetRef.current = clamp(
+      const current = window.scrollY;
+      const previousTarget = manualScrollTargetRef.current;
+      const pendingDirection = Math.sign(previousTarget - current);
+      const inputDirection = Math.sign(wheelDelta);
+      const isReversing =
+        pendingDirection !== 0 &&
+        inputDirection !== 0 &&
+        pendingDirection !== inputDirection;
+      const nextTarget = clamp(
         resolveInertialScrollTarget(
-          window.scrollY,
-          manualScrollTargetRef.current,
+          current,
+          previousTarget,
           wheelDelta,
           WHEEL_MIN_GLIDE_DISTANCE,
         ),
         0,
         maxScrollY,
+      );
+      const impulseOrigin = isReversing ? current : previousTarget;
+      const inputDistance = nextTarget - impulseOrigin;
+
+      manualScrollTargetRef.current = nextTarget;
+      scrollVelocityRef.current = clamp(
+        scrollVelocityRef.current +
+          inputDistance * WHEEL_INPUT_VELOCITY_GAIN,
+        -WHEEL_MAX_VELOCITY,
+        WHEEL_MAX_VELOCITY,
       );
 
       if (manualScrollFrameRef.current !== null) return;
@@ -165,14 +188,19 @@ export function useScrollMotionController({
         );
         manualScrollTargetRef.current = target;
 
-        const next = resolveInertialScrollPosition(
+        const spring = resolveSpringScrollState(
           window.scrollY,
           target,
-          WHEEL_INERTIA_DAMPING,
+          scrollVelocityRef.current,
+          WHEEL_SPRING_RESPONSE,
           delta,
         );
+        const next = clamp(spring.position, 0, currentMaxScrollY);
+        const hitScrollBoundary = next !== spring.position;
+        scrollVelocityRef.current = hitScrollBoundary ? 0 : spring.velocity;
         const settled =
-          Math.abs(target - next) <= MANUAL_SCROLL_STOP_DISTANCE;
+          Math.abs(target - next) <= MANUAL_SCROLL_STOP_DISTANCE &&
+          Math.abs(scrollVelocityRef.current) <= MANUAL_SCROLL_STOP_VELOCITY;
 
         window.scrollTo({
           top: settled ? target : next,
@@ -183,6 +211,7 @@ export function useScrollMotionController({
         if (settled) {
           manualScrollFrameRef.current = null;
           manualScrollLastTimeRef.current = null;
+          scrollVelocityRef.current = 0;
           return;
         }
 
@@ -214,6 +243,8 @@ export function useScrollMotionController({
     const startY = window.scrollY;
     const targetY = stageTop + scrollDistance;
     const startTime = performance.now();
+    let lastTime = startTime;
+    let lastPosition = startY;
 
     autoScrollActiveRef.current = true;
 
@@ -226,9 +257,15 @@ export function useScrollMotionController({
         1,
       );
       const motionProgress = resolveAutoScrollProgress(rawProgress);
+      const nextPosition = startY + (targetY - startY) * motionProgress;
+      const delta = clamp((time - lastTime) / 1000, 1 / 240, 0.05);
+
+      scrollVelocityRef.current = (nextPosition - lastPosition) / delta;
+      lastTime = time;
+      lastPosition = nextPosition;
 
       window.scrollTo({
-        top: startY + (targetY - startY) * motionProgress,
+        top: nextPosition,
         behavior: "auto",
       });
       updateScrollProgress();
@@ -238,6 +275,7 @@ export function useScrollMotionController({
       } else {
         autoScrollActiveRef.current = false;
         autoScrollFrameRef.current = null;
+        scrollVelocityRef.current = 0;
         publishScrollProgress(1);
       }
     };
@@ -311,6 +349,17 @@ export function useScrollMotionController({
     };
     const handleWheel = (event: WheelEvent) => {
       claimUserControl();
+
+      const eventTarget = event.target;
+      const keepNativeWheel =
+        event.defaultPrevented ||
+        (eventTarget instanceof Element &&
+          eventTarget.closest('[data-native-wheel="true"]') !== null);
+
+      if (keepNativeWheel) {
+        cancelManualScroll();
+        return;
+      }
 
       if (reduceMotion || event.ctrlKey) {
         cancelManualScroll();

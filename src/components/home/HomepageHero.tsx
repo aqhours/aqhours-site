@@ -18,8 +18,9 @@ import * as THREE from "three";
 import {
   resolveCloudFieldOffset,
   resolveHeaderTransition,
-  resolveProfileRevealVisibility,
+  resolveProfileRevealState,
   resolveProfileTravelOffsetVh,
+  type ProfileRevealState,
 } from "./helloScrollSession";
 import {
   HELLO_TILT_COMPENSATION_RADIANS,
@@ -34,7 +35,7 @@ import {
   type SubscribeScrollProgress,
 } from "./useScrollMotionController";
 import { LocationCard } from "./LocationCard";
-import styles from "./GlassStrokePrototype.module.css";
+import styles from "./HomepageHero.module.css";
 
 type GlassTuning = {
   fresnelPower: number;
@@ -512,7 +513,7 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
 // POST-WRITE MOTION — edit these values to tune the transition checkpoint.
 const HELLO_SETTLE_MOTION = {
   hold: 0.1,
-  autoScrollDuration: 1.5,
+  autoScrollDuration: 1.6,
   startScale: 0.86,
   scale: 0.25,
   startY: -0.52,
@@ -1900,16 +1901,24 @@ function PersonalIntroduction({
   subscribeScrollProgress,
 }: PersonalIntroductionProps) {
   const motionRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisibleState] = useState(reduceMotion);
-  const visibleRef = useRef(reduceMotion);
+  const [revealState, setRevealState] = useState<ProfileRevealState>(() => ({
+    visible: reduceMotion,
+    hasEntered: reduceMotion,
+  }));
+  const revealStateRef = useRef(revealState);
 
-  const setVisible = useCallback(
-    (visible: boolean) => {
-      visibleRef.current = visible;
-      setVisibleState(visible);
-    },
-    [],
-  );
+  const commitRevealState = useCallback((next: ProfileRevealState) => {
+    const current = revealStateRef.current;
+    if (
+      current.visible === next.visible &&
+      current.hasEntered === next.hasEntered
+    ) {
+      return;
+    }
+
+    revealStateRef.current = next;
+    setRevealState(next);
+  }, []);
 
   const applyTravel = useCallback(
     (scrollProgress: number) => {
@@ -1928,26 +1937,22 @@ function PersonalIntroduction({
 
   const applyProgress = useCallback(
     (scrollProgress: number) => {
-      const shouldBeVisible =
-        reduceMotion ||
-        resolveProfileRevealVisibility(scrollProgress, visibleRef.current);
+      const nextRevealState = reduceMotion
+        ? { visible: true, hasEntered: true }
+        : resolveProfileRevealState(
+            scrollProgress,
+            revealStateRef.current,
+          );
 
-      if (visibleRef.current !== shouldBeVisible) {
-        setVisible(shouldBeVisible);
-      }
-
+      commitRevealState(nextRevealState);
       applyTravel(scrollProgress);
     },
-    [applyTravel, reduceMotion, setVisible],
+    [applyTravel, commitRevealState, reduceMotion],
   );
 
   useLayoutEffect(() => {
-    applyTravel(initialScrollProgress);
-
-    if (reduceMotion) {
-      setVisible(true);
-    }
-  }, [applyTravel, initialScrollProgress, reduceMotion, setVisible]);
+    applyProgress(initialScrollProgress);
+  }, [applyProgress, initialScrollProgress]);
 
   useEffect(() => {
     if (reduceMotion) return;
@@ -1956,31 +1961,38 @@ function PersonalIntroduction({
   }, [applyProgress, reduceMotion, subscribeScrollProgress]);
 
   return (
-    <section className={styles.profileLayer} aria-labelledby="profile-title">
+    <section
+      className={styles.profileLayer}
+      aria-labelledby="homepage-about-title"
+    >
       <div className={styles.profileContent}>
-        <h2 id="profile-title" className={styles.srOnly}>
+        <h2 id="homepage-about-title" className={styles.srOnly}>
           About aqhours
         </h2>
-        <div ref={motionRef} className={styles.profileMotion}>
-          {visible && (
-            <>
-              <p className={styles.profileStatement}>
-                <span className={styles.profileLead}>I am</span>{" "}
-                <span className={styles.profileName}>
-                  <span className={styles.profileHandwritten}>aqhours</span>.
-                </span>
-              </p>
-              <p className={styles.profileDescription}>
-                A passionate Software Designer and CSer
-              </p>
-              <div className={styles.profileLocation}>
-                <span className={styles.profileLocationLead}>Living in</span>
-                <span className={styles.profileLocationPlace}>Honggutan, Nanchang</span>
-              </div>
-            </>
-          )}
+        <div
+          ref={motionRef}
+          className={styles.profileMotion}
+          data-visible={revealState.visible ? "true" : "false"}
+          aria-hidden={!revealState.visible}
+          inert={!revealState.visible}
+        >
+          <p className={styles.profileStatement}>
+            <span className={styles.profileLead}>I am</span>{" "}
+            <span className={styles.profileName}>
+              <span className={styles.profileHandwritten}>aqhours</span>.
+            </span>
+          </p>
+          <p className={styles.profileDescription}>
+            A passionate Software Designer and CSer
+          </p>
+          <div className={styles.profileLocation}>
+            <span className={styles.profileLocationLead}>Living in</span>
+            <span className={styles.profileLocationPlace}>Honggutan, Nanchang</span>
+          </div>
           <div className={styles.locationCardTravel}>
-            {visible && <LocationCard />}
+            {revealState.hasEntered && (
+              <LocationCard visible={revealState.visible} />
+            )}
           </div>
         </div>
       </div>
@@ -1988,7 +2000,7 @@ function PersonalIntroduction({
   );
 }
 
-export function GlassStrokePrototype() {
+export function HomepageHero() {
   const reduceMotion = useReducedMotionPreference();
   const headerBackdropRef = useRef<HTMLDivElement>(null);
   const headerTargetRef = useRef<HTMLDivElement>(null);
@@ -2108,13 +2120,13 @@ export function GlassStrokePrototype() {
 
       <main
         ref={scrollStageRef}
-        className={styles.prototype}
+        className={styles.heroScrollStage}
         style={{ minHeight: scrollStageHeight }}
         data-scroll-session={scrollSession.ready ? "ready" : "pending"}
         data-scroll-start={scrollSession.startProgress.toFixed(3)}
         data-auto-settle={scrollSession.allowAutoSettle ? "true" : "false"}
       >
-        <h1 className={styles.srOnly}>hello 连写玻璃字形实验</h1>
+        <h1 className={styles.srOnly}>aqhours</h1>
 
         <div className={styles.stage}>
           {scrollSession.ready && (

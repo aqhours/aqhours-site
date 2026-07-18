@@ -1,4 +1,4 @@
-import { GlassStrokePrototype } from "@/components/home/GlassStrokePrototype";
+import { HomepageHero } from "@/components/home/HomepageHero";
 import { HomepageFavorites } from "@/components/home/HomepageFavorites";
 import { HomepageInterlude } from "@/components/home/HomepageInterlude";
 import { HomepageEnding } from "@/components/home/OceanEnding";
@@ -16,7 +16,7 @@ export default function Home() {
       </div>
       <TimeThemeSwitcher />
       <div className={styles.content}>
-        <GlassStrokePrototype />
+        <HomepageHero />
         <HomepageFavorites />
         <HomepageInterlude />
         <HomepageEnding />

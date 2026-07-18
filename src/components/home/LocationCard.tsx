@@ -7,7 +7,7 @@ import {
   useMotionValue,
   useSpring,
 } from "motion/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import styles from "./LocationCard.module.css";
 
@@ -149,13 +149,19 @@ function InteractiveMap() {
     <div
       ref={containerRef}
       className={styles.map}
+      data-native-wheel="true"
       role="application"
       aria-label="Google Maps — Honggutan, Nanchang"
     />
   );
 }
 
-export function LocationCard() {
+type LocationCardProps = {
+  visible: boolean;
+};
+
+export function LocationCard({ visible }: LocationCardProps) {
+  const [entranceReady, setEntranceReady] = useState(false);
   const rotateXTarget = useMotionValue(0);
   const rotateYTarget = useMotionValue(0);
   const rotateX = useSpring(rotateXTarget, {
@@ -174,6 +180,12 @@ export function LocationCard() {
     rotateXTarget.set(0);
     rotateYTarget.set(0);
   }, [rotateXTarget, rotateYTarget]);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setEntranceReady(true));
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -206,7 +218,12 @@ export function LocationCard() {
   }, [resetTilt, rotateXTarget, rotateYTarget]);
 
   return (
-    <div className={styles.entrance}>
+    <div
+      className={styles.entrance}
+      data-visible={visible && entranceReady ? "true" : "false"}
+      aria-hidden={!visible}
+      inert={!visible}
+    >
       <motion.article
         className={styles.mapTilt}
         style={{ transform: cardTransform }}

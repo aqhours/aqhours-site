@@ -143,11 +143,12 @@ exact components, tokens, typography, or page structure.
 
 ## Personal introduction layer
 
-- The automatic hero-to-introduction scroll uses one velocity-continuous segmented curve. It
-  passes through an explicit 85% rotation checkpoint at 1.334s, then accelerates from a normalized
-  speed of 1.2 to 1.4 through the remaining scale-and-travel phase, reaching the 91% header handoff
-  at 1.404s of the 1.5s total. From 91–100%, one uninterrupted 96ms constant-speed tail carries the
-  introduction to its final position, with no intermediate 95% control point or tail deceleration.
+- The automatic hero-to-introduction scroll uses one velocity-continuous segmented curve. It starts
+  from rest, passes through an explicit 85% rotation checkpoint at 1.320s, then accelerates from a
+  normalized speed of 1.2 to 1.4 through the remaining scale-and-travel phase, reaching the 91%
+  header handoff at 1.394s of the 1.6s total. From 91–100%, one uninterrupted roughly 206ms Hermite
+  tail carries the introduction to its final position and decelerates monotonically to rest, with no
+  intermediate 95% control point.
   The checkpoint times are derived from their progress distances and velocities rather than tuned
   independently. When raw stage
   progress reaches 91%, only the hello visual
@@ -157,13 +158,15 @@ exact components, tokens, typography, or page structure.
 - One scroll motion controller owns automatic scrolling, desktop wheel inertia, the authoritative
   stage progress, and progress subscriptions. Three.js and DOM consumers must not add independent
   scroll smoothing or permanent polling loops on top of that shared progress.
-- Desktop wheel scrolling is inertial and interruptible across the full page: successive wheel
-  input in either direction accumulates into a moving target that the page follows smoothly,
-  with a clearly perceptible glide after input ends, while reversing the wheel immediately gives
-  the new direction control. The first micro input in a new direction receives a restrained minimum
-  glide so its smoothing remains perceptible, without repeatedly amplifying continued input. Touch
-  scrolling keeps the operating system's native inertia, keyboard scrolling remains native, and
-  reduced-motion mode does not add custom scroll inertia.
+- Desktop wheel scrolling keeps one shared position, velocity, and target state. Wheel distance adds
+  both target travel and a bounded velocity impulse; a critically damped `0.4s` response advances the
+  presentation value without overshoot. Retargeting or reversing preserves the current on-screen
+  velocity, and interrupting the automatic transition hands its measured velocity directly to the
+  same manual motion state instead of restarting from rest. The first micro input in a new direction
+  receives a restrained minimum glide only once. The interactive map is excluded from the page-level
+  wheel interception so its greedy zoom remains direct. Touch scrolling keeps the operating system's
+  native inertia, keyboard scrolling remains native, and reduced-motion mode does not add custom
+  scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a personal-introduction
   layer within the same fixed stage.
 - The personal introduction is a compact three-line stack: `I am aqhours.`,
@@ -195,18 +198,22 @@ exact components, tokens, typography, or page structure.
   `AdvancedMarkerElement`; no legacy Marker or separate map Overlay is used.
 - On fine-pointer devices, the map receives a restrained, viewport-wide mouse-position-driven
   3D tilt with perspective and a spring-smoothed return when the pointer leaves the window. It has
-  its own Fade Up entrance after the introduction and location line, while touch and reduced-motion
-  experiences remain still.
+  its own interruptible `520ms` Fade Up entrance after the introduction and location line begin to
+  settle, while touch and reduced-motion experiences remain still. It is not mounted before the
+  introduction first reveals, and remains mounted across later reversible exits.
 - The personal-introduction screen has one dedicated cloud near each horizontal edge. The left and
   right clouds are compact, clearly edged, and sit at visibly different heights. They remain near
   their sides with only a slow, low-amplitude ambient drift, reveal with the second screen, and stay
   behind its content. Their vertical position follows the second screen's sticky scroll travel, so
   they move upward with that screen and are fully absent from the third screen. Reduced-motion mode
   keeps their ambient drift still while preserving the page-linked scroll position.
-- The identity, role description, and location lines enter in that order with a short stagger while
-  sharing one cohesive Fade Up motion.
-- The concise introduction remains above the visual center. Its final entrance motion is still
-  to be reviewed separately. The block sits closer to the settled header `hello` than before.
+- The identity, role description, and location lines enter in that order with one interruptible
+  Fade Up motion: `420ms cubic-bezier(0.23, 1, 0.32, 1)`, an `18px` rise, and `55ms` between lines.
+  Reverse-scroll exit takes `180ms` in reverse line order, so interrupted transitions continue from
+  their current rendered state rather than restarting a keyframe.
+- The concise introduction remains above the vertical center and uses the full available content width,
+  so all three lines are horizontally centered against the complete viewport. The block sits closer
+  to the settled header `hello` than before.
   Its reveal and reverse-scroll exit use different thresholds: after appearing, it remains visible
   while moving clearly farther down and hides only below its original reveal position. The shared
   scroll mapping must preserve a visibly distinct distance between those two positions. It appears

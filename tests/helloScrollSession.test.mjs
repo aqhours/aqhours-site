@@ -5,6 +5,7 @@ import {
   resolveCloudFieldOffset,
   resolveHeaderTransition,
   resolveHelloScrollProgress,
+  resolveProfileRevealState,
   resolveProfileRevealVisibility,
   resolveProfileTravelOffsetVh,
 } from "../src/components/home/helloScrollSession.ts";
@@ -12,10 +13,10 @@ import {
   AUTO_SCROLL_HANDOFF_TIME,
   AUTO_SCROLL_ROTATION_END_TIME,
   resolveAutoScrollProgress,
-  resolveInertialScrollPosition,
   resolveInertialScrollTarget,
+  resolveSpringScrollState,
   resolveScrollMotionSession,
-  WHEEL_INERTIA_DAMPING,
+  WHEEL_SPRING_RESPONSE,
 } from "../src/components/home/scrollMotion.ts";
 
 test("uses one velocity-continuous curve through the rotation checkpoint", () => {
@@ -71,30 +72,73 @@ test("uses one velocity-continuous curve through the rotation checkpoint", () =>
     previousVelocity = velocity;
   }
 
-  const tailMidpoint = (AUTO_SCROLL_HANDOFF_TIME + 1) / 2;
-  assert.ok(Math.abs(resolveAutoScrollProgress(tailMidpoint) - 0.955) < 1e-9);
-  const tailQuarter = (AUTO_SCROLL_HANDOFF_TIME + tailMidpoint) / 2;
-  assert.ok(Math.abs(velocityAt(tailMidpoint) - velocityAt(tailQuarter)) < 1e-6);
+  const startVelocity =
+    (resolveAutoScrollProgress(delta) - resolveAutoScrollProgress(0)) / delta;
+  const endVelocity =
+    (resolveAutoScrollProgress(1) - resolveAutoScrollProgress(1 - delta)) /
+    delta;
+
+  assert.ok(Math.abs(startVelocity) < 1e-3);
+  assert.ok(Math.abs(endVelocity) < 1e-3);
+
+  let previousTailVelocity = velocityAt(AUTO_SCROLL_HANDOFF_TIME);
+  for (let step = 1; step <= 100; step += 1) {
+    const time =
+      AUTO_SCROLL_HANDOFF_TIME +
+      (1 - AUTO_SCROLL_HANDOFF_TIME) * (step / 100);
+    const velocity = velocityAt(time);
+
+    assert.ok(velocity <= previousTailVelocity + 1e-3);
+    previousTailVelocity = velocity;
+  }
 });
 
-test("moves manual scrolling toward its target without overshooting", () => {
-  const next = resolveInertialScrollPosition(
+test("critically damped scrolling carries velocity and settles on its target", () => {
+  const first = resolveSpringScrollState(
     100,
     500,
-    WHEEL_INERTIA_DAMPING,
+    800,
+    WHEEL_SPRING_RESPONSE,
     1 / 60,
   );
-  const afterOneSecond = resolveInertialScrollPosition(
-    100,
+
+  assert.ok(first.position > 100);
+  assert.ok(first.position < 500);
+  assert.ok(first.velocity > 0);
+
+  let state = first;
+  for (let frame = 0; frame < 240; frame += 1) {
+    state = resolveSpringScrollState(
+      state.position,
+      500,
+      state.velocity,
+      WHEEL_SPRING_RESPONSE,
+      1 / 60,
+    );
+  }
+
+  assert.ok(Math.abs(state.position - 500) < 1e-6);
+  assert.ok(Math.abs(state.velocity) < 1e-5);
+});
+
+test("retargets a reversal without discarding presentation velocity", () => {
+  const moving = resolveSpringScrollState(
+    300,
     500,
-    WHEEL_INERTIA_DAMPING,
-    1,
+    900,
+    WHEEL_SPRING_RESPONSE,
+    1 / 60,
+  );
+  const reversing = resolveSpringScrollState(
+    moving.position,
+    220,
+    moving.velocity,
+    WHEEL_SPRING_RESPONSE,
+    1 / 60,
   );
 
-  assert.ok(next > 100);
-  assert.ok(next < 140);
-  assert.ok(afterOneSecond > 490);
-  assert.ok(afterOneSecond < 500);
+  assert.ok(reversing.position > moving.position);
+  assert.ok(reversing.velocity < moving.velocity);
 });
 
 test("reverses inertial scrolling from the current position", () => {
@@ -163,6 +207,19 @@ test("keeps the profile visible until it moves below its reveal point", () => {
   assert.equal(resolveProfileRevealVisibility(0.4, true), true);
   assert.equal(resolveProfileRevealVisibility(0.3901, true), true);
   assert.equal(resolveProfileRevealVisibility(0.39, true), false);
+});
+
+test("keeps revealed profile content mounted across reversible exits", () => {
+  const initial = { visible: false, hasEntered: false };
+  const entered = resolveProfileRevealState(0.45, initial);
+  const reversing = resolveProfileRevealState(0.4, entered);
+  const exited = resolveProfileRevealState(0.39, reversing);
+  const reentered = resolveProfileRevealState(0.45, exited);
+
+  assert.deepEqual(entered, { visible: true, hasEntered: true });
+  assert.deepEqual(reversing, { visible: true, hasEntered: true });
+  assert.deepEqual(exited, { visible: false, hasEntered: true });
+  assert.deepEqual(reentered, { visible: true, hasEntered: true });
 });
 
 test("moves the profile clearly lower before reverse-scroll hiding", () => {

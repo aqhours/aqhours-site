@@ -4,19 +4,26 @@ export type ScrollMotionSession = {
 };
 
 const TOP_PROGRESS_THRESHOLD = 0.01;
-const AUTO_SCROLL_INITIAL_VELOCITY = 0.35;
+const AUTO_SCROLL_INITIAL_VELOCITY = 0;
 const AUTO_SCROLL_ROTATION_END_PROGRESS = 0.85;
 const AUTO_SCROLL_HANDOFF_PROGRESS = 0.91;
 const AUTO_SCROLL_ROTATION_END_VELOCITY = 1.2;
-const AUTO_SCROLL_TAIL_VELOCITY = 1.4;
+const AUTO_SCROLL_HANDOFF_VELOCITY = 1.4;
+const AUTO_SCROLL_END_VELOCITY = 0;
+// A linear-feeling brake averages half its handoff velocity over the tail.
 export const AUTO_SCROLL_HANDOFF_TIME =
-  1 - (1 - AUTO_SCROLL_HANDOFF_PROGRESS) / AUTO_SCROLL_TAIL_VELOCITY;
+  1 -
+  (2 * (1 - AUTO_SCROLL_HANDOFF_PROGRESS)) /
+    AUTO_SCROLL_HANDOFF_VELOCITY;
 export const AUTO_SCROLL_ROTATION_END_TIME =
   AUTO_SCROLL_HANDOFF_TIME -
   (AUTO_SCROLL_HANDOFF_PROGRESS - AUTO_SCROLL_ROTATION_END_PROGRESS) /
-    ((AUTO_SCROLL_ROTATION_END_VELOCITY + AUTO_SCROLL_TAIL_VELOCITY) / 2);
-export const WHEEL_INERTIA_DAMPING = 4.6;
+    ((AUTO_SCROLL_ROTATION_END_VELOCITY + AUTO_SCROLL_HANDOFF_VELOCITY) / 2);
+export const WHEEL_SPRING_RESPONSE = 0.4;
+export const WHEEL_INPUT_VELOCITY_GAIN = 10;
+export const WHEEL_MAX_VELOCITY = 3200;
 export const WHEEL_MIN_GLIDE_DISTANCE = 14;
+const CRITICAL_DAMPING_95_PERCENT_FACTOR = 4.75;
 
 type AutoScrollKeyframe = {
   time: number;
@@ -37,12 +44,12 @@ const AUTO_SCROLL_ROTATION_END: AutoScrollKeyframe = {
 const AUTO_SCROLL_HANDOFF: AutoScrollKeyframe = {
   time: AUTO_SCROLL_HANDOFF_TIME,
   progress: AUTO_SCROLL_HANDOFF_PROGRESS,
-  velocity: AUTO_SCROLL_TAIL_VELOCITY,
+  velocity: AUTO_SCROLL_HANDOFF_VELOCITY,
 };
 const AUTO_SCROLL_END: AutoScrollKeyframe = {
   time: 1,
   progress: 1,
-  velocity: AUTO_SCROLL_TAIL_VELOCITY,
+  velocity: AUTO_SCROLL_END_VELOCITY,
 };
 
 function clamp01(value: number) {
@@ -119,13 +126,30 @@ export function resolveInertialScrollTarget(
   return (isReversing ? current : target) + resolvedDelta;
 }
 
-export function resolveInertialScrollPosition(
+export type SpringScrollState = {
+  position: number;
+  velocity: number;
+};
+
+export function resolveSpringScrollState(
   current: number,
   target: number,
-  damping: number,
+  velocity: number,
+  response: number,
   delta: number,
-) {
-  return current + (target - current) * (1 - Math.exp(-damping * delta));
+): SpringScrollState {
+  const angularFrequency =
+    CRITICAL_DAMPING_95_PERCENT_FACTOR / Math.max(response, 0.001);
+  const displacement = current - target;
+  const elapsed = Math.max(delta, 0);
+  const decay = Math.exp(-angularFrequency * elapsed);
+  const velocityDisplacement =
+    (velocity + angularFrequency * displacement) * elapsed;
+
+  return {
+    position: target + (displacement + velocityDisplacement) * decay,
+    velocity: (velocity - angularFrequency * velocityDisplacement) * decay,
+  };
 }
 
 export function resolveScrollMotionSession(

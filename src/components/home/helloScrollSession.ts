@@ -86,6 +86,26 @@ export function resolveProfileRevealVisibility(
   return scrollProgress >= PROFILE_REVEAL_THRESHOLD;
 }
 
+export type ProfileRevealState = {
+  visible: boolean;
+  hasEntered: boolean;
+};
+
+export function resolveProfileRevealState(
+  scrollProgress: number,
+  current: ProfileRevealState,
+): ProfileRevealState {
+  const visible = resolveProfileRevealVisibility(
+    scrollProgress,
+    current.visible,
+  );
+
+  return {
+    visible,
+    hasEntered: current.hasEntered || visible,
+  };
+}
+
 export function resolveProfileTravelOffsetVh(scrollProgress: number) {
   if (scrollProgress <= PROFILE_HIDE_THRESHOLD) {
     return PROFILE_HIDE_OFFSET_VH;

@@ -1,4 +1,4 @@
-.prototype {
+.heroScrollStage {
   position: relative;
   min-height: 100svh;
   background: transparent;
@@ -181,7 +181,7 @@
 }
 
 .profileContent {
-  width: min(960px, 92vw);
+  width: 100%;
   transform: translate3d(0, clamp(-240px, -26vh, -150px), 0);
   color: rgba(255, 255, 255, 0.92);
   font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
@@ -216,6 +216,9 @@
 .profileStatement,
 .profileDescription,
 .profileLocation {
+  --profile-enter-delay: 0ms;
+  --profile-exit-delay: 110ms;
+
   margin: 0;
   color: rgba(255, 255, 255, 0.96);
   font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
@@ -224,9 +227,11 @@
   letter-spacing: -0.045em;
   line-height: 1;
   opacity: 0;
-  transform: translate3d(0, 20px, 0);
-  animation: profile-fade-up 900ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
-  will-change: opacity, transform;
+  transform: translate3d(0, 18px, 0);
+  transition-property: opacity, transform;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: var(--profile-exit-delay);
 }
 
 .profileStatement,
@@ -240,14 +245,17 @@
 }
 
 .profileDescription {
-  animation-delay: 150ms;
+  --profile-enter-delay: 55ms;
+  --profile-exit-delay: 55ms;
 }
 
 .profileLocation {
+  --profile-enter-delay: 110ms;
+  --profile-exit-delay: 0ms;
+
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  animation-delay: 300ms;
 }
 
 .profileLocationLead {
@@ -258,21 +266,31 @@
   color: inherit;
 }
 
-@keyframes profile-fade-up {
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+.profileMotion[data-visible="true"] .profileStatement,
+.profileMotion[data-visible="true"] .profileDescription,
+.profileMotion[data-visible="true"] .profileLocation {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-duration: 420ms;
+  transition-delay: var(--profile-enter-delay);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .profileStatement,
   .profileDescription,
   .profileLocation {
-    opacity: 1;
     transform: none;
-    animation: none;
-    will-change: auto;
+    transition-property: opacity;
+    transition-duration: 200ms;
+    transition-delay: 0ms;
+  }
+
+  .profileMotion[data-visible="true"] .profileStatement,
+  .profileMotion[data-visible="true"] .profileDescription,
+  .profileMotion[data-visible="true"] .profileLocation {
+    transform: none;
+    transition-duration: 200ms;
+    transition-delay: 0ms;
   }
 }
 
