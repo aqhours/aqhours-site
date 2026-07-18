@@ -11,25 +11,25 @@
 }
 
 :root[data-theme="dawn"] {
-  --page: #a1c5da;
+  --page: #c8d0c4;
   --ink: #ffffff;
   --focus: #ffffff;
 }
 
 :root[data-theme="day"] {
-  --page: #2175f4;
+  --page: #3d99ee;
   --ink: #ffffff;
   --focus: #ffffff;
 }
 
 :root[data-theme="dusk"] {
-  --page: #b197d2;
+  --page: #8799a2;
   --ink: #ffffff;
   --focus: #ffffff;
 }
 
 :root[data-theme="night"] {
-  --page: #042562;
+  --page: #06477c;
   --ink: #ffffff;
   --focus: #ffffff;
 }

@@ -92,12 +92,13 @@ exact components, tokens, typography, or page structure.
 ## Time themes
 
 - The homepage has four time-of-day themes: dawn, day, dusk, and night.
-- Their owner-selected palette references are the four supplied Air theme captures, mapped in icon
-  order: dawn uses a low-saturation sky-blue to grey-green and warm-beige vertical gradient; day
-  uses saturated royal blue to bright sky blue; dusk uses lavender-purple through dusty pink to
-  peach; night uses deep navy through a slightly cyan dark blue. Each gradient includes restrained
-  horizontal edge darkening. Only the color relationships are adapted: no screenshot, cloud,
-  branding, logo, copy, or other proprietary asset is used in the public interface.
+- Dawn uses a clean vertical gradient from pale sky-blue through grey-green into warm apricot-gold,
+  without radial light patches or edge darkening. Day uses a clean vertical gradient from saturated
+  blue into bright pale sky-blue, also without radial light patches or edge darkening. Dusk uses
+  cool indigo through misty blue-grey to low-saturation warm brown. Night uses a clean vertical
+  gradient from deep navy into a slightly cyan ocean blue, without radial light patches or edge
+  darkening. Only the color relationships are adapted: no screenshot, cloud, branding, logo, copy,
+  or other proprietary asset is used in the public interface.
 - On every fresh page load, the active theme follows the visitor's device-local time.
 - Selecting one of the four theme icons locks that theme only for the current page visit.
   The manual selection is not persisted; refreshing the page returns to the automatic
