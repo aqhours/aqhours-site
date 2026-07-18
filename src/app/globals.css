@@ -1,15 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --page: #f7f8fb;
-  --ink: #10131d;
-  --focus: #5f7de8;
+  --page: #66b7eb;
+  --ink: #071e31;
+  --focus: #123f69;
+  --fg-rgb: 255, 255, 255;
+  --theme-control-bg: rgba(var(--fg-rgb), 0.1);
+  --theme-control-active: #ffffff;
+  --theme-control-active-fg: #0c2338;
 }
 
-:root[data-theme="dark"] {
-  --page: #090b12;
-  --ink: #f5f7ff;
-  --focus: #93adff;
+:root[data-theme="dawn"] {
+  --page: #c68d8e;
+  --ink: #281d2d;
+  --focus: #fff3dc;
+}
+
+:root[data-theme="day"] {
+  --page: #66b7eb;
+  --ink: #071e31;
+  --focus: #123f69;
+}
+
+:root[data-theme="dusk"] {
+  --page: #735f82;
+  --ink: #fff8f2;
+  --focus: #ffe3c2;
+}
+
+:root[data-theme="night"] {
+  --page: #071b35;
+  --ink: #f5f8ff;
+  --focus: #b9d7ff;
 }
 
 * {
@@ -36,6 +58,27 @@ body {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+.theme-time-indicator {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  left: 2px;
+  width: 32px;
+  height: var(--indicator-height);
+  translate: 0 var(--indicator-y);
+  border-radius: 8px;
+  background-color: var(--theme-control-active);
+  opacity: 1;
+  pointer-events: none;
+  transition: .6s cubic-bezier(.22, 1, .36, 1), translate 1s cubic-bezier(.22, 1, .36, 1);
+}
+
+.theme-time-icon {
+  transition:
+    color 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 button:focus-visible,

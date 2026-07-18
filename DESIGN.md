@@ -87,6 +87,40 @@ exact components, tokens, typography, or page structure.
 - The optical impression references the volumetric glass lettering on Air, without
   reusing Air's model, material assets, or scene resources.
 
+## Time themes
+
+- The homepage has four time-of-day themes: dawn, day, dusk, and night.
+- On every fresh page load, the active theme follows the visitor's device-local time.
+- Selecting one of the four theme icons locks that theme only for the current page visit.
+  The manual selection is not persisted; refreshing the page returns to the automatic
+  device-time theme.
+- The selector has a dedicated outer surface using `rgba(var(--fg-rgb), 0.1)`, no border, and an
+  inner vertical control with exactly `4px` padding. Both outer and inner containers are exactly
+  `36px × 128px`. Each button is exactly `28px × 30px`: its `14px × 14px` icon plus `8px`
+  top and bottom padding produces the `30px` height. Selected icon opacity is `1`; unselected
+  icon opacity is `0.5`.
+- The selected surface is a persistent white `32px × 32px` rounded square with `8px` resting
+  corner radii. It is one background `div` behind a single icon rail; icons are never duplicated
+  or translated with the surface. The selected icon changes directly to the active foreground
+  color, avoiding doubled strokes from overlapping icon layers.
+- On fine-pointer hover, the vertical version transposes the reference control's horizontal
+  geometry: selected-surface height is `32px`, `35px`, `40px`, or `45px` according to option
+  distance. Its resting in-slot translation is `3px`; when the first option is selected, hovering
+  the four options produces exact translations of `3px`, `6px`, `8px`, and `10px`.
+  Upward attraction uses its own geometry: when the fourth option is selected its resting
+  translation is `93px`, then hovering the third, second, and first options produces `82px`,
+  `70px`, and `58px` respectively. Leaving without selecting returns both values.
+- Clicking another option restores the stretched dimension to `32px` while the surface moves.
+  All ordinary property changes use a `0.6s cubic-bezier(.22,1,.36,1)` transition and translation
+  uses the same curve over `1s`. JavaScript uses the Web Animations API for the separate shape
+  sequence: radius and opacity move toward `18px` and `0.72` at `15%` of the `0.6s` sequence,
+  then return to `8px` and `1`. On interruption, the next sequence samples the currently rendered
+  radius and opacity before cancelling the previous animation, so it continues without resetting.
+  There is no trigger class, CSS keyframe, timer, or movement-completion check. Translation also
+  retargets from its current value under rapid input instead of restarting.
+- Reduced-motion keeps the state change but removes the indicator's spatial movement and shape
+  deformation. Keyboard and pointer activation otherwise share the same animation behavior.
+
 ## Personal introduction layer
 
 - The automatic hero-to-introduction scroll uses one velocity-continuous segmented curve. It
@@ -209,7 +243,8 @@ exact components, tokens, typography, or page structure.
 
 ## Not decided
 
-- Whether the homepage has one lighting scene or four.
+- The final time boundaries and color palette for each of the four themes.
+- How each time theme changes the Three.js lighting, fog, clouds, and glass environment.
 - The sky, clouds, landscape, and other environmental elements.
 - Whether the write-on animation remains in the final hero.
 - Hero copy.
