@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --page: #66b7eb;
-  --ink: #071e31;
-  --focus: #123f69;
+  --page: #2175f4;
+  --ink: #f8fbff;
+  --focus: #ffffff;
   --fg-rgb: 255, 255, 255;
   --theme-control-bg: rgba(var(--fg-rgb), 0.1);
   --theme-control-active: #ffffff;
@@ -11,27 +11,27 @@
 }
 
 :root[data-theme="dawn"] {
-  --page: #c68d8e;
-  --ink: #281d2d;
-  --focus: #fff3dc;
+  --page: #a1c5da;
+  --ink: #ffffff;
+  --focus: #ffffff;
 }
 
 :root[data-theme="day"] {
-  --page: #66b7eb;
-  --ink: #071e31;
-  --focus: #123f69;
+  --page: #2175f4;
+  --ink: #ffffff;
+  --focus: #ffffff;
 }
 
 :root[data-theme="dusk"] {
-  --page: #735f82;
-  --ink: #fff8f2;
-  --focus: #ffe3c2;
+  --page: #b197d2;
+  --ink: #ffffff;
+  --focus: #ffffff;
 }
 
 :root[data-theme="night"] {
-  --page: #071b35;
-  --ink: #f5f8ff;
-  --focus: #b9d7ff;
+  --page: #042562;
+  --ink: #ffffff;
+  --focus: #ffffff;
 }
 
 * {

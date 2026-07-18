@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
-import type { CSSProperties } from "react";
+import { motion, useInView, useReducedMotion } from "motion/react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 import styles from "./HomepageFavorites.module.css";
 
@@ -88,6 +88,12 @@ const TECHNOLOGY_LOGOS: FavoriteLogo[] = [
     width: "48%",
     height: "72%",
   },
+  {
+    name: "Love Live! Asia Tour",
+    src: "/logo_svg/lovelive_asiatour_logo.svg",
+    width: "82%",
+    height: "66%",
+  },
 ];
 
 const CULTURE_LOGOS: FavoriteLogo[] = [
@@ -167,6 +173,9 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
 ];
 
 const FADE_UP_EASE = [0.23, 1, 0.32, 1] as const;
+const CAROUSEL_STEP_DURATION = 2_000;
+const CAROUSEL_STEP_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
+let carouselTimelineOrigin: number | null = null;
 
 function LogoSequence({
   logos,
@@ -204,14 +213,76 @@ function LogoMarquee({
   label,
   logos,
   direction,
+  reduceMotion,
+  isActive,
 }: {
   label: string;
   logos: FavoriteLogo[];
   direction: "left" | "right";
+  reduceMotion: boolean;
+  isActive: boolean;
 }) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<Animation | null>(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || reduceMotion) return;
+
+    const stepCount = logos.length;
+    const keyframes = Array.from({ length: stepCount + 1 }, (_, step) => {
+      const progress = step / stepCount;
+      const translateX =
+        direction === "left" ? -50 * progress : -50 * (1 - progress);
+
+      return {
+        transform: `translate3d(${translateX}%, 0, 0)`,
+        easing: CAROUSEL_STEP_EASE,
+      };
+    });
+    const animation = track.animate(keyframes, {
+      duration: stepCount * CAROUSEL_STEP_DURATION,
+      fill: "both",
+      iterations: Infinity,
+    });
+    const initialStep = direction === "left" ? 2 : 5;
+    const timelineNow = document.timeline.currentTime;
+    let timelineElapsed = 0;
+
+    if (typeof timelineNow === "number") {
+      carouselTimelineOrigin ??= timelineNow;
+      timelineElapsed = timelineNow - carouselTimelineOrigin;
+    }
+
+    animation.pause();
+    animation.currentTime =
+      (initialStep % stepCount) * CAROUSEL_STEP_DURATION + timelineElapsed;
+    animationRef.current = animation;
+
+    return () => {
+      animation.cancel();
+      animationRef.current = null;
+    };
+  }, [direction, logos.length, reduceMotion]);
+
+  useEffect(() => {
+    const animation = animationRef.current;
+    if (!animation || reduceMotion) return;
+
+    if (isActive) {
+      animation.play();
+    } else {
+      animation.pause();
+    }
+  }, [isActive, reduceMotion]);
+
   return (
     <div className={styles.marqueeRow} aria-label={label}>
-      <div className={styles.marqueeTrack} data-direction={direction}>
+      <div
+        ref={trackRef}
+        className={styles.marqueeTrack}
+        data-direction={direction}
+      >
         <LogoSequence logos={logos} />
         <LogoSequence logos={logos} duplicate />
       </div>
@@ -221,6 +292,8 @@ function LogoMarquee({
 
 export function HomepageFavorites() {
   const reduceMotion = useReducedMotion() ?? false;
+  const marqueesRef = useRef<HTMLDivElement>(null);
+  const marqueesInView = useInView(marqueesRef, { amount: 0.05 });
   const initial = {
     opacity: 0,
     transform: reduceMotion
@@ -254,6 +327,7 @@ export function HomepageFavorites() {
         </motion.h2>
 
         <motion.div
+          ref={marqueesRef}
           className={styles.marquees}
           initial={initial}
           whileInView={visible}
@@ -265,14 +339,18 @@ export function HomepageFavorites() {
           }}
         >
           <LogoMarquee
-            label="Favorite technology and creative tools"
+            label="Favorite technology, creative tools, and culture"
             logos={TECHNOLOGY_LOGOS}
             direction="left"
+            reduceMotion={reduceMotion}
+            isActive={marqueesInView}
           />
           <LogoMarquee
             label="Favorite culture, entertainment, services, and institutions"
             logos={CULTURE_LOGOS}
             direction="right"
+            reduceMotion={reduceMotion}
+            isActive={marqueesInView}
           />
         </motion.div>
       </div>

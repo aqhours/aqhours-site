@@ -36,20 +36,8 @@
 .marqueeRow {
   width: 100%;
   overflow: hidden;
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 clamp(32px, 7vw, 112px),
-    #000 calc(100% - clamp(32px, 7vw, 112px)),
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    #000 clamp(32px, 7vw, 112px),
-    #000 calc(100% - clamp(32px, 7vw, 112px)),
-    transparent 100%
-  );
+  mask-image: linear-gradient(90deg, transparent, black 20%, black 80%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 20%, black 80%, transparent);
 }
 
 .marqueeTrack {
@@ -57,16 +45,6 @@
   width: max-content;
   transform: translate3d(0, 0, 0);
   will-change: transform;
-}
-
-.marqueeTrack[data-direction="left"] {
-  animation: favorite-marquee-left 22s linear infinite;
-  animation-delay: -6s;
-}
-
-.marqueeTrack[data-direction="right"] {
-  animation: favorite-marquee-right 22s linear infinite;
-  animation-delay: -13s;
 }
 
 .logoGroup {
@@ -114,28 +92,6 @@
   border: 0;
 }
 
-@keyframes favorite-marquee-left {
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-@keyframes favorite-marquee-right {
-  from {
-    transform: translate3d(-50%, 0, 0);
-  }
-
-  to {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .marqueeRow:hover .marqueeTrack {
-    animation-play-state: paused;
-  }
-}
-
 @media (max-width: 720px) {
   .content {
     padding-block: 56px;
@@ -156,9 +112,6 @@
 @media (prefers-reduced-motion: reduce) {
   .marqueeTrack {
     will-change: auto;
-  }
-
-  .marqueeTrack {
-    animation: none;
+    transform: none;
   }
 }

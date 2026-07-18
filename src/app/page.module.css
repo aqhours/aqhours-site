@@ -23,34 +23,31 @@
 
 .skyDawn {
   background:
-    radial-gradient(ellipse at 76% 16%, rgba(255, 224, 175, 0.72), transparent 35%),
-    radial-gradient(ellipse at 14% 8%, rgba(229, 238, 255, 0.38), transparent 38%),
-    radial-gradient(ellipse at 88% 92%, rgba(255, 188, 139, 0.46), transparent 46%),
-    linear-gradient(150deg, #456e9d 0%, #a77e99 48%, #efae86 100%);
+    radial-gradient(ellipse at -8% 52%, rgba(27, 44, 57, 0.38), transparent 30%),
+    radial-gradient(ellipse at 108% 52%, rgba(33, 48, 58, 0.3), transparent 31%),
+    linear-gradient(180deg, #7eb1db 0%, #a1c5da 48%, #c8c7b2 86%, #cec7ab 100%);
 }
 
 .skyDay {
   background:
-    radial-gradient(ellipse at 14% 8%, rgba(255, 255, 255, 0.72), transparent 36%),
-    radial-gradient(ellipse at 74% 20%, rgba(4, 91, 185, 0.24), transparent 35%),
-    radial-gradient(ellipse at 86% 92%, rgba(255, 214, 160, 0.34), transparent 46%),
-    linear-gradient(150deg, #258fe3 0%, #6dc0ee 58%, #d9c7ae 100%);
+    radial-gradient(ellipse at 50% 72%, rgba(104, 193, 255, 0.34), transparent 66%),
+    radial-gradient(ellipse at -8% 50%, rgba(7, 42, 95, 0.42), transparent 28%),
+    radial-gradient(ellipse at 108% 50%, rgba(8, 45, 97, 0.38), transparent 29%),
+    linear-gradient(180deg, #1159e4 0%, #2175f4 48%, #4c9bff 100%);
 }
 
 .skyDusk {
   background:
-    radial-gradient(ellipse at 82% 18%, rgba(255, 190, 142, 0.5), transparent 34%),
-    radial-gradient(ellipse at 20% 6%, rgba(111, 132, 190, 0.44), transparent 40%),
-    radial-gradient(ellipse at 68% 94%, rgba(247, 146, 121, 0.34), transparent 48%),
-    linear-gradient(150deg, #173f69 0%, #6f6689 54%, #d58b79 100%);
+    radial-gradient(ellipse at -8% 52%, rgba(57, 49, 83, 0.34), transparent 30%),
+    radial-gradient(ellipse at 108% 52%, rgba(66, 58, 78, 0.32), transparent 31%),
+    linear-gradient(180deg, #907ddd 0%, #b197d2 49%, #d2acb1 84%, #d7aeac 100%);
 }
 
 .skyNight {
   background:
-    radial-gradient(circle at 78% 14%, rgba(201, 226, 255, 0.22), transparent 18%),
-    radial-gradient(ellipse at 16% 10%, rgba(76, 130, 180, 0.18), transparent 38%),
-    radial-gradient(ellipse at 84% 90%, rgba(62, 84, 138, 0.28), transparent 48%),
-    linear-gradient(150deg, #050f24 0%, #0a2d52 58%, #263b68 100%);
+    radial-gradient(ellipse at -8% 52%, rgba(1, 10, 35, 0.44), transparent 31%),
+    radial-gradient(ellipse at 108% 52%, rgba(1, 11, 36, 0.42), transparent 32%),
+    linear-gradient(180deg, #051b4f 0%, #042562 48%, #043879 100%);
 }
 
 :global(:root[data-theme="dawn"]) .skyDawn,

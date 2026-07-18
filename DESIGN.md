@@ -25,6 +25,8 @@ exact components, tokens, typography, or page structure.
 - Interface typography should stay restrained and consistent.
 - UI surfaces should stay lightweight: minimal elevation, thin boundaries, small radii,
   and no decorative glass treatment on every component.
+- The fixed time-theme selector is one intentional glass surface: its existing translucent
+  white background samples the sky through a medium backdrop blur with restrained saturation.
 
 ## Hero object
 
@@ -90,6 +92,12 @@ exact components, tokens, typography, or page structure.
 ## Time themes
 
 - The homepage has four time-of-day themes: dawn, day, dusk, and night.
+- Their owner-selected palette references are the four supplied Air theme captures, mapped in icon
+  order: dawn uses a low-saturation sky-blue to grey-green and warm-beige vertical gradient; day
+  uses saturated royal blue to bright sky blue; dusk uses lavender-purple through dusty pink to
+  peach; night uses deep navy through a slightly cyan dark blue. Each gradient includes restrained
+  horizontal edge darkening. Only the color relationships are adapted: no screenshot, cloud,
+  branding, logo, copy, or other proprietary asset is used in the public interface.
 - On every fresh page load, the active theme follows the visitor's device-local time.
 - Selecting one of the four theme icons locks that theme only for the current page visit.
   The manual selection is not persisted; refreshing the page returns to the automatic
@@ -201,13 +209,18 @@ exact components, tokens, typography, or page structure.
 - All five screens share one continuous fixed atmospheric background; the later screens
   must not restart or duplicate the sky gradient at its boundary.
 - A compact `70svh` third screen sits between the personal introduction and education. It presents
-  the centered line `A few of my favorite things.` above two continuous logo marquees. The technology
-  row travels left while the culture and entertainment row travels right, with soft horizontal masks
-  at both viewport edges. All supplied SVG marks, including Figma, Ghostty, Aqours Finale Live,
+  the centered line `A few of my favorite things.` above two continuous logo marquees. The first
+  row travels left while the second row travels right, with soft horizontal masks at both viewport
+  edges. All supplied SVG marks, including Figma, Ghostty, Love Live! Asia Tour, Aqours Finale Live,
   and Shining Nikki, render as monochrome white silhouettes in equal-width rhythm slots. The copy
   and the paired marquee block each receive a one-time Fade Up when entering the viewport, with the
-  marquee following the copy by a short delay. Continuous marquee movement is linear, pauses on hover,
-  and becomes static under reduced motion.
+  marquee following the copy by a short delay. Each row advances by one equal-width logo slot per
+  two-second glide using `cubic-bezier(.65, 0, .35, 1)`, then loops across duplicated sequences without
+  a visible reset. Both rows use one shared document-timeline origin so their two-second movement phases
+  remain aligned even though their starting logo positions differ. The second row moves in the opposite
+  direction. One observer watches the paired-row container rather than either row individually, so both
+  animations pause together while the pair is outside the viewport and resume together from their paused
+  positions. Pointer interaction does not affect playback; reduced motion keeps both rows static.
 - The fourth screen expresses the education statement in three uppercase English lines:
   `COMPUTER SCIENCE. / B.S. COMPLETED. / M.S. IN PROGRESS.` The accessible label expands both
   degree abbreviations and states that both belong to Computer Science and Technology. The three
@@ -243,7 +256,7 @@ exact components, tokens, typography, or page structure.
 
 ## Not decided
 
-- The final time boundaries and color palette for each of the four themes.
+- The final time boundaries for each of the four themes.
 - How each time theme changes the Three.js lighting, fog, clouds, and glass environment.
 - The sky, clouds, landscape, and other environmental elements.
 - Whether the write-on animation remains in the final hero.

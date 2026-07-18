@@ -271,7 +271,7 @@ export function TimeThemeSwitcher() {
   };
 
   return (
-    <div className="fixed top-1/2 right-[clamp(10px,2vw,28px)] z-40 h-32 w-9 -translate-y-1/2 overflow-hidden rounded-[12px] bg-[var(--theme-control-bg)]">
+    <div className="fixed top-1/2 right-[clamp(10px,2vw,28px)] z-40 h-32 w-9 -translate-y-1/2 overflow-hidden rounded-[12px] bg-[var(--theme-control-bg)] backdrop-blur-sm">
       <div
         className="relative flex h-32 w-9 flex-col p-1"
         style={indicatorStyle}
