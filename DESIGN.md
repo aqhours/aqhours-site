@@ -70,6 +70,10 @@ exact components, tokens, typography, or page structure.
   without icons or external-link arrows. `GitHub` points to the `aqhours` GitHub profile and
   `Email` uses the public `aqhours@gmail.com` mail address. A simple `aqhours` personal identifier
   sits at the opposite edge, while the settled `hello` mark remains centered.
+- The personal identifier renders exactly as lowercase `aqhours` in rounded Manrope Bold with
+  compact, natural tracking. It must never be transformed to uppercase. A fine vertical divider
+  connects it to the quieter lowercase descriptor `eternal hours`, explaining the name without
+  competing with the wordmark. The divider and descriptor disappear at constrained widths.
 - The compact header height is responsive from `60px` to `72px`; screens at `720px` wide or
   below use `58px`. Navigation typography and spacing remain unchanged.
 - The entire fixed header is backed by one continuous medium frosted layer (`12px` backdrop

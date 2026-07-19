@@ -2034,9 +2034,11 @@ export function HomepageHero() {
         <a
           className={styles.headerIdentity}
           href="/"
-          aria-label="aqhours 首页"
+          aria-label="aqhours，意为 eternal hours，返回首页"
         >
-          aqhours
+          <span className={styles.headerWordmark}>aqhours</span>
+          <span className={styles.headerIdentityDivider} aria-hidden="true" />
+          <span className={styles.headerMeaning}>eternal hours</span>
         </a>
 
         <nav className={styles.headerNav} aria-label="主要导航">

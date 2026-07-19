@@ -84,12 +84,33 @@
 
 .headerIdentity {
   justify-self: start;
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: 0.15em;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
   line-height: 1;
-  text-transform: uppercase;
+  text-transform: lowercase;
+  white-space: nowrap;
   pointer-events: auto;
+}
+
+.headerWordmark {
+  font-size: clamp(14px, 0.95vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+.headerIdentityDivider {
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.headerMeaning {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.035em;
 }
 
 .headerNav {
@@ -332,6 +353,13 @@
     opacity: 0.72;
   }
 
+}
+
+@media (max-width: 1080px) {
+  .headerIdentityDivider,
+  .headerMeaning {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {
