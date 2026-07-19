@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   HELLO_TILT_COMPENSATION_RADIANS,
   resolveHelloGeometryTransition,
+  resolveProjectedHorizontalCenterOffset,
 } from "../src/components/home/helloGeometry.ts";
 
 const CAMERA_Z = 8.6;
@@ -70,4 +71,12 @@ test("finishes the flip in the exact flat SVG pose", () => {
     flatten: 1,
     zRotation: 0,
   });
+});
+
+test("solves the world translation that centers a projected silhouette", () => {
+  const offset = resolveProjectedHorizontalCenterOffset(
+    (worldX) => 0.27 + worldX * 1.6,
+  );
+
+  assert.ok(Math.abs(offset + 0.16875) < 0.00001);
 });

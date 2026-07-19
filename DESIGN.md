@@ -96,12 +96,25 @@ exact components, tokens, typography, or page structure.
 
 ## Glass material
 
-- The material is nearly colorless, transparent solid glass.
-- Do not give the glass a fixed ice-blue, cyan, or milky-white body color.
-- The scene behind the glass should remain clearly visible through it.
-- Form should be revealed by refraction, reflection, edge highlights, internal
-  highlights, and overlap between strokes.
-- Temporary warm or cool color may come from the environment and lighting.
+- The selected production direction is the lightweight macro-cropped glass-tube treatment.
+  The temporary shader comparison and its heavier physical-transmission alternative are not
+  part of the shipped interface.
+- The material is a nearly colorless, transparent hollow glass tube. Do not give its body a
+  fixed ice-blue, cyan, or milky-white color; the scene behind it remains clearly visible.
+- Readable wall thickness comes from two deliberately separated responses: a broad, soft satin
+  highlight on the near outer wall and an independent, quieter highlight on the far inner wall.
+  Avoid sharp polished-metal glints and avoid making the tube read as a solid rod.
+- Environment samples may lend the tube a small amount of temporary warm or cool color. Their
+  sampling phase follows the hero cloud field's travel cycle: bright cloud samples strengthen the
+  soft wall highlights while blue-sky samples quiet them. This remains a low-cost synchronized
+  response rather than a second live scene-refraction render pass.
+- Do not add a fixed theme-colored outline or decorative light-fiber edge. Any cool or warm rim
+  must remain a restrained consequence of the sampled environment, as in the visual reference.
+- Keep the selected low-overhead geometry profile (132/420 tubular segments, 24 radial segments)
+  and cap the hero Canvas DPR at 1.25. The object is intentionally oversized and cropped by the
+  viewport to create the close-up composition.
+- Form is revealed by the two wall highlights, restrained environment response, and
+  overlap between strokes.
 - The optical impression references the volumetric glass lettering on Air, without
   reusing Air's model, material assets, or scene resources.
 

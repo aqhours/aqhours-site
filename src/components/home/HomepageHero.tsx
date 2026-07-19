@@ -25,6 +25,7 @@ import {
 import {
   HELLO_TILT_COMPENSATION_RADIANS,
   resolveHelloGeometryTransition,
+  resolveProjectedHorizontalCenterOffset,
 } from "./helloGeometry";
 import {
   HERO_CLOUD_BANKS,
@@ -37,156 +38,6 @@ import {
 import { LocationCard } from "./LocationCard";
 import styles from "./HomepageHero.module.css";
 
-type GlassTuning = {
-  fresnelPower: number;
-  internalRimCenter: number;
-  internalRimWidth: number;
-  reflectionDrift: number;
-  innerDrift: number;
-  ior: number;
-  aberrationBase: number;
-  aberrationEdge: number;
-  highlightStart: number;
-  highlightEnd: number;
-  innerBandStart: number;
-  innerBandEnd: number;
-  shadowStart: number;
-  shadowEnd: number;
-  flowWidth: number;
-  flowCoreWidth: number;
-  capProfileEnd: number;
-  capLensStart: number;
-  capLensEnd: number;
-  capGlintPower: number;
-  reflectionColor: number;
-  innerColor: number;
-  baseDark: number;
-  baseLight: number;
-  reflectionMix: number;
-  innerMix: number;
-  edgeLight: number;
-  internalRimLight: number;
-  highlightLight: number;
-  shadowColor: number;
-  shadowStrength: number;
-  flowBaseLight: number;
-  flowFacingLight: number;
-  capRefraction: number;
-  capGlintLight: number;
-  flowCoreLight: number;
-  baseAlpha: number;
-  edgeAlpha: number;
-  internalRimAlpha: number;
-  highlightAlpha: number;
-  innerBandAlpha: number;
-  shadowBandAlpha: number;
-  flowAlpha: number;
-  capLensAlpha: number;
-  capGlintAlpha: number;
-  maxAlpha: number;
-};
-
-type GlassTuningKey = keyof GlassTuning;
-
-const DEFAULT_GLASS_TUNING: GlassTuning = {
-  fresnelPower: 5.8,
-  internalRimCenter: 0.34,
-  internalRimWidth: 0.075,
-  reflectionDrift: 0.035,
-  innerDrift: 0.022,
-  ior: 1.46,
-  aberrationBase: 0.012,
-  aberrationEdge: 0.038,
-  highlightStart: 0.68,
-  highlightEnd: 0.98,
-  innerBandStart: 0.58,
-  innerBandEnd: 0.92,
-  shadowStart: 0.06,
-  shadowEnd: 0.32,
-  flowWidth: 0.036,
-  flowCoreWidth: 0.011,
-  capProfileEnd: 0.58,
-  capLensStart: 0.18,
-  capLensEnd: 0.92,
-  capGlintPower: 30,
-  reflectionColor: 0.1,
-  innerColor: 0.08,
-  baseDark: 0.48,
-  baseLight: 0.96,
-  reflectionMix: 0.22,
-  innerMix: 0.08,
-  edgeLight: 0.58,
-  internalRimLight: 0.42,
-  highlightLight: 0.32,
-  shadowColor: 0.24,
-  shadowStrength: 0.2,
-  flowBaseLight: 0.1,
-  flowFacingLight: 0.14,
-  capRefraction: 0.3,
-  capGlintLight: 0.72,
-  flowCoreLight: 0.2,
-  baseAlpha: 0.004,
-  edgeAlpha: 0.34,
-  internalRimAlpha: 0.085,
-  highlightAlpha: 0.08,
-  innerBandAlpha: 0.012,
-  shadowBandAlpha: 0.012,
-  flowAlpha: 0.03,
-  capLensAlpha: 0.05,
-  capGlintAlpha: 0.28,
-  maxAlpha: 0.4,
-};
-
-const GLASS_UNIFORM_NAMES: Record<GlassTuningKey, string> = {
-  fresnelPower: "uFresnelPower",
-  internalRimCenter: "uInternalRimCenter",
-  internalRimWidth: "uInternalRimWidth",
-  reflectionDrift: "uReflectionDrift",
-  innerDrift: "uInnerDrift",
-  ior: "uIor",
-  aberrationBase: "uAberrationBase",
-  aberrationEdge: "uAberrationEdge",
-  highlightStart: "uHighlightStart",
-  highlightEnd: "uHighlightEnd",
-  innerBandStart: "uInnerBandStart",
-  innerBandEnd: "uInnerBandEnd",
-  shadowStart: "uShadowStart",
-  shadowEnd: "uShadowEnd",
-  flowWidth: "uFlowWidth",
-  flowCoreWidth: "uFlowCoreWidth",
-  capProfileEnd: "uCapProfileEnd",
-  capLensStart: "uCapLensStart",
-  capLensEnd: "uCapLensEnd",
-  capGlintPower: "uCapGlintPower",
-  reflectionColor: "uReflectionColor",
-  innerColor: "uInnerColor",
-  baseDark: "uBaseDark",
-  baseLight: "uBaseLight",
-  reflectionMix: "uReflectionMix",
-  innerMix: "uInnerMix",
-  edgeLight: "uEdgeLight",
-  internalRimLight: "uInternalRimLight",
-  highlightLight: "uHighlightLight",
-  shadowColor: "uShadowColor",
-  shadowStrength: "uShadowStrength",
-  flowBaseLight: "uFlowBaseLight",
-  flowFacingLight: "uFlowFacingLight",
-  capRefraction: "uCapRefraction",
-  capGlintLight: "uCapGlintLight",
-  flowCoreLight: "uFlowCoreLight",
-  baseAlpha: "uBaseAlpha",
-  edgeAlpha: "uEdgeAlpha",
-  internalRimAlpha: "uInternalRimAlpha",
-  highlightAlpha: "uHighlightAlpha",
-  innerBandAlpha: "uInnerBandAlpha",
-  shadowBandAlpha: "uShadowBandAlpha",
-  flowAlpha: "uFlowAlpha",
-  capLensAlpha: "uCapLensAlpha",
-  capGlintAlpha: "uCapGlintAlpha",
-  maxAlpha: "uMaxAlpha",
-};
-
-// Transparent glass tube material.
 const VERTEX_SHADER = /* glsl */ `
   attribute float aPathProgress;
   attribute float aCapProgress;
@@ -212,68 +63,16 @@ const VERTEX_SHADER = /* glsl */ `
   }
 `;
 
-const FRAGMENT_SHADER = /* glsl */ `
+const GLASS_FRAGMENT_SHADER = /* glsl */ `
   uniform samplerCube uEnvironment;
-  uniform float uTime;
+  uniform float uCloudTravel;
   uniform float uSweep;
   uniform float uSweepStrength;
-  uniform float uFresnelPower;
-  uniform float uInternalRimCenter;
-  uniform float uInternalRimWidth;
-  uniform float uReflectionDrift;
-  uniform float uInnerDrift;
-  uniform float uIor;
-  uniform float uAberrationBase;
-  uniform float uAberrationEdge;
-  uniform float uHighlightStart;
-  uniform float uHighlightEnd;
-  uniform float uInnerBandStart;
-  uniform float uInnerBandEnd;
-  uniform float uShadowStart;
-  uniform float uShadowEnd;
-  uniform float uFlowWidth;
-  uniform float uFlowCoreWidth;
-  uniform float uCapProfileEnd;
-  uniform float uCapLensStart;
-  uniform float uCapLensEnd;
-  uniform float uCapGlintPower;
-  uniform float uReflectionColor;
-  uniform float uInnerColor;
-  uniform float uBaseDark;
-  uniform float uBaseLight;
-  uniform float uReflectionMix;
-  uniform float uInnerMix;
-  uniform float uEdgeLight;
-  uniform float uInternalRimLight;
-  uniform float uHighlightLight;
-  uniform float uShadowColor;
-  uniform float uShadowStrength;
-  uniform float uFlowBaseLight;
-  uniform float uFlowFacingLight;
-  uniform float uCapRefraction;
-  uniform float uCapGlintLight;
-  uniform float uFlowCoreLight;
-  uniform float uBaseAlpha;
-  uniform float uEdgeAlpha;
-  uniform float uInternalRimAlpha;
-  uniform float uHighlightAlpha;
-  uniform float uInnerBandAlpha;
-  uniform float uShadowBandAlpha;
-  uniform float uFlowAlpha;
-  uniform float uCapLensAlpha;
-  uniform float uCapGlintAlpha;
-  uniform float uMaxAlpha;
 
   varying vec3 vWorldPosition;
   varying vec3 vWorldNormal;
   varying float vPathProgress;
   varying float vCapProgress;
-
-  mat2 rotate2d(float angle) {
-    float sine = sin(angle);
-    float cosine = cos(angle);
-    return mat2(cosine, -sine, sine, cosine);
-  }
 
   float glassLuma(vec3 color) {
     return dot(color, vec3(0.2126, 0.7152, 0.0722));
@@ -283,120 +82,153 @@ const FRAGMENT_SHADER = /* glsl */ `
     vec3 normal = normalize(vWorldNormal);
     vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
     float facing = clamp(dot(normal, viewDirection), 0.0, 1.0);
-    float fresnel = pow(1.0 - facing, max(uFresnelPower, 0.001));
-    float internalRim = exp(-pow(
-      (facing - uInternalRimCenter) / max(uInternalRimWidth, 0.001),
-      2.0
-    ));
+    float edge = 1.0 - facing;
+    float outerRim = pow(edge, 5.8);
+    float edgeGlint = pow(edge, 15.0);
+    float rimShoulder = smoothstep(0.28, 0.58, edge) *
+      (1.0 - smoothstep(0.86, 0.98, edge));
 
-    vec3 reflection = reflect(-viewDirection, normal);
-    reflection.xz = rotate2d(uTime * uReflectionDrift) * reflection.xz;
+    // Two separated cylindrical responses keep the body clear between them.
+    vec3 lightDirection = normalize(vec3(-0.58, 0.68, 0.46));
+    float lightFacing = dot(normal, lightDirection);
+    float satinBand = exp(-pow((lightFacing - 0.26) / 0.16, 2.0));
+    float satinShoulder = exp(-pow((lightFacing - 0.25) / 0.3, 2.0));
+    float innerStreak = exp(-pow((lightFacing + 0.34) / 0.072, 2.0));
 
-    float aberration = uAberrationBase + fresnel * uAberrationEdge;
-    vec3 redSample = textureCube(
-      uEnvironment,
-      normalize(reflection + vec3(aberration, -aberration * 0.3, 0.0))
-    ).rgb;
-    vec3 greenSample = textureCube(uEnvironment, reflection).rgb;
-    vec3 blueSample = textureCube(
-      uEnvironment,
-      normalize(reflection - vec3(aberration, -aberration * 0.3, 0.0))
-    ).rgb;
-    vec3 dispersedReflection = vec3(redSample.r, greenSample.g, blueSample.b);
-
-    vec3 foldedNormal = normalize(normal + vec3(-0.24, 0.14, -0.1));
-    vec3 innerReflection = reflect(-viewDirection, foldedNormal);
-    innerReflection.xy = rotate2d(-uTime * uInnerDrift + 0.4) * innerReflection.xy;
-    vec3 innerLayer = textureCube(uEnvironment, innerReflection).rgb;
-    vec3 refractionDirection = refract(-viewDirection, normal, 1.0 / max(uIor, 1.001));
-    vec3 refractedLayer = textureCube(uEnvironment, normalize(refractionDirection)).rgb;
-
-    float reflectedLight = glassLuma(dispersedReflection);
-    float innerLight = glassLuma(innerLayer);
-    float highlight = smoothstep(
-      uHighlightStart,
-      max(uHighlightEnd, uHighlightStart + 0.001),
-      reflectedLight
+    vec3 reflectionDirection = reflect(-viewDirection, normal);
+    float cloudAngle = uCloudTravel * 6.28318530718;
+    reflectionDirection.xz += vec2(
+      sin(cloudAngle),
+      cos(cloudAngle * 0.74 + 0.65)
+    ) * 0.085;
+    vec3 refractionDirection = refract(-viewDirection, normal, 1.0 / 1.44);
+    vec3 reflected = textureCube(uEnvironment, normalize(reflectionDirection)).rgb;
+    vec3 refracted = textureCube(uEnvironment, normalize(refractionDirection)).rgb;
+    vec3 neutralReflection = mix(vec3(glassLuma(reflected)), reflected, 0.42);
+    vec3 neutralRefraction = mix(vec3(glassLuma(refracted)), refracted, 0.3);
+    vec3 rimEnvironment = mix(
+      vec3(glassLuma(reflected)),
+      reflected,
+      0.78
     );
-    float innerBand = smoothstep(
-      uInnerBandStart,
-      max(uInnerBandEnd, uInnerBandStart + 0.001),
-      innerLight
-    );
-    float shadowBand = 1.0 - smoothstep(
-      uShadowStart,
-      max(uShadowEnd, uShadowStart + 0.001),
-      innerLight
-    );
-    float sweepDistance = abs(vPathProgress - uSweep);
-    float travelingHighlight = exp(-pow(
-      sweepDistance / max(uFlowWidth, 0.001),
-      2.0
-    )) * uSweepStrength;
-    float travelingCore = exp(-pow(
-      sweepDistance / max(uFlowCoreWidth, 0.001),
-      2.0
-    )) * uSweepStrength;
-    float capProfile = smoothstep(0.0, max(uCapProfileEnd, 0.001), vCapProgress);
-    float capLens = capProfile * smoothstep(
-      uCapLensStart,
-      max(uCapLensEnd, uCapLensStart + 0.001),
-      facing
-    );
-    float capGlint = capProfile * pow(
-      max(dot(normal, normalize(vec3(-0.38, 0.54, 0.75))), 0.0),
-      max(uCapGlintPower, 0.001)
+    float reflectedCloudLight = smoothstep(
+      0.46,
+      0.9,
+      glassLuma(reflected)
     );
 
-    vec3 neutralReflection = mix(
-      vec3(reflectedLight),
-      dispersedReflection,
-      uReflectionColor
-    );
-    vec3 neutralInner = mix(vec3(innerLight), innerLayer, uInnerColor);
-    vec3 glassColor = mix(vec3(uBaseDark), vec3(uBaseLight), reflectedLight);
-    glassColor = mix(glassColor, neutralReflection, uReflectionMix);
-    glassColor = mix(glassColor, neutralInner, innerBand * uInnerMix);
+    float flow =
+      (1.0 - smoothstep(0.015, 0.07, abs(vPathProgress - uSweep))) *
+      uSweepStrength;
+    float capProfile = smoothstep(0.04, 0.96, vCapProgress);
+    float capRing = smoothstep(0.06, 0.34, capProfile) *
+      (1.0 - smoothstep(0.68, 0.98, capProfile));
+    vec3 glassColor = mix(neutralRefraction, neutralReflection, 0.3);
+    glassColor = mix(glassColor, rimEnvironment, outerRim * 0.82);
     glassColor = mix(
       glassColor,
       vec3(1.0),
-      fresnel * uEdgeLight +
-        internalRim * uInternalRimLight +
-        highlight * uHighlightLight
+      satinBand * (0.5 + reflectedCloudLight * 0.38) +
+        satinShoulder * (0.025 + reflectedCloudLight * 0.035) +
+        innerStreak * (0.32 + reflectedCloudLight * 0.26) +
+        rimShoulder * (0.055 + reflectedCloudLight * 0.08) +
+        edgeGlint * 0.9 +
+        flow * 0.08
     );
-    glassColor = mix(
-      glassColor,
-      vec3(uShadowColor),
-      shadowBand * (1.0 - facing) * uShadowStrength
-    );
-    glassColor = mix(
-      glassColor,
-      vec3(1.0),
-      travelingHighlight * (uFlowBaseLight + facing * uFlowFacingLight)
-    );
-    glassColor = mix(glassColor, refractedLayer, capLens * uCapRefraction);
-    glassColor = mix(glassColor, vec3(1.0), capGlint * uCapGlintLight);
-    glassColor += vec3(uFlowCoreLight) * travelingCore * fresnel;
+    glassColor = mix(glassColor, neutralRefraction, capRing * 0.38);
 
-    float alpha =
-      uBaseAlpha + fresnel * uEdgeAlpha + internalRim * uInternalRimAlpha +
-      highlight * uHighlightAlpha + innerBand * uInnerBandAlpha +
-      shadowBand * uShadowBandAlpha + travelingHighlight * uFlowAlpha +
-      capLens * uCapLensAlpha + capGlint * uCapGlintAlpha;
-    alpha = clamp(alpha, uBaseAlpha, max(uMaxAlpha, uBaseAlpha));
-
+    float alpha = clamp(
+      0.0008 + satinBand * (0.075 + reflectedCloudLight * 0.09) +
+        satinShoulder * (0.002 + reflectedCloudLight * 0.003) +
+        innerStreak * (0.038 + reflectedCloudLight * 0.045) +
+        rimShoulder * (0.009 + reflectedCloudLight * 0.016) +
+        outerRim * 0.24 + edgeGlint * 0.2 +
+        flow * 0.012 + capRing * 0.05,
+      0.0008,
+      0.42
+    );
     gl_FragColor = vec4(glassColor, alpha);
+  }
+`;
+
+const GLASS_BACK_WALL_FRAGMENT_SHADER = /* glsl */ `
+  uniform samplerCube uEnvironment;
+  uniform float uCloudTravel;
+  uniform float uSweep;
+  uniform float uSweepStrength;
+
+  varying vec3 vWorldPosition;
+  varying vec3 vWorldNormal;
+  varying float vPathProgress;
+  varying float vCapProgress;
+
+  float glassLuma(vec3 color) {
+    return dot(color, vec3(0.2126, 0.7152, 0.0722));
+  }
+
+  void main() {
+    vec3 normal = normalize(vWorldNormal);
+    vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
+    float facing = abs(dot(normal, viewDirection));
+
+    // This separate BackSide pass reads as the tube's far inner wall.
+    vec3 wallLightDirection = normalize(vec3(0.46, 0.2, 0.86));
+    float wallLight = dot(normal, wallLightDirection);
+    float wallBand = exp(-pow((wallLight - 0.08) / 0.145, 2.0));
+    float wallShoulder = exp(-pow((wallLight - 0.08) / 0.3, 2.0));
+    wallBand *= smoothstep(0.12, 0.42, facing);
+    wallShoulder *= smoothstep(0.08, 0.34, facing);
+    vec3 reflectionDirection = reflect(-viewDirection, normal);
+    float cloudAngle = uCloudTravel * 6.28318530718;
+    reflectionDirection.xy += vec2(
+      cos(cloudAngle * 0.82 + 0.9),
+      sin(cloudAngle)
+    ) * 0.065;
+    vec3 environment = textureCube(
+      uEnvironment,
+      normalize(reflectionDirection)
+    ).rgb;
+    vec3 neutralEnvironment = mix(
+      vec3(glassLuma(environment)),
+      environment,
+      0.28
+    );
+    float wallCloudLight = smoothstep(
+      0.48,
+      0.9,
+      glassLuma(environment)
+    );
+    float flow =
+      (1.0 - smoothstep(0.02, 0.09, abs(vPathProgress - uSweep))) *
+      uSweepStrength;
+    vec3 wallColor = mix(
+      neutralEnvironment,
+      vec3(1.0),
+      wallBand * (0.28 + wallCloudLight * 0.32) +
+        wallShoulder * 0.04
+    );
+    float alpha = clamp(
+      wallBand * (0.026 + wallCloudLight * 0.038) +
+        wallShoulder * 0.0025 + flow * wallBand * 0.01,
+      0.0,
+      0.075
+    );
+
+    gl_FragColor = vec4(wallColor, alpha);
   }
 `;
 
 type SkeletonPoint = readonly [number, number];
 type SkeletonSegment = readonly [SkeletonPoint, SkeletonPoint, SkeletonPoint];
 
-const STEM_TUBULAR_SEGMENTS = 260;
-const WORD_TUBULAR_SEGMENTS = 820;
-const RADIAL_SEGMENTS = 36;
+const STEM_CURVE_SAMPLES = 96;
+const WORD_CURVE_SAMPLES = 300;
+const STEM_TUBULAR_SEGMENTS = 132;
+const WORD_TUBULAR_SEGMENTS = 420;
+const RADIAL_SEGMENTS = 24;
 const CAP_SEGMENTS = 10;
-const TUBE_BASE_RADIUS = 0.17;
+const TUBE_BASE_RADIUS = 0.235;
+const HELLO_DEPTH_SCALE = 0.97;
 const WRITE_DELAY = 0.24;
 const WRITE_DURATION = 3.35;
 const FLOW_PAUSE = 0.55;
@@ -514,7 +346,7 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
 const HELLO_SETTLE_MOTION = {
   hold: 0.1,
   autoScrollDuration: 1.6,
-  startScale: 0.86,
+  startScale: 0.8,
   scale: 0.25,
   startY: -0.52,
   headerFallbackYRatio: 0.42,
@@ -1084,33 +916,53 @@ function useReducedMotionPreference() {
   return reduceMotion;
 }
 
-function makeGlassTuningUniforms(tuning: GlassTuning) {
-  const uniforms: Record<string, { value: number }> = {};
-
-  (Object.keys(GLASS_UNIFORM_NAMES) as GlassTuningKey[]).forEach((key) => {
-    uniforms[GLASS_UNIFORM_NAMES[key]] = { value: tuning[key] };
-  });
-
-  return uniforms;
-}
-
-function makeGlassMaterial(pathOffset: number) {
+function makeGlassMaterial(
+  pathOffset: number,
+  fragmentShader: string,
+  side: THREE.Side,
+) {
   return new THREE.ShaderMaterial({
     uniforms: {
       uEnvironment: { value: null },
-      uTime: { value: 0 },
+      uCloudTravel: { value: 0 },
       uPathOffset: { value: pathOffset },
       uFlatten: { value: 0 },
       uSweep: { value: -1 },
       uSweepStrength: { value: 0 },
-      ...makeGlassTuningUniforms(DEFAULT_GLASS_TUNING),
     },
     vertexShader: VERTEX_SHADER,
-    fragmentShader: FRAGMENT_SHADER,
+    fragmentShader,
     transparent: true,
     depthWrite: false,
-    side: THREE.FrontSide,
+    side,
   });
+}
+
+function setGlassMaterialEnvironment(
+  material: THREE.ShaderMaterial,
+  environment: THREE.CubeTexture | null,
+) {
+  material.uniforms.uEnvironment.value = environment;
+  material.needsUpdate = true;
+}
+
+function setGlassMaterialFlatten(
+  material: THREE.ShaderMaterial,
+  flatten: number,
+) {
+  material.uniforms.uFlatten.value = flatten;
+}
+
+function updateGlassMaterialFrame(
+  material: THREE.ShaderMaterial,
+  elapsedTime: number,
+  sweep: number,
+  sweepStrength: number,
+) {
+  material.uniforms.uCloudTravel.value =
+    (elapsedTime % HERO_CLOUD_FIELD.duration) / HERO_CLOUD_FIELD.duration;
+  material.uniforms.uSweep.value = sweep;
+  material.uniforms.uSweepStrength.value = sweepStrength;
 }
 
 type ThreeCloudBackdropProps = {
@@ -1499,7 +1351,6 @@ function ThreeEducationCloud({ reduceMotion }: { reduceMotion: boolean }) {
 
 type GlassStrokeProps = {
   reduceMotion: boolean;
-  tuning: GlassTuning;
   initialScrollProgress: number;
   scrollProgressRef: MutableRefObject<number>;
   headerBackdropRef: RefObject<HTMLDivElement | null>;
@@ -1511,7 +1362,6 @@ type GlassStrokeProps = {
 
 function GlassStroke({
   reduceMotion,
-  tuning,
   initialScrollProgress,
   scrollProgressRef,
   headerBackdropRef,
@@ -1524,28 +1374,35 @@ function GlassStroke({
   const animationStartRef = useRef<number | null>(null);
   const settleStartedRef = useRef(false);
   const groupRef = useRef<THREE.Group>(null);
-  const { invalidate, size, viewport } = useThree();
+  const { camera, invalidate, size, viewport } = useThree();
 
   const curves = useMemo(
     () => ({
-      stem: makeHelloCurve(HELLO_STEM_START, HELLO_STEM_SEGMENTS, 180),
+      stem: makeHelloCurve(
+        HELLO_STEM_START,
+        HELLO_STEM_SEGMENTS,
+        STEM_CURVE_SAMPLES,
+        0,
+        HELLO_DEPTH_SCALE,
+      ),
       word: makeHelloCurve(
         HELLO_WORD_START,
         HELLO_WORD_SEGMENTS,
-        520,
+        WORD_CURVE_SAMPLES,
         HELLO_STEM_SEGMENTS.length,
+        HELLO_DEPTH_SCALE,
       ),
       flatStem: makeHelloCurve(
         HELLO_STEM_START,
         HELLO_STEM_SEGMENTS,
-        180,
+        STEM_CURVE_SAMPLES,
         0,
         0,
       ),
       flatWord: makeHelloCurve(
         HELLO_WORD_START,
         HELLO_WORD_SEGMENTS,
-        520,
+        WORD_CURVE_SAMPLES,
         HELLO_STEM_SEGMENTS.length,
         0,
       ),
@@ -1599,6 +1456,54 @@ function GlassStroke({
     scale:
       Math.min(1.05, viewport.width / 9.05) * HELLO_SETTLE_MOTION.scale,
   });
+  const startXRef = useRef(0);
+  const updateStartX = useCallback(() => {
+    const responsiveScale = Math.min(1.05, viewport.width / 9.05);
+    const startScale = responsiveScale * HELLO_SETTLE_MOTION.startScale;
+    const startRotation = HELLO_SETTLE_MOTION.startRotation;
+    const rotation = new THREE.Euler(...startRotation);
+    const quaternion = new THREE.Quaternion().setFromEuler(rotation);
+    const scale = new THREE.Vector3(startScale, startScale, startScale);
+    const translation = new THREE.Vector3();
+    const transform = new THREE.Matrix4();
+    const projectedVertex = new THREE.Vector3();
+    const positions = [
+      geometries.stem.geometry.getAttribute("position"),
+      geometries.word.geometry.getAttribute("position"),
+    ] as THREE.BufferAttribute[];
+
+    if (
+      camera instanceof THREE.PerspectiveCamera ||
+      camera instanceof THREE.OrthographicCamera
+    ) {
+      camera.updateProjectionMatrix();
+    }
+    camera.updateMatrixWorld(true);
+
+    const projectedCenterAtX = (worldX: number) => {
+      translation.set(worldX, HELLO_SETTLE_MOTION.startY, 0);
+      transform.compose(translation, quaternion, scale);
+      let minX = Number.POSITIVE_INFINITY;
+      let maxX = Number.NEGATIVE_INFINITY;
+
+      positions.forEach((position) => {
+        for (let index = 0; index < position.count; index += 1) {
+          projectedVertex
+            .fromBufferAttribute(position, index)
+            .applyMatrix4(transform)
+            .project(camera);
+          minX = Math.min(minX, projectedVertex.x);
+          maxX = Math.max(maxX, projectedVertex.x);
+        }
+      });
+
+      return (minX + maxX) / 2;
+    };
+
+    startXRef.current = resolveProjectedHorizontalCenterOffset(
+      projectedCenterAtX,
+    );
+  }, [camera, geometries, viewport.width]);
   const updateHeaderTransform = useCallback(() => {
     const target = headerTargetRef.current;
     const responsiveScale = Math.min(1.05, viewport.width / 9.05);
@@ -1625,12 +1530,22 @@ function GlassStroke({
   }, [headerTargetRef, helloWidth, size.height, size.width, viewport.height, viewport.width]);
 
   useLayoutEffect(() => {
+    updateStartX();
     updateHeaderTransform();
     invalidate();
-  }, [invalidate, updateHeaderTransform]);
+  }, [invalidate, updateHeaderTransform, updateStartX]);
   const materials = useMemo(
     () => ({
-      tube: makeGlassMaterial(0),
+      backWall: makeGlassMaterial(
+        0,
+        GLASS_BACK_WALL_FRAGMENT_SHADER,
+        THREE.BackSide,
+      ),
+      outerWall: makeGlassMaterial(
+        0,
+        GLASS_FRAGMENT_SHADER,
+        THREE.FrontSide,
+      ),
     }),
     [],
   );
@@ -1661,30 +1576,26 @@ function GlassStroke({
     const geometryTransition = resolveHelloGeometryTransition(
       transition.rotation,
     );
-    materials.tube.uniforms.uFlatten.value = geometryTransition.flatten;
+    Object.values(materials).forEach((material) => {
+      setGlassMaterialFlatten(material, geometryTransition.flatten);
+    });
     applyHeaderHandoff(transition.handoff);
   }, [applyHeaderHandoff, initialScrollProgress, materials]);
-  const groupedMaterial = useMemo(
-    () => [materials.tube, materials.tube],
-    [materials],
+  const groupedBackWallMaterial = useMemo(
+    () => [materials.backWall, materials.backWall],
+    [materials.backWall],
+  );
+  const groupedOuterWallMaterial = useMemo(
+    () => [materials.outerWall, materials.outerWall],
+    [materials.outerWall],
   );
 
   useEffect(() => {
     Object.values(materials).forEach((material) => {
-      material.uniforms.uEnvironment.value = environment;
-      material.needsUpdate = true;
+      setGlassMaterialEnvironment(material, environment);
     });
     invalidate();
   }, [environment, invalidate, materials]);
-
-  useEffect(() => {
-    Object.values(materials).forEach((material) => {
-      (Object.keys(GLASS_UNIFORM_NAMES) as GlassTuningKey[]).forEach((key) => {
-        material.uniforms[GLASS_UNIFORM_NAMES[key]].value = tuning[key];
-      });
-    });
-    invalidate();
-  }, [invalidate, materials, tuning]);
 
   useEffect(() => {
     animationStartRef.current = null;
@@ -1759,9 +1670,12 @@ function GlassStroke({
     }
 
     Object.values(materials).forEach((material) => {
-      material.uniforms.uTime.value = reduceMotion ? 0 : state.clock.elapsedTime;
-      material.uniforms.uSweep.value = sweep;
-      material.uniforms.uSweepStrength.value = sweepStrength;
+      updateGlassMaterialFrame(
+        material,
+        reduceMotion ? 0 : state.clock.elapsedTime,
+        sweep,
+        sweepStrength,
+      );
     });
 
     const settleReady = afterWrite >= HELLO_SETTLE_MOTION.hold;
@@ -1778,7 +1692,9 @@ function GlassStroke({
     const geometryTransition = resolveHelloGeometryTransition(
       headerTransition.rotation,
     );
-    materials.tube.uniforms.uFlatten.value = geometryTransition.flatten;
+    Object.values(materials).forEach((material) => {
+      setGlassMaterialFlatten(material, geometryTransition.flatten);
+    });
 
     applyHeaderHandoff(headerTransition.handoff);
 
@@ -1799,7 +1715,7 @@ function GlassStroke({
         ),
       );
       group.position.x = THREE.MathUtils.lerp(
-        0,
+        startXRef.current,
         headerTransform.x,
         headerTransition.travel,
       );
@@ -1854,7 +1770,7 @@ function GlassStroke({
       ref={groupRef}
       position={[
         THREE.MathUtils.lerp(
-          0,
+          startXRef.current,
           initialHeaderTransform.x,
           initialTransition.travel,
         ),
@@ -1877,12 +1793,22 @@ function GlassStroke({
     >
       <mesh
         geometry={geometries.stem.geometry}
-        material={groupedMaterial}
+        material={groupedBackWallMaterial}
+        renderOrder={1}
+      />
+      <mesh
+        geometry={geometries.word.geometry}
+        material={groupedBackWallMaterial}
+        renderOrder={1}
+      />
+      <mesh
+        geometry={geometries.stem.geometry}
+        material={groupedOuterWallMaterial}
         renderOrder={2}
       />
       <mesh
         geometry={geometries.word.geometry}
-        material={groupedMaterial}
+        material={groupedOuterWallMaterial}
         renderOrder={2}
       />
     </group>
@@ -2102,7 +2028,7 @@ export function HomepageHero() {
               far: 100,
               position: [0, 0, CLOUD_CAMERA_Z],
             }}
-            dpr={[1, 1.75]}
+            dpr={[1, 1.25]}
             frameloop={reduceMotion ? "demand" : "always"}
             gl={{ alpha: true, antialias: true, stencil: false }}
             onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
@@ -2123,7 +2049,6 @@ export function HomepageHero() {
             </Suspense>
             <GlassStroke
               reduceMotion={reduceMotion}
-              tuning={DEFAULT_GLASS_TUNING}
               initialScrollProgress={scrollSession.startProgress}
               scrollProgressRef={scrollProgressRef}
               headerBackdropRef={headerBackdropRef}
