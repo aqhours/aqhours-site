@@ -50,6 +50,10 @@
     transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+.legal strong {
+  font-weight: 680;
+}
+
 .legal a:active {
   transform: scale(0.97);
 }

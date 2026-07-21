@@ -1,7 +1,7 @@
 import styles from "./OceanEnding.module.css";
 
 const PUBLIC_SECURITY_RECORD_URL =
-  "http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=2022005856号";
+  "https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=36082702000310";
 const PUBLIC_SECURITY_ICON_URL =
   "https://jgox-image-1316409677.cos.ap-guangzhou.myqcloud.com/blog/beian.png";
 const ICP_RECORD_URL = "https://beian.miit.gov.cn/";
@@ -52,11 +52,11 @@ export function HomepageEnding() {
               decoding="async"
               referrerPolicy="no-referrer"
             />
-            赣ICP备2022005856号
+            <strong>赣公网安备36082702000310号</strong>
           </a>
           <span className={styles.separator} aria-hidden="true">|</span>
           <a href={ICP_RECORD_URL} target="_blank" rel="noreferrer">
-            赣ICP备2022005856号-2
+            <strong>赣ICP备2022005856号-2</strong>
           </a>
         </div>
 
