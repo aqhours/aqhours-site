@@ -1,6 +1,5 @@
 "use client";
 
-import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 import {
   motion,
   useMotionTemplate,
@@ -9,33 +8,42 @@ import {
 } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { GoogleMap } from "./GoogleMap";
 import styles from "./LocationCard.module.css";
 
 const MAX_ROTATE_X = 3.8;
 const MAX_ROTATE_Y = 5.2;
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-const GOOGLE_MAPS_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID;
-const HONGGUTAN_CENTER = { lat: 28.65, lng: 115.83 };
+const MAP_PROVIDER = process.env.NEXT_PUBLIC_MAP_PROVIDER ?? "amap";
+const AMAP_API_KEY = process.env.NEXT_PUBLIC_AMAP_API_KEY;
+const AMAP_DEVELOPMENT_SECURITY_JS_CODE =
+  process.env.NEXT_PUBLIC_AMAP_SECURITY_JS_CODE;
+const HONGGUTAN_CENTER: [number, number] = [115.83, 28.65];
 
-let mapsLibrariesPromise: Promise<
-  [google.maps.MapsLibrary, google.maps.MarkerLibrary]
-> | null = null;
+let aMapPromise: Promise<typeof window.AMap> | null = null;
 
-function loadMapsLibraries(apiKey: string) {
-  if (!mapsLibrariesPromise) {
-    setOptions({
-      key: apiKey,
-      v: "weekly",
-      language: "en",
-      region: "CN",
-    });
-    mapsLibrariesPromise = Promise.all([
-      importLibrary("maps") as Promise<google.maps.MapsLibrary>,
-      importLibrary("marker") as Promise<google.maps.MarkerLibrary>,
-    ]);
+function getMapStyle() {
+  return document.documentElement.dataset.theme === "night"
+    ? "amap://styles/darkblue"
+    : "amap://styles/f068f1616ca8804b3fc1d203aa5f3a6b";
+}
+
+function loadAMap(apiKey: string) {
+  if (!aMapPromise) {
+    window._AMapSecurityConfig = AMAP_DEVELOPMENT_SECURITY_JS_CODE
+      ? { securityJsCode: AMAP_DEVELOPMENT_SECURITY_JS_CODE }
+      : {
+          serviceHost: new URL("/_AMapService", window.location.origin).toString(),
+        };
+
+    aMapPromise = import("@amap/amap-jsapi-loader").then(({ load }) =>
+      load({
+        key: apiKey,
+        version: "2.0",
+      }).then(() => window.AMap)
+    );
   }
 
-  return mapsLibrariesPromise;
+  return aMapPromise;
 }
 
 function createPositionMarker() {
@@ -53,80 +61,67 @@ function createPositionMarker() {
   return marker;
 }
 
-function InteractiveMap() {
+function AMapMap() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container || !GOOGLE_MAPS_API_KEY || !GOOGLE_MAPS_MAP_ID) return;
+    if (!container || !AMAP_API_KEY) return;
 
     let disposed = false;
-    let map: google.maps.Map | null = null;
-    let marker: google.maps.marker.AdvancedMarkerElement | null = null;
-    let activeColorScheme: "DARK" | "LIGHT" | null = null;
-    let renderMap: (() => void) | null = null;
+    let map: AMap.Map | null = null;
+    let marker: AMap.Marker | null = null;
 
     const clearMap = () => {
-      if (marker) marker.map = null;
-      if (map) google.maps.event.clearInstanceListeners(map);
+      if (marker && map) map.remove(marker);
+      if (map) map.destroy();
       marker = null;
       map = null;
       container.replaceChildren();
     };
 
-    void loadMapsLibraries(GOOGLE_MAPS_API_KEY).then(
-      ([{ Map }, { AdvancedMarkerElement }]) => {
+    setLoadFailed(false);
+    void loadAMap(AMAP_API_KEY).then(
+      (AMap) => {
         if (disposed || !containerRef.current) return;
 
-        renderMap = () => {
-          const colorScheme =
-            document.documentElement.dataset.theme === "night"
-              ? "DARK"
-              : "LIGHT";
-          if (colorScheme === activeColorScheme) return;
-
-          clearMap();
-          activeColorScheme = colorScheme;
-          map = new Map(container, {
-            center: HONGGUTAN_CENTER,
-            zoom: 11.5,
-            mapId: GOOGLE_MAPS_MAP_ID,
-            colorScheme,
-            backgroundColor: colorScheme === "DARK" ? "#071b35" : "#e5f0eb",
-            disableDefaultUI: true,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            cameraControl: false,
-            rotateControl: false,
-            scaleControl: false,
-            zoomControl: false,
-            clickableIcons: false,
-            gestureHandling: "greedy",
-            keyboardShortcuts: true,
-          });
-
-          marker = new AdvancedMarkerElement({
-            map,
-            position: HONGGUTAN_CENTER,
-            content: createPositionMarker(),
-            anchorLeft: "-50%",
-            anchorTop: "-50%",
-            gmpClickable: false,
-            zIndex: 5,
-          });
+        const mapOptions: AMap.MapOptions = {
+          center: HONGGUTAN_CENTER,
+          zoom: 11.5,
+          viewMode: "2D",
+          mapStyle: getMapStyle(),
+          showLabel: true,
+          dragEnable: true,
+          zoomEnable: true,
+          scrollWheel: true,
+          touchZoom: true,
+          doubleClickZoom: true,
+          keyboardEnable: true,
         };
 
-        renderMap();
+        map = new AMap.Map(container, mapOptions);
+        marker = new AMap.Marker({
+          position: HONGGUTAN_CENTER,
+          content: createPositionMarker(),
+          anchor: "center",
+          clickable: false,
+          zIndex: 5,
+        });
+        map.add(marker);
+
         themeObserver.observe(document.documentElement, {
           attributes: true,
           attributeFilter: ["data-theme"],
         });
+      },
+      () => {
+        if (!disposed) setLoadFailed(true);
       }
     );
 
     const themeObserver = new MutationObserver(() => {
-      if (!disposed) renderMap?.();
+      if (!disposed) map?.setMapStyle(getMapStyle());
     });
 
     return () => {
@@ -136,11 +131,15 @@ function InteractiveMap() {
     };
   }, []);
 
-  if (!GOOGLE_MAPS_API_KEY || !GOOGLE_MAPS_MAP_ID) {
+  if (!AMAP_API_KEY || loadFailed) {
     return (
       <div className={styles.missingMap} role="status">
-        <span>Google Maps</span>
-        <small>Configure the Google Maps API key and Map ID</small>
+        <span>AMap</span>
+        <small>
+          {loadFailed
+            ? "Unable to load the AMap JavaScript API"
+            : "Configure the AMap JavaScript API key"}
+        </small>
       </div>
     );
   }
@@ -151,9 +150,13 @@ function InteractiveMap() {
       className={styles.map}
       data-native-wheel="true"
       role="application"
-      aria-label="Google Maps — Honggutan, Nanchang"
+      aria-label="AMap — Honggutan, Nanchang"
     />
   );
+}
+
+function InteractiveMap() {
+  return MAP_PROVIDER === "google" ? <GoogleMap /> : <AMapMap />;
 }
 
 type LocationCardProps = {

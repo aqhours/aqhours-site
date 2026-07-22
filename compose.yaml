@@ -5,6 +5,8 @@ services:
     build:
       context: .
       args:
+        NEXT_PUBLIC_AMAP_API_KEY: ${NEXT_PUBLIC_AMAP_API_KEY:?AMap JavaScript API key is required}
+        NEXT_PUBLIC_MAP_PROVIDER: ${NEXT_PUBLIC_MAP_PROVIDER:-amap}
         NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID:?Google Maps Map ID is required}
       secrets:
         - google_maps_api_key
@@ -12,11 +14,15 @@ services:
     restart: unless-stopped
     networks:
       - aqhours-web
+    secrets:
+      - amap_security_js_code
 
 networks:
   aqhours-web:
     external: true
 
 secrets:
+  amap_security_js_code:
+    file: ./secrets/amap-security-js-code
   google_maps_api_key:
     file: ./secrets/google-maps-api-key

@@ -43,7 +43,9 @@ jobs:
 
       - name: Build static site
         env:
-          # Compile the production map branch without storing or exercising a real key.
+          # Compile both build-time map providers without storing or exercising real keys.
+          NEXT_PUBLIC_MAP_PROVIDER: amap
+          NEXT_PUBLIC_AMAP_API_KEY: github-actions-validation-not-a-real-key
           NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: github-actions-validation-not-a-real-key
           NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: DEMO_MAP_ID
         run: pnpm run build
