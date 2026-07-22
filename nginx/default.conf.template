@@ -1,0 +1,26 @@
+server {
+  listen 80;
+  listen [::]:80;
+  server_name _;
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  location = /_AMapService/v4/map/styles {
+    set $args "$args&jscode=${AMAP_SECURITY_JS_CODE}";
+    proxy_set_header Host webapi.amap.com;
+    proxy_ssl_server_name on;
+    proxy_pass https://webapi.amap.com/v4/map/styles;
+  }
+
+  location /_AMapService/ {
+    set $args "$args&jscode=${AMAP_SECURITY_JS_CODE}";
+    proxy_set_header Host restapi.amap.com;
+    proxy_ssl_server_name on;
+    proxy_pass https://restapi.amap.com/;
+  }
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}

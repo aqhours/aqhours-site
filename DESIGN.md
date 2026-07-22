@@ -193,27 +193,30 @@ exact components, tokens, typography, or page structure.
   location-line Manrope size, weight, and tracking. `aqhours` remains the only handwritten Caveat
   Bold text and uses a `1.28em` size multiplier for emphasis. The screen does not
   include an `explore` control.
-- The map uses the official Google Maps JavaScript API, configured through the public,
-  referrer-restricted `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. It is centered at longitude `115.83`, latitude `28.65`
-  with an initial zoom of `13.4`. The built-in camera and zoom controls are hidden while mouse-wheel,
-  trackpad, touch, keyboard zoom, and panning remain available. Per the owner's approved Google
-  authorization, the visible Google attribution and copyright layer may be hidden. The map is
-  presented as the bare map surface without an outer card, translucent frame, or shadow. The map
-  crop itself has one restrained `2px` grey-white border.
+- The default map uses AMap's official JavaScript API 2.0, configured through the public,
+  domain-restricted `NEXT_PUBLIC_AMAP_API_KEY`. Its security code is kept only in a production
+  Docker secret and is injected by the Nginx `/_AMapService` proxy; it is never emitted in the
+  static site. A retained Google Maps implementation can be selected at build time with
+  `NEXT_PUBLIC_MAP_PROVIDER=google`; it uses a separately domain-restricted browser key and Map ID.
+  Both providers are centered at longitude `115.83`, latitude `28.65` with an initial zoom of
+  `11.5`. The map has no added zoom or camera controls while mouse-wheel, trackpad, touch,
+  keyboard zoom, and panning remain available. Provider attribution and copyright remain visible.
+  The map is presented as the bare map surface without an outer card, translucent frame, or
+  shadow. The map crop itself has one restrained `2px` grey-white border.
   Its location line remains outside the map and closer to the personal-introduction sentence.
 - The three introduction lines use one responsive, tightly spaced vertical rhythm. The `Living in`
   lead uses the same white Manrope treatment, size, weight, and tracking as the location text. The
   map begins exactly `45px` below the third line.
-- The map itself uses a rounded crop and an aqhours-specific pastel style: mint-green land,
-  pale-cyan water, blue-grey road hierarchy, and dark, high-contrast place labels. A white-ringed
-  compact blue position dot marks the configured Honggutan coordinate, while a small `Nanchang, China`
-  label sits inside the lower-left map area without obscuring the required Google attribution.
-  The position dot has two staggered, continuously expanding blue pulse rings with a soft radial
-  falloff. The center remains still, and reduced-motion mode removes the pulse.
-  Base-map labels use English. The map uses a production JavaScript Map ID and its associated
-  Google Cloud style. The night time-theme recreates the map with Google Maps' dark color scheme;
-  dawn, day, and dusk use its light color scheme. The position dot and both pulse rings are one custom DOM-backed
-  `AdvancedMarkerElement`; no legacy Marker or separate map Overlay is used.
+- The map itself uses a rounded crop and the selected custom AMap base style
+  `f068f1616ca8804b3fc1d203aa5f3a6b` for dawn, day, and dusk, with `darkblue` at night.
+  A white-ringed compact blue position dot marks the configured Honggutan
+  coordinate, while a small `Nanchang, China` label sits inside the lower-left map area without
+  obscuring required AMap attribution. The position dot has two staggered, continuously expanding
+  blue pulse rings with a soft radial falloff. The center remains still, and reduced-motion mode
+  removes the pulse. The Chinese base map retains its roads and regional/place labels while keeping
+  building layers out of the crop; its custom `Nanchang, China` caption and required AMap attribution
+  remain visible. The position dot and both pulse rings are one custom DOM-backed `AMap.Marker`; no
+  default marker or separate map Overlay is used.
 - On fine-pointer devices, the map receives a restrained, viewport-wide mouse-position-driven
   3D tilt with perspective and a spring-smoothed return when the pointer leaves the window. It has
   its own interruptible `520ms` Fade Up entrance after the introduction and location line begin to
