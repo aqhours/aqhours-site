@@ -51,6 +51,13 @@
   display: none !important;
 }
 
+.map :global(.amap-logo),
+.map :global(.amap-copyright),
+.map :global(.amap-copyright div),
+.map :global(.amap-copyright a) {
+  display: none !important;
+}
+
 .positionMarker {
   position: relative;
   width: 42px;
