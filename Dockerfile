@@ -25,7 +25,7 @@ RUN --mount=type=secret,id=google_maps_api_key,required=true \
 
 FROM nginx:alpine
 
-COPY docker-entrypoint.d/19-amap-security-js-code.sh /docker-entrypoint.d/19-amap-security-js-code.sh
+COPY docker-entrypoint.d/19-amap-security-js-code.envsh /docker-entrypoint.d/19-amap-security-js-code.envsh
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
-RUN chmod 0555 /docker-entrypoint.d/19-amap-security-js-code.sh
+RUN chmod 0555 /docker-entrypoint.d/19-amap-security-js-code.envsh
 COPY --from=builder /app/out /usr/share/nginx/html

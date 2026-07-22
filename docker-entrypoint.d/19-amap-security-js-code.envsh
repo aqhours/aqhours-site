@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# The official Nginx entrypoint sources executable .envsh files before it renders
+# templates, so this exported value remains available to its envsubst step.
 set -eu
 
 secret_path="/run/secrets/amap_security_js_code"
