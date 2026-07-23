@@ -174,7 +174,6 @@ type LocationCardProps = {
 
 export function LocationCard({ visible }: LocationCardProps) {
   const [entranceReady, setEntranceReady] = useState(false);
-  const analyticsTriggerRef = useRef<HTMLButtonElement>(null);
   const mapInteractionTrackedRef = useRef(false);
   const rotateXTarget = useMotionValue(0);
   const rotateYTarget = useMotionValue(0);
@@ -198,7 +197,7 @@ export function LocationCard({ visible }: LocationCardProps) {
   const trackMapInteraction = useCallback(() => {
     if (mapInteractionTrackedRef.current) return;
     mapInteractionTrackedRef.current = true;
-    analyticsTriggerRef.current?.click();
+    window.umami?.track("map-interact", { provider: MAP_PROVIDER });
   }, []);
 
   useEffect(() => {
@@ -251,15 +250,6 @@ export function LocationCard({ visible }: LocationCardProps) {
       >
         <InteractiveMap onInteract={trackMapInteraction} />
         <span className={styles.mapCaption}>Nanchang, China</span>
-        <button
-          ref={analyticsTriggerRef}
-          type="button"
-          hidden
-          tabIndex={-1}
-          data-umami-event="map-interact"
-          data-umami-event-provider={MAP_PROVIDER}
-          aria-hidden="true"
-        />
       </motion.article>
     </div>
   );
