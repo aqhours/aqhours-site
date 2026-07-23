@@ -318,6 +318,8 @@ export function TimeThemeSwitcher() {
               type="button"
               className="relative z-10 flex w-7 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent px-0 py-2 focus-visible:z-30 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white"
               onClick={() => selectTheme(id)}
+              data-umami-event="theme-select"
+              data-umami-event-theme={id}
               aria-label={`${label}主题；选择后保持到刷新页面`}
               aria-pressed={selected}
               title={`${label}主题`}

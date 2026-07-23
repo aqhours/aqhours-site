@@ -23,6 +23,9 @@ const caveat = Caveat({
   weight: "700",
 });
 
+const umamiScriptUrl = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL;
+const umamiWebsiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+
 export const metadata: Metadata = {
   title: "aqhours",
   description: "与你相伴的时光，如此珍贵，如此难忘。",
@@ -37,6 +40,14 @@ export default function RootLayout({
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: timeThemeInitScript }} />
+        {umamiScriptUrl && umamiWebsiteId ? (
+          <script
+            defer
+            src={umamiScriptUrl}
+            data-website-id={umamiWebsiteId}
+            data-domains="aqhours.cn,www.aqhours.cn"
+          />
+        ) : null}
       </head>
       <body className={`${inter.variable} ${manrope.variable} ${caveat.variable}`}>
         {children}

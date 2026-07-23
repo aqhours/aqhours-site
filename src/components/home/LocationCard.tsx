@@ -230,6 +230,8 @@ export function LocationCard({ visible }: LocationCardProps) {
       <motion.article
         className={styles.mapTilt}
         style={{ transform: cardTransform }}
+        data-umami-event="map-interact"
+        data-umami-event-provider={MAP_PROVIDER}
         aria-label="Map of Honggutan, Nanchang"
       >
         <InteractiveMap />

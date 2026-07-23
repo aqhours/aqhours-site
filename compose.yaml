@@ -8,6 +8,8 @@ services:
         NEXT_PUBLIC_AMAP_API_KEY: ${NEXT_PUBLIC_AMAP_API_KEY:?AMap JavaScript API key is required}
         NEXT_PUBLIC_MAP_PROVIDER: ${NEXT_PUBLIC_MAP_PROVIDER:-amap}
         NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID:?Google Maps Map ID is required}
+        NEXT_PUBLIC_UMAMI_SCRIPT_URL: ${NEXT_PUBLIC_UMAMI_SCRIPT_URL:?Umami tracker script URL is required}
+        NEXT_PUBLIC_UMAMI_WEBSITE_ID: ${NEXT_PUBLIC_UMAMI_WEBSITE_ID:?Umami website ID is required}
       secrets:
         - google_maps_api_key
     image: aqhours-homepage:0.1

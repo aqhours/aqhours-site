@@ -1960,6 +1960,8 @@ export function HomepageHero() {
         <a
           className={styles.headerIdentity}
           href="/"
+          data-umami-event="navigation-click"
+          data-umami-event-destination="home"
           aria-label="aqhours，意为 eternal hours，返回首页"
         >
           <span className={styles.headerWordmark}>aqhours</span>
@@ -1969,13 +1971,28 @@ export function HomepageHero() {
 
         <nav className={styles.headerNav} aria-label="主要导航">
           <span className={styles.headerNavGroup}>
-            <a className={styles.headerLink} href="/blog">
+            <a
+              className={styles.headerLink}
+              href="/blog"
+              data-umami-event="navigation-click"
+              data-umami-event-destination="blog"
+            >
               Blog
             </a>
-            <a className={styles.headerLink} href="/studio">
+            <a
+              className={styles.headerLink}
+              href="/studio"
+              data-umami-event="navigation-click"
+              data-umami-event-destination="studio"
+            >
               Studio
             </a>
-            <a className={styles.headerLink} href="/photos">
+            <a
+              className={styles.headerLink}
+              href="/photos"
+              data-umami-event="navigation-click"
+              data-umami-event-destination="photos"
+            >
               Photos
             </a>
           </span>
@@ -1983,12 +2000,16 @@ export function HomepageHero() {
             <a
               className={styles.headerLink}
               href="https://github.com/aqhours"
+              data-umami-event="navigation-click"
+              data-umami-event-destination="github"
             >
               GitHub
             </a>
             <a
               className={styles.headerLink}
               href="mailto:aqhours@gmail.com"
+              data-umami-event="navigation-click"
+              data-umami-event-destination="email"
             >
               Email
             </a>

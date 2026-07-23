@@ -69,6 +69,8 @@ them into the static build:
 NEXT_PUBLIC_MAP_PROVIDER=amap
 NEXT_PUBLIC_AMAP_API_KEY=your_amap_javascript_api_key
 NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=your_google_maps_map_id
+NEXT_PUBLIC_UMAMI_SCRIPT_URL=https://your-umami.example.com/script.js
+NEXT_PUBLIC_UMAMI_WEBSITE_ID=your_umami_website_id
 ```
 
 In AMap Console, create a Web (JS API) key and set its domain allowlist to
@@ -86,6 +88,12 @@ map keys must be visible to the browser; restrict it to the site origins and
 only the required Maps APIs in Google Cloud. To switch providers later, set
 `NEXT_PUBLIC_MAP_PROVIDER=google` and rebuild the Compose service. Keep the
 Google Map ID in `.env` even while AMap is active so the fallback remains ready.
+
+Copy the Umami script URL and website ID from the homepage website's tracking
+code into the same production `.env`. The generated tracker is limited to
+`aqhours.cn` and `www.aqhours.cn`, so local development and preview hosts do not
+pollute production analytics. Umami automatically records the initial page view
+and any future client-side route changes; no separate page-view call is needed.
 
 Production Compose starts fail when the security-code secret file is absent. Real
 `.env*` files and the complete `secrets/` directory are excluded from Git and the
