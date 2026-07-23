@@ -45,7 +45,11 @@ function createPositionMarker() {
   return marker;
 }
 
-export function GoogleMap() {
+type GoogleMapProps = {
+  onInteract: () => void;
+};
+
+export function GoogleMap({ onInteract }: GoogleMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,6 +105,7 @@ export function GoogleMap() {
             gestureHandling: "greedy",
             keyboardShortcuts: true,
           });
+          map.addListener("click", onInteract);
 
           marker = new AdvancedMarkerElement({
             map,
@@ -126,7 +131,7 @@ export function GoogleMap() {
       themeObserver.disconnect();
       clearMap();
     };
-  }, []);
+  }, [onInteract]);
 
   if (!GOOGLE_MAPS_API_KEY || !GOOGLE_MAPS_MAP_ID) {
     return (

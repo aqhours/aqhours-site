@@ -61,7 +61,11 @@ function createPositionMarker() {
   return marker;
 }
 
-function AMapMap() {
+type MapProps = {
+  onInteract: () => void;
+};
+
+function AMapMap({ onInteract }: MapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadFailed, setLoadFailed] = useState(false);
 
@@ -101,6 +105,7 @@ function AMapMap() {
         };
 
         map = new AMap.Map(container, mapOptions);
+        map.on("click", onInteract);
         marker = new AMap.Marker({
           position: HONGGUTAN_CENTER,
           content: createPositionMarker(),
@@ -129,7 +134,7 @@ function AMapMap() {
       themeObserver.disconnect();
       clearMap();
     };
-  }, []);
+  }, [onInteract]);
 
   if (!AMAP_API_KEY || loadFailed) {
     return (
@@ -155,8 +160,12 @@ function AMapMap() {
   );
 }
 
-function InteractiveMap() {
-  return MAP_PROVIDER === "google" ? <GoogleMap /> : <AMapMap />;
+function InteractiveMap({ onInteract }: MapProps) {
+  return MAP_PROVIDER === "google" ? (
+    <GoogleMap onInteract={onInteract} />
+  ) : (
+    <AMapMap onInteract={onInteract} />
+  );
 }
 
 type LocationCardProps = {
@@ -165,6 +174,8 @@ type LocationCardProps = {
 
 export function LocationCard({ visible }: LocationCardProps) {
   const [entranceReady, setEntranceReady] = useState(false);
+  const analyticsTriggerRef = useRef<HTMLButtonElement>(null);
+  const mapInteractionTrackedRef = useRef(false);
   const rotateXTarget = useMotionValue(0);
   const rotateYTarget = useMotionValue(0);
   const rotateX = useSpring(rotateXTarget, {
@@ -183,6 +194,12 @@ export function LocationCard({ visible }: LocationCardProps) {
     rotateXTarget.set(0);
     rotateYTarget.set(0);
   }, [rotateXTarget, rotateYTarget]);
+
+  const trackMapInteraction = useCallback(() => {
+    if (mapInteractionTrackedRef.current) return;
+    mapInteractionTrackedRef.current = true;
+    analyticsTriggerRef.current?.click();
+  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setEntranceReady(true));
@@ -230,12 +247,19 @@ export function LocationCard({ visible }: LocationCardProps) {
       <motion.article
         className={styles.mapTilt}
         style={{ transform: cardTransform }}
-        data-umami-event="map-interact"
-        data-umami-event-provider={MAP_PROVIDER}
         aria-label="Map of Honggutan, Nanchang"
       >
-        <InteractiveMap />
+        <InteractiveMap onInteract={trackMapInteraction} />
         <span className={styles.mapCaption}>Nanchang, China</span>
+        <button
+          ref={analyticsTriggerRef}
+          type="button"
+          hidden
+          tabIndex={-1}
+          data-umami-event="map-interact"
+          data-umami-event-provider={MAP_PROVIDER}
+          aria-hidden="true"
+        />
       </motion.article>
     </div>
   );
