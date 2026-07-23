@@ -6,9 +6,11 @@ set -eu
 
 secret_path="/run/secrets/amap_security_js_code"
 
-if [ ! -s "$secret_path" ]; then
+if [ -n "${AMAP_SECURITY_JS_CODE:-}" ]; then
+  export AMAP_SECURITY_JS_CODE
+elif [ -s "$secret_path" ]; then
+  export AMAP_SECURITY_JS_CODE="$(cat "$secret_path")"
+else
   echo "AMap security code secret is missing." >&2
   exit 1
 fi
-
-export AMAP_SECURITY_JS_CODE="$(cat "$secret_path")"
