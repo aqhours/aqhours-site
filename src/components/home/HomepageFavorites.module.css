@@ -27,10 +27,70 @@
     0 10px 30px rgba(11, 63, 99, 0.16);
 }
 
+.albumWall {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  width: min(88vw, 1040px);
+  margin: clamp(40px, 5.5svh, 60px) auto 0;
+  padding: clamp(12px, 1.6vw, 20px);
+  list-style: none;
+  perspective: 1200px;
+}
+
+.album {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  margin-inline: clamp(-8px, -0.7vw, -2px);
+  transform: translateY(var(--album-offset)) rotate(var(--album-rotation));
+  transform-origin: 50% 78%;
+  transition:
+    transform 420ms cubic-bezier(0.23, 1, 0.32, 1),
+    filter 420ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.album:nth-child(2),
+.album:nth-child(4) {
+  z-index: 2;
+}
+
+.album:nth-child(3) {
+  z-index: 3;
+}
+
+.albumArtwork {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: clamp(5px, 0.65vw, 9px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 3px 8px rgba(5, 32, 53, 0.1),
+    0 18px 34px rgba(5, 32, 53, 0.2);
+}
+
+.albumArtwork img {
+  object-fit: cover;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .albumWall:has(.album:hover) .album:not(:hover) {
+    filter: saturate(0.74) brightness(0.9);
+  }
+
+  .album:hover {
+    z-index: 5;
+    filter: saturate(1.08);
+    transform: translateY(-16px) rotate(0deg) scale(1.06);
+  }
+}
+
 .marquees {
   display: grid;
   gap: clamp(24px, 3.8svh, 40px);
-  margin-top: clamp(42px, 6svh, 64px);
+  margin-top: clamp(36px, 5svh, 54px);
 }
 
 .marqueeRow {
@@ -99,7 +159,35 @@
 
   .marquees {
     gap: 22px;
-    margin-top: 38px;
+    margin-top: 34px;
+  }
+
+  .albumWall {
+    grid-template-columns: repeat(5, 34vw);
+    justify-content: start;
+    width: 100%;
+    margin-top: 32px;
+    padding: 18px 9vw 24px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 9vw;
+    scrollbar-width: none;
+  }
+
+  .albumWall::-webkit-scrollbar {
+    display: none;
+  }
+
+  .album {
+    margin-inline: -2.2vw;
+  }
+
+  .album:first-child {
+    margin-left: 0;
+  }
+
+  .album:last-child {
+    margin-right: 0;
   }
 
   .logoItem {
@@ -110,6 +198,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .album {
+    transition: none;
+  }
+
   .marqueeTrack {
     will-change: auto;
     transform: none;

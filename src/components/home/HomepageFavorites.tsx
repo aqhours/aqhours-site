@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useInView, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import { useEffect, useRef, type CSSProperties } from "react";
 
 import styles from "./HomepageFavorites.module.css";
@@ -19,6 +20,52 @@ type LogoStyle = CSSProperties & {
   "--favorite-logo-height": string;
   "--favorite-logo-mask-mode"?: FavoriteLogo["maskMode"];
 };
+
+type FavoriteAlbum = {
+  title: string;
+  fileName: string;
+  rotation: string;
+  offset: string;
+};
+
+type AlbumStyle = CSSProperties & {
+  "--album-rotation": string;
+  "--album-offset": string;
+};
+
+const FAVORITE_ALBUMS: FavoriteAlbum[] = [
+  {
+    title: "HIT ME HARD AND SOFT",
+    fileName: "HIT ME HARD AND SOFT1400bb.jpg",
+    rotation: "-4deg",
+    offset: "12px",
+  },
+  {
+    title: "Red (Taylor’s Version)",
+    fileName:
+      "Red (Taylor’s Version) (+ A Message from Taylor)1400x1400bb.jpg",
+    rotation: "2.5deg",
+    offset: "-2px",
+  },
+  {
+    title: "勇気はどこに？君の胸に！",
+    fileName: "勇気はどこに?君の胸に!1400x1400bb.jpg",
+    rotation: "-1.5deg",
+    offset: "8px",
+  },
+  {
+    title: "永久hours",
+    fileName: "永久hours1400bb.jpg",
+    rotation: "3.5deg",
+    offset: "-5px",
+  },
+  {
+    title: "青空Jumping Heart",
+    fileName: "青空Jumping Heart1400x1400bb.jpg",
+    rotation: "-2.5deg",
+    offset: "10px",
+  },
+];
 
 const TECHNOLOGY_LOGOS: FavoriteLogo[] = [
   {
@@ -326,6 +373,45 @@ export function HomepageFavorites() {
           A few of my favorite things.
         </motion.h2>
 
+        <motion.ul
+          className={styles.albumWall}
+          aria-label="A selection of my favorite albums"
+          initial={initial}
+          whileInView={visible}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{
+            delay: reduceMotion ? 0 : 0.06,
+            duration: reduceMotion ? 0.2 : 0.78,
+            ease: FADE_UP_EASE,
+          }}
+        >
+          {FAVORITE_ALBUMS.map((album) => {
+            const albumStyle: AlbumStyle = {
+              "--album-rotation": album.rotation,
+              "--album-offset": album.offset,
+            };
+            const albumSrc = `/album/${encodeURIComponent(album.fileName)}`;
+
+            return (
+              <li
+                className={styles.album}
+                style={albumStyle}
+                key={album.title}
+              >
+                <div className={styles.albumArtwork}>
+                  <Image
+                    src={albumSrc}
+                    alt={`${album.title} album cover`}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 720px) 34vw, (max-width: 1100px) 18vw, 196px"
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </motion.ul>
+
         <motion.div
           ref={marqueesRef}
           className={styles.marquees}
@@ -333,7 +419,7 @@ export function HomepageFavorites() {
           whileInView={visible}
           viewport={{ once: true, amount: 0.25 }}
           transition={{
-            delay: reduceMotion ? 0 : 0.08,
+            delay: reduceMotion ? 0 : 0.12,
             duration: reduceMotion ? 0.2 : 0.78,
             ease: FADE_UP_EASE,
           }}
