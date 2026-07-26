@@ -1,6 +1,10 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "motion/react";
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+} from "motion/react";
 import Image from "next/image";
 import { useEffect, useRef, type CSSProperties } from "react";
 
@@ -21,27 +25,30 @@ type LogoStyle = CSSProperties & {
   "--favorite-logo-mask-mode"?: FavoriteLogo["maskMode"];
 };
 
-type FavoriteAlbum = {
+type FavoriteSong = {
   title: string;
+  artist: string;
   fileName: string;
   rotation: string;
   offset: string;
 };
 
-type AlbumStyle = CSSProperties & {
+type SongStyle = CSSProperties & {
   "--album-rotation": string;
   "--album-offset": string;
 };
 
-const FAVORITE_ALBUMS: FavoriteAlbum[] = [
+const FAVORITE_SONGS: FavoriteSong[] = [
   {
-    title: "HIT ME HARD AND SOFT",
+    title: "BIRDS OF A FEATHER",
+    artist: "Billie Eilish",
     fileName: "HIT ME HARD AND SOFT1400bb.jpg",
     rotation: "-4deg",
     offset: "12px",
   },
   {
-    title: "Red (Taylor’s Version)",
+    title: "All Too Well (10 Minute Version)",
+    artist: "Taylor Swift",
     fileName:
       "Red (Taylor’s Version) (+ A Message from Taylor)1400x1400bb.jpg",
     rotation: "2.5deg",
@@ -49,18 +56,21 @@ const FAVORITE_ALBUMS: FavoriteAlbum[] = [
   },
   {
     title: "勇気はどこに？君の胸に！",
+    artist: "Aqours",
     fileName: "勇気はどこに?君の胸に!1400x1400bb.jpg",
     rotation: "-1.5deg",
     offset: "8px",
   },
   {
     title: "永久hours",
+    artist: "Aqours",
     fileName: "永久hours1400bb.jpg",
     rotation: "3.5deg",
     offset: "-5px",
   },
   {
     title: "青空Jumping Heart",
+    artist: "Aqours",
     fileName: "青空Jumping Heart1400x1400bb.jpg",
     rotation: "-2.5deg",
     offset: "10px",
@@ -224,6 +234,21 @@ const CAROUSEL_STEP_DURATION = 2_000;
 const CAROUSEL_STEP_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
 let carouselTimelineOrigin: number | null = null;
 
+function useEntranceMotion(reduceMotion: boolean) {
+  return {
+    initial: {
+      opacity: 0,
+      transform: reduceMotion
+        ? "translate3d(0, 0, 0)"
+        : "translate3d(0, 24px, 0)",
+    },
+    visible: {
+      opacity: 1,
+      transform: "translate3d(0, 0, 0)",
+    },
+  };
+}
+
 function LogoSequence({
   logos,
   duplicate = false,
@@ -337,20 +362,48 @@ function LogoMarquee({
   );
 }
 
+function FavoriteSongRecord({
+  song,
+  index,
+}: {
+  song: FavoriteSong;
+  index: number;
+}) {
+  const songStyle: SongStyle = {
+    "--album-rotation": song.rotation,
+    "--album-offset": song.offset,
+  };
+  const artworkSrc = `/album/${encodeURIComponent(song.fileName)}`;
+
+  return (
+    <li className={styles.record} style={songStyle}>
+      <div className={styles.recordObject}>
+        <div className={styles.recordSleeve}>
+          <Image
+            src={artworkSrc}
+            alt={`${song.title} artwork`}
+            fill
+            unoptimized
+            sizes="(max-width: 720px) 62vw, (max-width: 1100px) 30vw, 220px"
+          />
+        </div>
+      </div>
+      <div className={styles.songDetails}>
+        <span>{String(index + 1).padStart(2, "0")}</span>
+        <div>
+          <strong>{song.title}</strong>
+          <small>{song.artist}</small>
+        </div>
+      </div>
+    </li>
+  );
+}
+
 export function HomepageFavorites() {
   const reduceMotion = useReducedMotion() ?? false;
   const marqueesRef = useRef<HTMLDivElement>(null);
   const marqueesInView = useInView(marqueesRef, { amount: 0.05 });
-  const initial = {
-    opacity: 0,
-    transform: reduceMotion
-      ? "translate3d(0, 0, 0)"
-      : "translate3d(0, 24px, 0)",
-  };
-  const visible = {
-    opacity: 1,
-    transform: "translate3d(0, 0, 0)",
-  };
+  const { initial, visible } = useEntranceMotion(reduceMotion);
 
   return (
     <section
@@ -372,45 +425,6 @@ export function HomepageFavorites() {
         >
           A few of my favorite things.
         </motion.h2>
-
-        <motion.ul
-          className={styles.albumWall}
-          aria-label="A selection of my favorite albums"
-          initial={initial}
-          whileInView={visible}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{
-            delay: reduceMotion ? 0 : 0.06,
-            duration: reduceMotion ? 0.2 : 0.78,
-            ease: FADE_UP_EASE,
-          }}
-        >
-          {FAVORITE_ALBUMS.map((album) => {
-            const albumStyle: AlbumStyle = {
-              "--album-rotation": album.rotation,
-              "--album-offset": album.offset,
-            };
-            const albumSrc = `/album/${encodeURIComponent(album.fileName)}`;
-
-            return (
-              <li
-                className={styles.album}
-                style={albumStyle}
-                key={album.title}
-              >
-                <div className={styles.albumArtwork}>
-                  <Image
-                    src={albumSrc}
-                    alt={`${album.title} album cover`}
-                    fill
-                    unoptimized
-                    sizes="(max-width: 720px) 34vw, (max-width: 1100px) 18vw, 196px"
-                  />
-                </div>
-              </li>
-            );
-          })}
-        </motion.ul>
 
         <motion.div
           ref={marqueesRef}
@@ -439,6 +453,56 @@ export function HomepageFavorites() {
             isActive={marqueesInView}
           />
         </motion.div>
+      </div>
+    </section>
+  );
+}
+
+export function HomepageFavoriteSongs() {
+  const reduceMotion = useReducedMotion() ?? false;
+  const { initial, visible } = useEntranceMotion(reduceMotion);
+
+  return (
+    <section
+      id="homepage-songs"
+      className={styles.songs}
+      aria-labelledby="homepage-songs-title"
+    >
+      <div className={styles.songsContent}>
+        <motion.header
+          className={styles.songsHeader}
+          initial={initial}
+          whileInView={visible}
+          viewport={{ once: true, amount: 0.7 }}
+          transition={{
+            duration: reduceMotion ? 0.2 : 0.72,
+            ease: FADE_UP_EASE,
+          }}
+        >
+          <span>NOW SPINNING · PERSONAL SELECTION</span>
+          <h2 id="homepage-songs-title">Songs I keep on repeat.</h2>
+        </motion.header>
+
+        <motion.ol
+          className={styles.recordWall}
+          aria-label="A wall of favorite songs"
+          initial={initial}
+          whileInView={visible}
+          viewport={{ once: true, amount: 0.22 }}
+          transition={{
+            delay: reduceMotion ? 0 : 0.08,
+            duration: reduceMotion ? 0.2 : 0.8,
+            ease: FADE_UP_EASE,
+          }}
+        >
+          {FAVORITE_SONGS.map((song, index) => (
+            <FavoriteSongRecord
+              song={song}
+              index={index}
+              key={song.title}
+            />
+          ))}
+        </motion.ol>
       </div>
     </section>
   );

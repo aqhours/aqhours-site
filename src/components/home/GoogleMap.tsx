@@ -98,8 +98,11 @@ export function GoogleMap() {
             scaleControl: false,
             zoomControl: false,
             clickableIcons: false,
-            gestureHandling: "greedy",
-            keyboardShortcuts: true,
+            gestureHandling: "none",
+            keyboardShortcuts: false,
+            scrollwheel: false,
+            draggable: false,
+            disableDoubleClickZoom: true,
           });
           marker = new AdvancedMarkerElement({
             map,
@@ -140,8 +143,7 @@ export function GoogleMap() {
     <div
       ref={containerRef}
       className={`${styles.map} ${styles.googleMap}`}
-      data-native-wheel="true"
-      role="application"
+      role="img"
       aria-label="Google Maps — Honggutan, Nanchang"
     />
   );

@@ -17,6 +17,13 @@
   pointer-events: auto;
 }
 
+.entrance[data-variant="disc"] {
+  width: 100%;
+  height: 100%;
+  transform: none;
+  transition-property: opacity;
+}
+
 .mapTilt {
   position: relative;
   height: clamp(360px, 48vh, 500px);
@@ -28,6 +35,13 @@
   transform-origin: center;
   will-change: transform;
   backface-visibility: hidden;
+}
+
+.mapTilt[data-variant="disc"] {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 50%;
 }
 
 .map {

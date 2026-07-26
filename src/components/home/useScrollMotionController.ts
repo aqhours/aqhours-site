@@ -223,17 +223,18 @@ export function useScrollMotionController({
     [updateScrollProgress],
   );
 
-  const startAutoScroll = useCallback(() => {
+  const startAutoScroll = useCallback((force = false) => {
+    const stage = scrollStageRef.current;
+    if (!stage) return;
+
     if (
-      reduceMotion ||
-      !autoSettleAllowedRef.current ||
-      userHasTakenControlRef.current
+      !force &&
+      (reduceMotion ||
+        !autoSettleAllowedRef.current ||
+        userHasTakenControlRef.current)
     ) {
       return;
     }
-
-    const stage = scrollStageRef.current;
-    if (!stage) return;
 
     cancelAutoScroll();
     cancelManualScroll();
@@ -242,6 +243,13 @@ export function useScrollMotionController({
     const scrollDistance = Math.max(stage.offsetHeight - window.innerHeight, 1);
     const startY = window.scrollY;
     const targetY = stageTop + scrollDistance;
+
+    if (reduceMotion) {
+      window.scrollTo({ top: targetY, behavior: "auto" });
+      publishScrollProgress(1);
+      return;
+    }
+
     const startTime = performance.now();
     let lastTime = startTime;
     let lastPosition = startY;

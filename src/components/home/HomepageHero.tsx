@@ -248,7 +248,7 @@ const PROFILE_CLOUD_ALPHA_TEST = 0.1;
 const PROFILE_CLOUD_NEAR_FADE = 3.2;
 const PROFILE_CLOUD_Z = -0.6;
 
-// EDUCATION CLOUD — one Drei cloud anchored to the fourth screen.
+// EDUCATION CLOUD — one Drei cloud anchored to the fifth screen.
 const EDUCATION_CLOUD = {
   sectionId: "homepage-interlude",
   centerYVh: 0.78,
@@ -343,12 +343,15 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
 ];
 
 // POST-WRITE MOTION — edit these values to tune the transition checkpoint.
+// Keep the implementation available while allowing the automatic handoff to be paused.
+const HERO_AUTO_SCROLL_ENABLED = false;
+
 const HELLO_SETTLE_MOTION = {
   hold: 0.1,
   autoScrollDuration: 1.6,
-  startScale: 0.8,
+  startScale: 0.36,
   scale: 0.25,
-  startY: -0.52,
+  startY: -0.06,
   headerFallbackYRatio: 0.42,
   scrollViewports: 1,
   startRotation: [0, 0, HELLO_TILT_COMPENSATION_RADIANS] as const,
@@ -1682,7 +1685,7 @@ function GlassStroke({
 
     if (!reduceMotion && settleReady && !settleStartedRef.current) {
       settleStartedRef.current = true;
-      onSettleStart();
+      if (HERO_AUTO_SCROLL_ENABLED) onSettleStart();
     }
 
     const settleProgress = reduceMotion
@@ -1821,6 +1824,151 @@ type PersonalIntroductionProps = {
   subscribeScrollProgress: SubscribeScrollProgress;
 };
 
+type HeroEditorialProps = {
+  reduceMotion: boolean;
+  initialScrollProgress: number;
+  subscribeScrollProgress: SubscribeScrollProgress;
+  onListen?: () => void;
+};
+
+function resolveHeroCoverExitProgress(
+  scrollProgress: number,
+  reduceMotion: boolean,
+) {
+  return reduceMotion
+    ? 0
+    : smootherStep(
+        THREE.MathUtils.clamp((scrollProgress - 0.04) / 0.24, 0, 1),
+      );
+}
+
+function HeroAlbumBackdrop({
+  reduceMotion,
+  initialScrollProgress,
+  subscribeScrollProgress,
+}: HeroEditorialProps) {
+  const layerRef = useRef<HTMLDivElement>(null);
+
+  const applyProgress = useCallback(
+    (scrollProgress: number) => {
+      if (!layerRef.current) return;
+      const exitProgress = resolveHeroCoverExitProgress(
+        scrollProgress,
+        reduceMotion,
+      );
+      layerRef.current.style.opacity = `${1 - exitProgress}`;
+    },
+    [reduceMotion],
+  );
+
+  useLayoutEffect(() => {
+    applyProgress(initialScrollProgress);
+  }, [applyProgress, initialScrollProgress]);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    return subscribeScrollProgress(applyProgress);
+  }, [applyProgress, reduceMotion, subscribeScrollProgress]);
+
+  return (
+    <div ref={layerRef} className={styles.heroAlbumBackdropLayer}>
+      <div className={styles.heroAlbumBackdrop}>
+        <div className={styles.underwaterSurface} />
+        <div className={styles.underwaterLightRays} />
+        <div className={styles.underwaterParticles} />
+        <div className={styles.underwaterBubbles} aria-hidden="true">
+          {Array.from({ length: 11 }, (_, index) => (
+            <span key={index} className={styles.underwaterBubble} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroEditorial({
+  reduceMotion,
+  initialScrollProgress,
+  subscribeScrollProgress,
+  onListen,
+}: HeroEditorialProps) {
+  const layerRef = useRef<HTMLElement>(null);
+
+  const applyProgress = useCallback(
+    (scrollProgress: number) => {
+      if (!layerRef.current) return;
+
+      const exitProgress = resolveHeroCoverExitProgress(
+        scrollProgress,
+        reduceMotion,
+      );
+
+      layerRef.current.style.opacity = `${1 - exitProgress}`;
+      layerRef.current.style.transform =
+        `translate3d(0, ${(-18 * exitProgress).toFixed(2)}px, 0)`;
+    },
+    [reduceMotion],
+  );
+
+  useLayoutEffect(() => {
+    applyProgress(initialScrollProgress);
+  }, [applyProgress, initialScrollProgress]);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    return subscribeScrollProgress(applyProgress);
+  }, [applyProgress, reduceMotion, subscribeScrollProgress]);
+
+  return (
+    <section
+      ref={layerRef}
+      className={styles.heroEditorial}
+      aria-label="Eternal Hours opening track"
+    >
+      <div className={styles.heroAlbumFrame}>
+        <div className={styles.heroEditorialTop}>
+          <span>Eternal Hours</span>
+          <span aria-hidden="true">Personal record · 2026</span>
+        </div>
+
+        <aside className={styles.heroObi} aria-label="Eternal Hours CD side obi">
+          <span className={styles.heroObiEdition}>Personal CD · 2026</span>
+          <strong>永久 hours</strong>
+          <span className={styles.heroObiArtist}>/ aqhours</span>
+          <span className={styles.heroObiCode}>AQH-0001</span>
+        </aside>
+
+        <div className={styles.heroTrack} aria-label="Eternal Hours release label">
+          <div className={styles.heroTrackBody}>
+            <span className={styles.heroTrackCode}>AQH-2026 / 0001</span>
+            <strong>Eternal Hours</strong>
+            <span>Personal archive · Side A</span>
+            <span>Track 01 “Hello” · Songs / Code / Sunlight</span>
+          </div>
+        </div>
+
+        <div className={styles.heroEditorialFooter}>
+          <p className={styles.heroManifesto}>
+            Our time together is so precious, so unforgettable.
+            <br />
+            I want to hold it close and never let go.
+          </p>
+        </div>
+      </div>
+      <button
+        className={styles.heroListenButton}
+        type="button"
+        onClick={onListen}
+        data-umami-event="hero-listen"
+        aria-label="Listen and continue to the personal introduction"
+      >
+        <span aria-hidden="true">▶</span>
+        Listen
+      </button>
+    </section>
+  );
+}
+
 function PersonalIntroduction({
   reduceMotion,
   initialScrollProgress,
@@ -1902,23 +2050,41 @@ function PersonalIntroduction({
           aria-hidden={!revealState.visible}
           inert={!revealState.visible}
         >
-          <p className={styles.profileStatement}>
-            <span className={styles.profileLead}>I am</span>{" "}
-            <span className={styles.profileName}>
-              <span className={styles.profileHandwritten}>aqhours</span>.
-            </span>
-          </p>
-          <p className={styles.profileDescription}>
-            A passionate Software Designer and CSer
-          </p>
-          <div className={styles.profileLocation}>
-            <span className={styles.profileLocationLead}>Living in</span>
-            <span className={styles.profileLocationPlace}>Honggutan, Nanchang</span>
-          </div>
-          <div className={styles.locationCardTravel}>
-            {revealState.hasEntered && (
-              <LocationCard visible={revealState.visible} />
-            )}
+          <div className={styles.profileRecord}>
+            <div className={styles.discColumn}>
+              <div className={styles.cdDisc}>
+                {revealState.hasEntered && (
+                  <LocationCard
+                    visible={revealState.visible}
+                    variant="disc"
+                  />
+                )}
+                <span className={styles.cdDiscSheen} aria-hidden="true" />
+                <span className={styles.cdDiscGrooves} aria-hidden="true" />
+                <span className={styles.cdDiscHub} aria-hidden="true" />
+              </div>
+              <p className={styles.discCaption}>
+                Honggutan, Nanchang · 28.65° N
+              </p>
+            </div>
+
+            <article className={styles.lyricSheet}>
+              <header className={styles.lyricHeader}>
+                <span>TRACK 02</span>
+                <span>ABOUT AQHOURS</span>
+              </header>
+              <div className={styles.lyricBody}>
+                <p>
+                  I am{" "}
+                  <span className={styles.profileHandwritten}>aqhours</span>.
+                </p>
+                <p>A passionate Software Designer and CSer</p>
+                <p>Living in Honggutan, Nanchang</p>
+              </div>
+              <footer className={styles.lyricFooter}>
+                Personal archive · Side B · 2026
+              </footer>
+            </article>
           </div>
         </div>
       </div>
@@ -2042,43 +2208,50 @@ export function HomepageHero() {
         aria-hidden="true"
       >
         {scrollSession.ready && (
-          <Canvas
-            camera={{
-              fov: 32,
-              near: 0.1,
-              far: 100,
-              position: [0, 0, CLOUD_CAMERA_Z],
-            }}
-            dpr={[1, 1.25]}
-            frameloop={reduceMotion ? "demand" : "always"}
-            gl={{ alpha: true, antialias: true, stencil: false }}
-            onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
-          >
-            <Suspense fallback={null}>
-              <ThreeCloudBackdrop
-                reduceMotion={reduceMotion}
-                initialScrollProgress={scrollSession.startProgress}
-                scrollProgressRef={scrollProgressRef}
-              />
-              <ThreeProfileClouds
-                reduceMotion={reduceMotion}
-                initialScrollProgress={scrollSession.startProgress}
-                scrollProgressRef={scrollProgressRef}
-                scrollStageRef={scrollStageRef}
-              />
-              <ThreeEducationCloud reduceMotion={reduceMotion} />
-            </Suspense>
-            <GlassStroke
+          <>
+            <HeroAlbumBackdrop
               reduceMotion={reduceMotion}
               initialScrollProgress={scrollSession.startProgress}
-              scrollProgressRef={scrollProgressRef}
-              headerBackdropRef={headerBackdropRef}
-              headerTargetRef={headerTargetRef}
-              headerLogoRef={headerLogoRef}
-              headerLayerRef={headerLayerRef}
-              onSettleStart={startAutoScroll}
+              subscribeScrollProgress={subscribeScrollProgress}
             />
-          </Canvas>
+            <Canvas
+              camera={{
+                fov: 32,
+                near: 0.1,
+                far: 100,
+                position: [0, 0, CLOUD_CAMERA_Z],
+              }}
+              dpr={[1, 1.25]}
+              frameloop={reduceMotion ? "demand" : "always"}
+              gl={{ alpha: true, antialias: true, stencil: false }}
+              onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
+            >
+              <Suspense fallback={null}>
+                <ThreeCloudBackdrop
+                  reduceMotion={reduceMotion}
+                  initialScrollProgress={scrollSession.startProgress}
+                  scrollProgressRef={scrollProgressRef}
+                />
+                <ThreeProfileClouds
+                  reduceMotion={reduceMotion}
+                  initialScrollProgress={scrollSession.startProgress}
+                  scrollProgressRef={scrollProgressRef}
+                  scrollStageRef={scrollStageRef}
+                />
+                <ThreeEducationCloud reduceMotion={reduceMotion} />
+              </Suspense>
+              <GlassStroke
+                reduceMotion={reduceMotion}
+                initialScrollProgress={scrollSession.startProgress}
+                scrollProgressRef={scrollProgressRef}
+                headerBackdropRef={headerBackdropRef}
+                headerTargetRef={headerTargetRef}
+                headerLogoRef={headerLogoRef}
+                headerLayerRef={headerLayerRef}
+                onSettleStart={startAutoScroll}
+              />
+            </Canvas>
+          </>
         )}
       </div>
 
@@ -2094,11 +2267,19 @@ export function HomepageHero() {
 
         <div className={styles.stage}>
           {scrollSession.ready && (
-            <PersonalIntroduction
-              reduceMotion={reduceMotion}
-              initialScrollProgress={scrollSession.startProgress}
-              subscribeScrollProgress={subscribeScrollProgress}
-            />
+            <>
+              <HeroEditorial
+                reduceMotion={reduceMotion}
+                initialScrollProgress={scrollSession.startProgress}
+                subscribeScrollProgress={subscribeScrollProgress}
+                onListen={() => startAutoScroll(true)}
+              />
+              <PersonalIntroduction
+                reduceMotion={reduceMotion}
+                initialScrollProgress={scrollSession.startProgress}
+                subscribeScrollProgress={subscribeScrollProgress}
+              />
+            </>
           )}
         </div>
       </main>

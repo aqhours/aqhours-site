@@ -1,5 +1,8 @@
 import { HomepageHero } from "@/components/home/HomepageHero";
-import { HomepageFavorites } from "@/components/home/HomepageFavorites";
+import {
+  HomepageFavorites,
+  HomepageFavoriteSongs,
+} from "@/components/home/HomepageFavorites";
 import { HomepageInterlude } from "@/components/home/HomepageInterlude";
 import { HomepageEnding } from "@/components/home/OceanEnding";
 import { TimeThemeSwitcher } from "@/components/home/ThemeToggle";
@@ -17,6 +20,7 @@ export default function Home() {
       <TimeThemeSwitcher />
       <div className={styles.content}>
         <HomepageHero />
+        <HomepageFavoriteSongs />
         <HomepageFavorites />
         <HomepageInterlude />
         <HomepageEnding />

@@ -92,12 +92,12 @@ function AMapMap() {
           viewMode: "2D",
           mapStyle: getMapStyle(),
           showLabel: true,
-          dragEnable: true,
-          zoomEnable: true,
-          scrollWheel: true,
-          touchZoom: true,
-          doubleClickZoom: true,
-          keyboardEnable: true,
+          dragEnable: false,
+          zoomEnable: false,
+          scrollWheel: false,
+          touchZoom: false,
+          doubleClickZoom: false,
+          keyboardEnable: false,
         };
 
         map = new AMap.Map(container, mapOptions);
@@ -148,8 +148,7 @@ function AMapMap() {
     <div
       ref={containerRef}
       className={styles.map}
-      data-native-wheel="true"
-      role="application"
+      role="img"
       aria-label="AMap — Honggutan, Nanchang"
     />
   );
@@ -161,9 +160,13 @@ function InteractiveMap() {
 
 type LocationCardProps = {
   visible: boolean;
+  variant?: "card" | "disc";
 };
 
-export function LocationCard({ visible }: LocationCardProps) {
+export function LocationCard({
+  visible,
+  variant = "card",
+}: LocationCardProps) {
   const [entranceReady, setEntranceReady] = useState(false);
   const rotateXTarget = useMotionValue(0);
   const rotateYTarget = useMotionValue(0);
@@ -223,17 +226,21 @@ export function LocationCard({ visible }: LocationCardProps) {
   return (
     <div
       className={styles.entrance}
+      data-variant={variant}
       data-visible={visible && entranceReady ? "true" : "false"}
       aria-hidden={!visible}
       inert={!visible}
     >
       <motion.article
         className={styles.mapTilt}
+        data-variant={variant}
         style={{ transform: cardTransform }}
         aria-label="Map of Honggutan, Nanchang"
       >
         <InteractiveMap />
-        <span className={styles.mapCaption}>Nanchang, China</span>
+        {variant === "card" && (
+          <span className={styles.mapCaption}>Nanchang, China</span>
+        )}
       </motion.article>
     </div>
   );

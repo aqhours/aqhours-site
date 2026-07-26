@@ -25,6 +25,11 @@ exact components, tokens, typography, or page structure.
 - Interface typography should stay restrained and consistent.
 - UI surfaces should stay lightweight: minimal elevation, thin boundaries, small radii,
   and no decorative glass treatment on every component.
+- The area outside the square hero cover uses a very deep navy (`#031426`) rather than pure black,
+  keeping the album-focused contrast while connecting visually to the sky and cloud palette.
+- The complete second-screen composition—including the rotating disc, lyric-style profile copy,
+  and map surface—stays
+  hidden until the profile reveal threshold, so none of its surfaces leak into the opening cover.
 - The fixed time-theme selector is one intentional glass surface: its existing translucent
   white background samples the sky through a medium backdrop blur with restrained saturation.
 
@@ -50,11 +55,17 @@ exact components, tokens, typography, or page structure.
   starts close enough to the center of the camera to wash out the refreshed hero view.
 - On hero-to-introduction scroll, the complete hero cloud field retains its existing spatial exit:
   it moves upward as one field and leaves without a scroll-linked opacity fade.
+- A compact `Listen` button sits vertically centered to the right of the opening cover in the
+  surrounding deep-navy area, rather than appearing as printed cover content. On constrained
+  widths it moves below the cover to avoid clipping. Automatic hero advance remains disabled;
+  activating this explicit control runs the existing velocity-continuous hero-to-introduction
+  transition into the second screen. Reduced-motion activation moves directly to the settled
+  introduction state.
 
 ## Header
 
 - The homepage has a lightweight frosted header fixed to the top of the viewport across all
-  five screens. The shared atmospheric background remains visible through it.
+  six screens. The shared atmospheric background remains visible through it.
 - The 3D glass `hello` follows one continuous scroll-linked motion: it rises from its
   low hero position, shrinks, and completes a counterclockwise flip. During that flip, its
   spatial centerline resolves into the same plane as the flat SVG and its initial optical
@@ -187,20 +198,23 @@ exact components, tokens, typography, or page structure.
   scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a personal-introduction
   layer within the same fixed stage.
-- The personal introduction is a compact three-line stack: `I am aqhours.`,
-  `A passionate Software Designer and CSer`, and `Living in Honggutan, Nanchang`, followed by a
-  large interactive map card in the lower half of the screen. All three lines inherit the former
-  location-line Manrope size, weight, and tracking. `aqhours` remains the only handwritten Caveat
-  Bold text and uses a `1.28em` size multiplier for emphasis. The screen does not
-  include an `explore` control.
+- The personal introduction is presented like an album spread without a jewel case: one large,
+  slowly rotating CD on the left and lyric-style profile copy on the right. The interactive
+  Honggutan map fills the circular disc face beneath restrained optical grooves, sheen, and hub
+  details. Hovering the disc pauses rotation for map interaction, and reduced-motion removes the
+  spin. The lyrics retain the original three lines: `I am aqhours.`,
+  `A passionate Software Designer and CSer`, and `Living in Honggutan, Nanchang`. A restrained
+  `Personal archive · Side B · 2026` footer supplies album metadata without listing interests.
+  `aqhours` remains the only handwritten Caveat Bold text.
 - The default map uses AMap's official JavaScript API 2.0, configured through the public,
   domain-restricted `NEXT_PUBLIC_AMAP_API_KEY`. Its security code is kept only in a production
   Docker secret and is injected by the Nginx `/_AMapService` proxy; it is never emitted in the
   static site. A retained Google Maps implementation can be selected at build time with
   `NEXT_PUBLIC_MAP_PROVIDER=google`; it uses a separately domain-restricted browser key and Map ID.
   Both providers are centered at longitude `115.83`, latitude `28.65` with an initial zoom of
-  `11.5`. The map has no added zoom or camera controls while mouse-wheel, trackpad, touch,
-  keyboard zoom, and panning remain available. Provider attribution and copyright remain visible.
+  `11.5`. The map is a fixed view: mouse-wheel, trackpad, touch, double-click, and keyboard zoom
+  are disabled, as is map dragging. Wheel input over the map continues scrolling the page.
+  Provider attribution and copyright remain visible.
   The map is presented as the bare map surface without an outer card, translucent frame, or
   shadow. The map crop itself has one restrained `2px` grey-white border.
   Its location line remains outside the map and closer to the personal-introduction sentence.
@@ -247,9 +261,14 @@ exact components, tokens, typography, or page structure.
 
 ## Ending
 
-- All five screens share one continuous fixed atmospheric background; the later screens
+- All six screens share one continuous fixed atmospheric background; the later screens
   must not restart or duplicate the sky gradient at its boundary.
-- A compact `70svh` third screen sits between the personal introduction and education. It presents
+- The third screen is a full-height favorite-song wall. Five user-selected tracks are represented
+  by their existing square artwork sleeves, arranged on one fine horizontal display rail. Each
+  entry includes a track number, song title, and artist. The wall currently presents only the
+  static square covers, without vinyl extraction, pointer tilt, moving sheen, hover dimming, or
+  other cover animation. On small screens the wall becomes a horizontal snap rail.
+- A compact `70svh` fourth screen follows the song wall and presents
   the centered line `A few of my favorite things.` above two continuous logo marquees. The first
   row travels left while the second row travels right, with soft horizontal masks at both viewport
   edges. All supplied SVG marks, including Figma, Ghostty, Love Live! Asia Tour, Aqours Finale Live,
@@ -261,8 +280,9 @@ exact components, tokens, typography, or page structure.
   remain aligned even though their starting logo positions differ. The second row moves in the opposite
   direction. One observer watches the paired-row container rather than either row individually, so both
   animations pause together while the pair is outside the viewport and resume together from their paused
-  positions. Pointer interaction does not affect playback; reduced motion keeps both rows static.
-- The fourth screen expresses the education statement in three uppercase English lines:
+  positions. Every logo uses a larger display scale and taller rhythm slot so the marks read prominently
+  without clipping. Pointer interaction does not affect playback; reduced motion keeps both rows static.
+- The fifth screen expresses the education statement in three uppercase English lines:
   `COMPUTER SCIENCE. / B.S. EARNED. / M.S. STUDENT.` The accessible label expands both
   degree abbreviations and states that both belong to Computer Science and Technology. The lines
   use a locally subsetted SF Pro Compressed Heavy face instantiated at width-axis value `37`.
@@ -289,14 +309,14 @@ exact components, tokens, typography, or page structure.
   internal puffs into a slow rolling cloud mass, while a separate low-amplitude sine translation drifts
   the complete group horizontally. Reduced-motion preserves the scroll-linked position but stops both
   the internal rolling motion and horizontal drift.
-  The education scroll timeline starts when the fourth-screen section first enters at the bottom of
+  The education scroll timeline starts when the fifth-screen section first enters at the bottom of
   the viewport, rather than waiting until its top reaches the viewport top. The text group sits
   `18svh` below the section start, so its first row follows the settled map after a short transition
   instead of leaving a full blank viewport between the two screens. The three scroll-driven
   entrances overlap in sequence and finish by the time the fourth screen fully occupies the viewport.
   The section is `160svh`; reduced-motion mode
   shows the completed text centered in a regular `100svh` section.
-- The fifth and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
+- The sixth and currently final screen has no ocean waves, beach, sand, hourglass, palm tree,
   shell imagery, or other replacement environmental element yet. It also keeps the shared sky
   unobstructed until a matching Drei-based direction is reviewed.
 - The ending includes the supplied registration links, a copyright line, and the design

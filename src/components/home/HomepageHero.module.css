@@ -1,5 +1,6 @@
 .heroScrollStage {
   position: relative;
+  z-index: 2;
   min-height: 100svh;
   background: transparent;
   color: #071e31;
@@ -172,9 +173,315 @@
 }
 
 .sceneVisualLayer canvas {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.heroAlbumBackdropLayer {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #031426;
+  will-change: opacity;
+}
+
+.heroAlbumBackdrop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(78vw, calc(100svh - 142px));
+  aspect-ratio: 1;
+  background: var(--page);
+  transform: translate(-50%, calc(-50% + 18px));
+}
+
+:global(:root[data-theme="dawn"]) .heroAlbumBackdrop {
+  background: linear-gradient(
+    180deg,
+    #83b8da 0%,
+    #acd0df 25%,
+    #c7d1c7 54%,
+    #ddd2b4 76%,
+    #f3ca88 100%
+  );
+}
+
+:global(:root[data-theme="day"]) .heroAlbumBackdrop {
+  background: linear-gradient(
+    180deg,
+    #0d6fe5 0%,
+    #1682f3 10%,
+    #3696ee 39%,
+    #55aaf0 68%,
+    #83c6f1 100%
+  );
+}
+
+:global(:root[data-theme="dusk"]) .heroAlbumBackdrop {
+  background: linear-gradient(
+    180deg,
+    #3f5f9e 0%,
+    #657fa4 26%,
+    #8da0a7 53%,
+    #a29b96 72%,
+    #b4866e 100%
+  );
+}
+
+:global(:root[data-theme="night"]) .heroAlbumBackdrop {
+  background: linear-gradient(
+    180deg,
+    #061a42 0%,
+    #062b60 20%,
+    #073e76 48%,
+    #07558a 73%,
+    #08699d 100%
+  );
+}
+
+.heroEditorial {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
+  pointer-events: none;
+  text-shadow: 0 1px 18px rgba(5, 34, 66, 0.2);
+  will-change: opacity, transform;
+}
+
+.heroAlbumFrame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(78vw, calc(100svh - 142px));
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.2);
+  transform: translate(-50%, calc(-50% + 18px));
+}
+
+.heroEditorialTop {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: 18px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.38);
+  font-size: clamp(10px, 0.75vw, 12px);
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
+  animation: hero-editorial-enter 700ms 360ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.heroEditorialFooter {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  animation: hero-editorial-enter 800ms 540ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.heroManifesto {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  max-width: 56ch;
+  margin: 0;
+  font-family:
+    var(--font-manrope),
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: clamp(15px, 1.45vw, 21px);
+  font-weight: 560;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+}
+
+.heroListenButton {
+  position: absolute;
+  z-index: 4;
+  top: calc(50% + 18px);
+  left: calc(50% + min(39vw, calc((100svh - 142px) / 2)) + 28px);
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 9px;
+  padding: 0 15px;
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.96);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0.13em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: none;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateY(-50%);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.heroListenButton span {
+  font-size: 9px;
+  transform: translateX(1px);
+}
+
+.heroListenButton:hover {
+  border-color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.heroListenButton:active {
+  transform: translateY(-50%) scale(0.97);
+}
+
+.heroListenButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.94);
+  outline-offset: 3px;
+}
+
+.heroTrack {
+  position: absolute;
+  z-index: 3;
+  top: 52px;
+  right: 18px;
+  width: min(330px, calc(100% - 36px));
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 6px 20px rgba(7, 35, 66, 0.08);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: clamp(8px, 0.68vw, 10px);
+  font-weight: 680;
+  letter-spacing: 0.055em;
+  line-height: 1.15;
+  text-align: left;
+  text-shadow: none;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.heroTrackBody {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px 11px;
+}
+
+.heroTrackBody strong {
+  padding-right: 78px;
+  font-size: clamp(15px, 1.2vw, 18px);
+  font-weight: 730;
+  letter-spacing: -0.025em;
+  text-transform: none;
+}
+
+.heroTrackCode {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+}
+
+.heroObi {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  display: flex;
+  width: 48px;
+  align-items: center;
+  padding: 10px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 2px;
+  background: rgba(246, 245, 239, 0.9);
+  box-shadow: 0 8px 24px rgba(7, 35, 66, 0.12);
+  color: #14283f;
+  text-shadow: none;
+}
+
+.heroObi strong {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-family:
+    var(--font-manrope),
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  text-orientation: upright;
+  transform: translate(-50%, -50%);
+  writing-mode: vertical-rl;
+}
+
+.heroObiEdition,
+.heroObiArtist,
+.heroObiCode {
+  position: absolute;
+  left: 50%;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+}
+
+.heroObiEdition {
+  top: 10px;
+  transform: translateX(-50%);
+}
+
+.heroObiArtist {
+  right: auto;
+  bottom: 42px;
+  transform: translateX(-50%);
+}
+
+.heroObiCode {
+  bottom: 10px;
+  transform: translateX(-50%);
+}
+
+@keyframes hero-editorial-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 .headerLogoTarget {
@@ -211,7 +518,7 @@
 
 .profileContent {
   width: 100%;
-  transform: translate3d(0, clamp(-240px, -26vh, -150px), 0);
+  transform: translate3d(0, clamp(-54px, -5vh, -28px), 0);
   color: rgba(255, 255, 255, 0.92);
   font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
   font-weight: 700;
@@ -225,101 +532,193 @@
 .profileMotion {
   position: relative;
   display: grid;
+  width: 100%;
+  box-sizing: border-box;
   justify-items: center;
   gap: clamp(12px, 1.6svh, 18px);
   transform: translate3d(0, 60vh, 0);
+  visibility: hidden;
   will-change: transform;
+  isolation: isolate;
+  transition: visibility 0s linear 180ms;
 }
 
-.locationCardTravel {
+.profileMotion[data-visible="true"] {
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.profileRecord {
+  display: grid;
+  width: min(1120px, calc(100vw - 96px));
+  grid-template-columns: minmax(340px, 0.95fr) minmax(390px, 1.05fr);
+  align-items: center;
+  gap: clamp(56px, 8vw, 120px);
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  transition:
+    opacity 520ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 620ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.profileMotion[data-visible="true"] .profileRecord {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.discColumn {
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.cdDisc {
+  position: relative;
+  width: min(42vw, 480px, calc(100svh - 190px));
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  box-shadow:
+    0 28px 64px rgba(3, 20, 38, 0.24),
+    inset 0 0 0 6px rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  transform: translateZ(0);
+  animation: cd-disc-spin 32s linear infinite;
+}
+
+.cdDisc:hover {
+  animation-play-state: paused;
+}
+
+.cdDiscSheen,
+.cdDiscGrooves,
+.cdDiscHub {
   position: absolute;
-  top: calc(100% + 45px);
-  left: 50%;
-  display: flex;
-  width: min(920px, calc(100vw - 2 * clamp(28px, 4vw, 64px)));
-  justify-content: center;
-  transform: translateX(-50%);
+  border-radius: 50%;
   pointer-events: none;
 }
 
-.profileStatement,
-.profileDescription,
-.profileLocation {
-  --profile-enter-delay: 0ms;
-  --profile-exit-delay: 110ms;
+.cdDiscSheen {
+  z-index: 2;
+  inset: 0;
+  background:
+    conic-gradient(
+      from 18deg,
+      transparent 0 11%,
+      rgba(126, 224, 255, 0.2) 17%,
+      transparent 25% 42%,
+      rgba(255, 191, 229, 0.16) 48%,
+      transparent 57% 72%,
+      rgba(255, 246, 177, 0.16) 78%,
+      transparent 88%
+    ),
+    radial-gradient(circle at 35% 26%, rgba(255, 255, 255, 0.2), transparent 34%);
+  mix-blend-mode: screen;
+}
 
+.cdDiscGrooves {
+  z-index: 3;
+  inset: 1.2%;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  background: repeating-radial-gradient(
+    circle at center,
+    transparent 0 5px,
+    rgba(255, 255, 255, 0.045) 5.5px 6px
+  );
+}
+
+.cdDiscHub {
+  z-index: 4;
+  top: 50%;
+  left: 50%;
+  width: 17%;
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background:
+    radial-gradient(circle, rgba(3, 20, 38, 0.16) 0 34%, transparent 36%),
+    rgba(225, 241, 248, 0.52);
+  box-shadow:
+    0 0 0 7px rgba(255, 255, 255, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.25);
+  transform: translate(-50%, -50%);
+}
+
+.discCaption {
   margin: 0;
-  color: rgba(255, 255, 255, 0.96);
-  font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
-  font-size: clamp(21px, 2.3vw, 31px);
-  font-weight: 720;
-  letter-spacing: -0.045em;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  font-weight: 680;
+  letter-spacing: 0.16em;
   line-height: 1;
-  opacity: 0;
-  transform: translate3d(0, 18px, 0);
-  transition-property: opacity, transform;
-  transition-duration: 180ms;
-  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
-  transition-delay: var(--profile-exit-delay);
+  text-transform: uppercase;
 }
 
-.profileStatement,
-.profileDescription {
-  white-space: nowrap;
+.lyricSheet {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.94);
+  text-align: left;
 }
 
-.profileLead,
-.profileName {
-  display: inline-block;
+.lyricHeader {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0.15em;
 }
 
-.profileDescription {
-  --profile-enter-delay: 55ms;
-  --profile-exit-delay: 55ms;
+.lyricBody {
+  display: grid;
+  gap: clamp(20px, 3svh, 34px);
+  padding-block: clamp(28px, 4.5svh, 48px);
 }
 
-.profileLocation {
-  --profile-enter-delay: 110ms;
-  --profile-exit-delay: 0ms;
-
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
+.lyricBody p {
+  margin: 0;
+  font-size: clamp(22px, 2.35vw, 34px);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1.22;
 }
 
-.profileLocationLead {
-  color: inherit;
+.lyricBody p:first-child {
+  font-size: clamp(28px, 3.2vw, 46px);
+  font-weight: 740;
 }
 
-.profileLocationPlace {
-  color: inherit;
+.lyricFooter {
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 10px;
+  font-weight: 680;
+  letter-spacing: 0.15em;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
-.profileMotion[data-visible="true"] .profileStatement,
-.profileMotion[data-visible="true"] .profileDescription,
-.profileMotion[data-visible="true"] .profileLocation {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-  transition-duration: 420ms;
-  transition-delay: var(--profile-enter-delay);
+@keyframes cd-disc-spin {
+  to {
+    transform: translateZ(0) rotate(1turn);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .profileStatement,
-  .profileDescription,
-  .profileLocation {
+  .profileRecord {
     transform: none;
-    transition-property: opacity;
     transition-duration: 200ms;
-    transition-delay: 0ms;
   }
 
-  .profileMotion[data-visible="true"] .profileStatement,
-  .profileMotion[data-visible="true"] .profileDescription,
-  .profileMotion[data-visible="true"] .profileLocation {
+  .profileMotion[data-visible="true"] .profileRecord {
     transform: none;
-    transition-duration: 200ms;
-    transition-delay: 0ms;
+  }
+
+  .cdDisc {
+    animation: none;
   }
 }
 
@@ -359,6 +758,18 @@
   .headerIdentityDivider,
   .headerMeaning {
     display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .heroListenButton {
+    top: calc(50% + min(39vw, calc((100svh - 142px) / 2)) + 42px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .heroListenButton:active {
+    transform: translateX(-50%) scale(0.97);
   }
 }
 
@@ -404,6 +815,74 @@
     justify-self: end;
   }
 
+  .heroEditorial {
+    --mobile-album-size: min(88vw, calc(100svh - 130px));
+  }
+
+  .heroAlbumFrame {
+    width: var(--mobile-album-size);
+    transform: translate(-50%, calc(-50% + 10px));
+  }
+
+  .heroAlbumBackdrop {
+    width: min(88vw, calc(100svh - 130px));
+    transform: translate(-50%, calc(-50% + 10px));
+  }
+
+  .heroEditorialTop {
+    top: 12px;
+    right: 10px;
+    left: 10px;
+  }
+
+  .heroTrack {
+    top: 44px;
+    right: 10px;
+    width: min(240px, calc(100% - 20px));
+  }
+
+  .heroTrackBody {
+    padding: 10px 11px 9px;
+  }
+
+  .heroTrackCode {
+    top: 10px;
+    right: 11px;
+  }
+
+  .heroObi {
+    top: 0;
+    bottom: 0;
+    right: 100%;
+    width: 38px;
+    padding-inline: 5px;
+  }
+
+  .heroObi strong {
+    font-size: 12px;
+  }
+
+  .heroManifesto {
+    right: 10px;
+    bottom: 12px;
+    left: 10px;
+    max-width: none;
+    margin: 0;
+    font-size: clamp(11px, 3.2vw, 14px);
+  }
+
+  .heroListenButton {
+    top: calc(50% + min(44vw, calc((100svh - 130px) / 2)) + 30px);
+    left: 50%;
+    min-height: 34px;
+    padding-inline: 13px;
+    transform: translateX(-50%);
+  }
+
+  .heroListenButton:active {
+    transform: translateX(-50%) scale(0.97);
+  }
+
   .profileLayer {
     padding: 24px;
   }
@@ -412,28 +891,45 @@
     width: 100%;
   }
 
-  .locationCardTravel {
-    width: calc(100vw - 32px);
+  .profileRecord {
+    width: min(100%, 620px);
+    grid-template-columns: 1fr;
+    gap: clamp(26px, 5svh, 42px);
   }
 
-  .profileLocation {
-    flex-wrap: nowrap;
-    justify-content: center;
-    gap: 9px;
+  .cdDisc {
+    width: min(70vw, 330px, 38svh);
   }
 
-  .profileStatement,
-  .profileDescription,
-  .profileLocation {
-    font-size: clamp(14px, 4.2vw, 20px);
+  .discColumn {
+    gap: 14px;
+  }
+
+  .lyricSheet {
+    width: min(100%, 500px);
+  }
+
+  .lyricBody {
+    gap: 16px;
+    padding-block: 22px;
+  }
+
+  .lyricBody p {
+    font-size: clamp(16px, 4.4vw, 22px);
+  }
+
+  .lyricBody p:first-child {
+    font-size: clamp(22px, 6vw, 30px);
   }
 
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .locationCardTravel {
-    transform: translateX(-50%);
+  .heroEditorialTop,
+  .heroEditorialFooter {
+    animation: none;
   }
+
 }
 
 @media (max-width: 480px) {

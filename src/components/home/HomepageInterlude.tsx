@@ -102,7 +102,7 @@ export function HomepageInterlude() {
           entranceRange={[0.22, 0.39]}
           reduceMotion={reduceMotion}
         >
-          B.S. EARNED.
+          2025 B.S. EARNED.
         </EducationLine>
         <EducationLine
           progress={scrollYProgress}
