@@ -1,18 +1,17 @@
-name: Deploy homepage
+name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
-  group: homepage-production
-  cancel-in-progress: false
+  group: homepage-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -52,102 +51,3 @@ jobs:
           NEXT_PUBLIC_UMAMI_SCRIPT_URL: https://analytics.example.com/script.js
           NEXT_PUBLIC_UMAMI_WEBSITE_ID: 00000000-0000-0000-0000-000000000000
         run: pnpm run build
-
-  publish:
-    name: Publish container image
-    needs: validate
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment:
-      name: production
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate image tags
-        id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=sha,format=long
-            type=raw,value=production,enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=migration,enable=${{ github.ref == 'refs/heads/migration/coolify' }}
-
-      - name: Build and publish image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_AMAP_API_KEY=${{ secrets.NEXT_PUBLIC_AMAP_API_KEY }}
-            NEXT_PUBLIC_MAP_PROVIDER=${{ vars.NEXT_PUBLIC_MAP_PROVIDER }}
-            NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID }}
-            NEXT_PUBLIC_UMAMI_SCRIPT_URL=${{ vars.NEXT_PUBLIC_UMAMI_SCRIPT_URL }}
-            NEXT_PUBLIC_UMAMI_WEBSITE_ID=${{ secrets.NEXT_PUBLIC_UMAMI_WEBSITE_ID }}
-          secrets: |
-            google_maps_api_key=${{ secrets.GOOGLE_MAPS_API_KEY }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy:
-    name: Trigger Coolify deployment
-    needs: publish
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    environment:
-      name: production
-      url: https://aqhours.cn/
-
-    steps:
-      - name: Trigger Coolify
-        env:
-          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
-          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
-        run: |
-          set -euo pipefail
-          deployment_response="$(curl --fail-with-body --silent --show-error \
-            --request POST \
-            --header "Authorization: Bearer ${COOLIFY_TOKEN}" \
-            "${COOLIFY_WEBHOOK}")"
-          deployment_uuid="$(printf '%s' "$deployment_response" | jq -r '.deployments[0].deployment_uuid // empty')"
-          test -n "$deployment_uuid"
-          api_origin="${COOLIFY_WEBHOOK%%/_coolify/*}"
-          for attempt in {1..180}; do
-            deployment_status="$(curl --fail-with-body --silent --show-error \
-              --header "Authorization: Bearer ${COOLIFY_TOKEN}" \
-              "${api_origin}/_coolify/api/v1/deployments/${deployment_uuid}" |
-              jq -r '.status')"
-            case "$deployment_status" in
-              finished) exit 0 ;;
-              failed|cancelled-by-user) exit 1 ;;
-            esac
-            sleep 10
-          done
-          exit 1
-
-      - name: Verify public endpoint
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in {1..10}; do
-            if curl -fsSI https://aqhours.cn/; then
-              exit 0
-            fi
-            sleep 3
-          done
-          exit 1
