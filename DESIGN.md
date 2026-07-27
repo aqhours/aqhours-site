@@ -61,6 +61,13 @@ exact components, tokens, typography, or page structure.
   activating this explicit control runs the existing velocity-continuous hero-to-introduction
   transition into the second screen. Reduced-motion activation moves directly to the settled
   introduction state.
+- The translucent shrink-wrap release label includes a narrow, separated left column reading
+  `最速先行特典` vertically. It retains the site’s colorless label treatment rather than copying
+  the reference package’s blue background or branded copy.
+- On the left-side obi, `永久 hours / aqhours` forms one horizontal title-and-artist wordmark that
+  is rotated 90 degrees as a complete line, matching the sideways orientation of `AQH-0001`.
+  It is not italic and does not use upright per-character vertical typesetting. The title and
+  artist share one font stack and weight, with only a smaller artist size for hierarchy.
 
 ## Header
 
