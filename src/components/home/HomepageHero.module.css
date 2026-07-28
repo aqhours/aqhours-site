@@ -172,6 +172,10 @@
   pointer-events: none;
 }
 
+.sceneVisualLayer * {
+  pointer-events: none !important;
+}
+
 .sceneVisualLayer canvas {
   position: relative;
   z-index: 1;
@@ -363,7 +367,9 @@
   z-index: 3;
   top: 52px;
   right: 18px;
+  display: grid;
   width: min(330px, calc(100% - 36px));
+  grid-template-columns: 34px minmax(0, 1fr);
   border: 1px solid rgba(255, 255, 255, 0.52);
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.08);
@@ -380,6 +386,19 @@
   overflow: hidden;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+.heroTrackBonus {
+  display: grid;
+  place-items: center;
+  padding: 9px 7px;
+  border-right: 1px solid rgba(255, 255, 255, 0.46);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: 0.1em;
+  line-height: 1.05;
+  text-orientation: upright;
+  writing-mode: vertical-rl;
 }
 
 .heroTrackBody {
@@ -424,26 +443,32 @@
   text-shadow: none;
 }
 
-.heroObi strong {
+.heroObiCredit {
   position: absolute;
   top: 50%;
   left: 50%;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
   font-family:
     var(--font-manrope),
     "PingFang SC",
     "Microsoft YaHei",
     sans-serif;
-  font-size: 15px;
   font-weight: 650;
-  letter-spacing: 0.18em;
   line-height: 1;
-  text-orientation: upright;
-  transform: translate(-50%, -50%);
-  writing-mode: vertical-rl;
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+}
+
+.heroObiCredit strong {
+  font: inherit;
+  font-size: 15px;
+  letter-spacing: 0.1em;
 }
 
 .heroObiEdition,
-.heroObiArtist,
 .heroObiCode {
   position: absolute;
   left: 50%;
@@ -462,9 +487,9 @@
 }
 
 .heroObiArtist {
-  right: auto;
-  bottom: 42px;
-  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: inherit;
+  letter-spacing: 0.08em;
 }
 
 .heroObiCode {
@@ -843,6 +868,15 @@
 
   .heroTrackBody {
     padding: 10px 11px 9px;
+  }
+
+  .heroTrack {
+    grid-template-columns: 29px minmax(0, 1fr);
+  }
+
+  .heroTrackBonus {
+    padding-inline: 5px;
+    font-size: 7px;
   }
 
   .heroTrackCode {

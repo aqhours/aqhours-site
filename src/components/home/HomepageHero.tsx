@@ -1933,14 +1933,17 @@ function HeroEditorial({
 
         <aside className={styles.heroObi} aria-label="Eternal Hours CD side obi">
           <span className={styles.heroObiEdition}>Personal CD · 2026</span>
-          <strong>永久 hours</strong>
-          <span className={styles.heroObiArtist}>/ aqhours</span>
-          <span className={styles.heroObiCode}>AQH-0001</span>
+          <div className={styles.heroObiCredit}>
+            <strong>永久 hours</strong>
+            <span className={styles.heroObiArtist}>/ aqhours</span>
+          </div>
+          <span className={styles.heroObiCode}>AQH-EH26</span>
         </aside>
 
         <div className={styles.heroTrack} aria-label="Eternal Hours release label">
+          <span className={styles.heroTrackBonus}>初回生产特典</span>
           <div className={styles.heroTrackBody}>
-            <span className={styles.heroTrackCode}>AQH-2026 / 0001</span>
+            <span className={styles.heroTrackCode}>AQH-EH26 / SIDE A</span>
             <strong>Eternal Hours</strong>
             <span>Personal archive · Side A</span>
             <span>Track 01 “Hello” · Songs / Code / Sunlight</span>
