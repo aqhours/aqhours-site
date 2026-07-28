@@ -172,6 +172,10 @@
   pointer-events: none;
 }
 
+.sceneVisualLayer * {
+  pointer-events: none !important;
+}
+
 .sceneVisualLayer canvas {
   position: relative;
   z-index: 1;

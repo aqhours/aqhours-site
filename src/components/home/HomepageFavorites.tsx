@@ -1,12 +1,24 @@
 "use client";
 
 import {
+  AnimatePresence,
+  LayoutGroup,
   motion,
   useInView,
+  useMotionTemplate,
+  useMotionValue,
   useReducedMotion,
+  useSpring,
 } from "motion/react";
 import Image from "next/image";
-import { useEffect, useRef, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 
 import styles from "./HomepageFavorites.module.css";
 
@@ -26,20 +38,18 @@ type LogoStyle = CSSProperties & {
 };
 
 type FavoriteSong = {
+  id: string;
   title: string;
   artist: string;
   fileName: string;
   rotation: string;
   offset: string;
-};
-
-type SongStyle = CSSProperties & {
-  "--album-rotation": string;
-  "--album-offset": string;
+  favoriteLyric?: readonly string[];
 };
 
 const FAVORITE_SONGS: FavoriteSong[] = [
   {
+    id: "birds-of-a-feather",
     title: "BIRDS OF A FEATHER",
     artist: "Billie Eilish",
     fileName: "HIT ME HARD AND SOFT1400bb.jpg",
@@ -47,6 +57,7 @@ const FAVORITE_SONGS: FavoriteSong[] = [
     offset: "12px",
   },
   {
+    id: "all-too-well",
     title: "All Too Well (10 Minute Version)",
     artist: "Taylor Swift",
     fileName:
@@ -55,6 +66,7 @@ const FAVORITE_SONGS: FavoriteSong[] = [
     offset: "-2px",
   },
   {
+    id: "yuuki-wa-doko-ni",
     title: "勇気はどこに？君の胸に！",
     artist: "Aqours",
     fileName: "勇気はどこに?君の胸に!1400x1400bb.jpg",
@@ -62,6 +74,7 @@ const FAVORITE_SONGS: FavoriteSong[] = [
     offset: "8px",
   },
   {
+    id: "eien-hours",
     title: "永久hours",
     artist: "Aqours",
     fileName: "永久hours1400bb.jpg",
@@ -69,6 +82,7 @@ const FAVORITE_SONGS: FavoriteSong[] = [
     offset: "-5px",
   },
   {
+    id: "aosora-jumping-heart",
     title: "青空Jumping Heart",
     artist: "Aqours",
     fileName: "青空Jumping Heart1400x1400bb.jpg",
@@ -230,6 +244,11 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
 ];
 
 const FADE_UP_EASE = [0.23, 1, 0.32, 1] as const;
+const ALBUM_SPACE_TRANSITION = {
+  type: "spring",
+  duration: 0.52,
+  bounce: 0,
+} as const;
 const CAROUSEL_STEP_DURATION = 2_000;
 const CAROUSEL_STEP_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
 let carouselTimelineOrigin: number | null = null;
@@ -365,37 +384,307 @@ function LogoMarquee({
 function FavoriteSongRecord({
   song,
   index,
+  selected,
+  hasSelection,
+  reduceMotion,
+  onSelect,
 }: {
   song: FavoriteSong;
   index: number;
+  selected: boolean;
+  hasSelection: boolean;
+  reduceMotion: boolean;
+  onSelect: (
+    index: number,
+    trigger: HTMLButtonElement,
+    restoreFocus: boolean,
+  ) => void;
 }) {
-  const songStyle: SongStyle = {
-    "--album-rotation": song.rotation,
-    "--album-offset": song.offset,
-  };
+  const [pointerActive, setPointerActive] = useState(false);
+  const rotateXTarget = useMotionValue(0);
+  const rotateYTarget = useMotionValue(0);
+  const lightXTarget = useMotionValue(50);
+  const lightYTarget = useMotionValue(50);
+  const rotateX = useSpring(rotateXTarget, {
+    stiffness: 180,
+    damping: 24,
+    mass: 0.72,
+  });
+  const rotateY = useSpring(rotateYTarget, {
+    stiffness: 180,
+    damping: 24,
+    mass: 0.72,
+  });
+  const lightX = useSpring(lightXTarget, {
+    stiffness: 140,
+    damping: 26,
+    mass: 0.8,
+  });
+  const lightY = useSpring(lightYTarget, {
+    stiffness: 140,
+    damping: 26,
+    mass: 0.8,
+  });
+  const coverTransform =
+    useMotionTemplate`perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
+  const sheenBackground =
+    useMotionTemplate`radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.07) 24%, transparent 52%)`;
+  const shelfRotation = Number.parseFloat(song.rotation);
+  const shelfOffset = Number.parseFloat(song.offset);
+  const artworkSrc = `/album/${encodeURIComponent(song.fileName)}`;
+
+  const resetPointerMotion = useCallback(() => {
+    setPointerActive(false);
+    rotateXTarget.set(0);
+    rotateYTarget.set(0);
+    lightXTarget.set(50);
+    lightYTarget.set(50);
+  }, [lightXTarget, lightYTarget, rotateXTarget, rotateYTarget]);
+
+  return (
+    <motion.li
+      className={styles.record}
+      data-pointer-active={pointerActive ? "true" : "false"}
+      data-selected={selected ? "true" : "false"}
+      layout
+      layoutDependency={hasSelection}
+      initial={false}
+      animate={{
+        rotate: hasSelection ? 0 : shelfRotation,
+        y: hasSelection ? 0 : shelfOffset,
+      }}
+      transition={{
+        layout: ALBUM_SPACE_TRANSITION,
+        rotate: ALBUM_SPACE_TRANSITION,
+        y: ALBUM_SPACE_TRANSITION,
+      }}
+    >
+      <motion.div
+        className={styles.recordSelectionMotion}
+        animate={{
+          opacity: hasSelection && !selected ? 0.76 : 1,
+        }}
+        transition={{ duration: reduceMotion ? 0.16 : 0.18, ease: "easeOut" }}
+      >
+        <button
+          className={styles.recordButton}
+          type="button"
+          aria-label={
+            selected
+              ? `Stop the visual playback of ${song.title} by ${song.artist}`
+              : `Select ${song.title} by ${song.artist}`
+          }
+          aria-expanded={selected}
+          aria-controls="favorite-song-now-playing"
+          onClick={(event) => {
+            const restoreFocus = event.detail === 0;
+
+            setPointerActive(false);
+            rotateXTarget.jump(0);
+            rotateYTarget.jump(0);
+            lightXTarget.jump(50);
+            lightYTarget.jump(50);
+            if (!restoreFocus) event.currentTarget.blur();
+            onSelect(index, event.currentTarget, restoreFocus);
+          }}
+          onPointerEnter={(event) => {
+            if (event.pointerType !== "touch") setPointerActive(true);
+          }}
+          onPointerMove={(event) => {
+            if (reduceMotion || event.pointerType === "touch") return;
+
+            const bounds = event.currentTarget.getBoundingClientRect();
+            const x = (event.clientX - bounds.left) / bounds.width;
+            const y = (event.clientY - bounds.top) / bounds.height;
+
+            rotateXTarget.set((0.5 - y) * 7);
+            rotateYTarget.set((x - 0.5) * 9);
+            lightXTarget.set(x * 100);
+            lightYTarget.set(y * 100);
+          }}
+          onPointerLeave={resetPointerMotion}
+          onPointerCancel={resetPointerMotion}
+        >
+          <motion.div
+            className={styles.recordArtworkTransition}
+            layout
+            layoutDependency={hasSelection}
+            layoutId={
+              reduceMotion ? undefined : `favorite-album-${song.id}`
+            }
+            transition={ALBUM_SPACE_TRANSITION}
+          >
+            <motion.div
+              className={styles.recordSleeve}
+              style={{ transform: coverTransform }}
+            >
+              <Image
+                src={artworkSrc}
+                alt={`${song.title} artwork`}
+                fill
+                unoptimized
+                sizes="(max-width: 720px) 62vw, (max-width: 1100px) 30vw, 220px"
+              />
+              <motion.span
+                className={styles.recordSheen}
+                style={{ background: sheenBackground }}
+                aria-hidden="true"
+              />
+            </motion.div>
+          </motion.div>
+        </button>
+        <div className={styles.songDetails}>
+          <span>{String(index + 1).padStart(2, "0")}</span>
+          <div>
+            <strong>{song.title}</strong>
+            <small>{song.artist}</small>
+          </div>
+        </div>
+      </motion.div>
+    </motion.li>
+  );
+}
+
+function AlbumNowPlaying({
+  song,
+  index,
+  reduceMotion,
+  onClose,
+}: {
+  song: FavoriteSong;
+  index: number;
+  reduceMotion: boolean;
+  onClose: () => void;
+}) {
+  const titleId = `favorite-now-playing-title-${song.id}`;
   const artworkSrc = `/album/${encodeURIComponent(song.fileName)}`;
 
   return (
-    <li className={styles.record} style={songStyle}>
-      <div className={styles.recordObject}>
-        <div className={styles.recordSleeve}>
+    <motion.article
+      className={styles.nowPlaying}
+      role="region"
+      aria-labelledby={titleId}
+      initial={{ opacity: reduceMotion ? 0 : 1 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: reduceMotion ? 0 : 1 }}
+      transition={{ duration: reduceMotion ? 0.16 : 0 }}
+    >
+      <motion.div
+        className={styles.nowPlayingAtmosphere}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.3 }}
+        exit={{
+          opacity: 0,
+          transition: { duration: reduceMotion ? 0.12 : 0.18 },
+        }}
+        transition={{
+          delay: reduceMotion ? 0 : 0.22,
+          duration: reduceMotion ? 0.16 : 0.46,
+          ease: [0.23, 1, 0.32, 1],
+        }}
+        aria-hidden="true"
+      >
+        <Image src={artworkSrc} alt="" fill unoptimized sizes="100vw" />
+      </motion.div>
+
+      <div className={styles.nowPlayingRecord}>
+        <motion.div
+          className={styles.nowPlayingStatus}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{
+            opacity: 0,
+            transition: { duration: reduceMotion ? 0.12 : 0.16 },
+          }}
+          transition={{
+            delay: reduceMotion ? 0 : 0.28,
+            duration: reduceMotion ? 0.16 : 0.3,
+            ease: [0.23, 1, 0.32, 1],
+          }}
+        >
+          <span className={styles.nowPlayingEqualizer} aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span>Now playing</span>
+          <span>Track {String(index + 1).padStart(2, "0")}</span>
+        </motion.div>
+
+        <motion.div
+          className={styles.nowPlayingArtwork}
+          layoutId={reduceMotion ? undefined : `favorite-album-${song.id}`}
+          transition={ALBUM_SPACE_TRANSITION}
+        >
           <Image
             src={artworkSrc}
             alt={`${song.title} artwork`}
             fill
             unoptimized
-            sizes="(max-width: 720px) 62vw, (max-width: 1100px) 30vw, 220px"
+            sizes="(max-width: 720px) 76vw, 390px"
           />
-        </div>
+          <span className={styles.nowPlayingArtworkLight} aria-hidden="true" />
+        </motion.div>
+
+        <motion.header
+          className={styles.nowPlayingMeta}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{
+            opacity: 0,
+            transition: { duration: reduceMotion ? 0.12 : 0.16 },
+          }}
+          transition={{
+            delay: reduceMotion ? 0 : 0.3,
+            duration: reduceMotion ? 0.16 : 0.32,
+            ease: [0.23, 1, 0.32, 1],
+          }}
+        >
+          <h3 id={titleId}>{song.title}</h3>
+          <p>{song.artist}</p>
+        </motion.header>
       </div>
-      <div className={styles.songDetails}>
-        <span>{String(index + 1).padStart(2, "0")}</span>
-        <div>
-          <strong>{song.title}</strong>
-          <small>{song.artist}</small>
-        </div>
-      </div>
-    </li>
+
+      <motion.div
+        className={styles.nowPlayingLyricColumn}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{
+          opacity: 0,
+          transition: { duration: reduceMotion ? 0.12 : 0.16 },
+        }}
+        transition={{
+          delay: reduceMotion ? 0 : 0.38,
+          duration: reduceMotion ? 0.16 : 0.38,
+          ease: [0.23, 1, 0.32, 1],
+        }}
+      >
+        <blockquote className={styles.nowPlayingLyric}>
+          <span className={styles.nowPlayingLyricLabel}>Favorite lyric</span>
+          {song.favoriteLyric?.length ? (
+            song.favoriteLyric.map((line) => <p key={line}>{line}</p>)
+          ) : (
+            <>
+              <p>Favorite lyric to be added.</p>
+              <small>
+                This space is ready for the lines you want to keep from this
+                record.
+              </small>
+            </>
+          )}
+        </blockquote>
+
+        <button
+          className={styles.nowPlayingClose}
+          type="button"
+          onClick={onClose}
+          aria-label={`Stop the visual playback of ${song.title}`}
+        >
+          <span aria-hidden="true">←</span>
+          <span>Back to the shelf</span>
+        </button>
+      </motion.div>
+    </motion.article>
   );
 }
 
@@ -461,6 +750,55 @@ export function HomepageFavorites() {
 export function HomepageFavoriteSongs() {
   const reduceMotion = useReducedMotion() ?? false;
   const { initial, visible } = useEntranceMotion(reduceMotion);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const openerRef = useRef<HTMLButtonElement | null>(null);
+  const preservedScrollYRef = useRef<number | null>(null);
+  const selectedSong =
+    selectedIndex === null ? null : FAVORITE_SONGS[selectedIndex];
+
+  const preserveViewport = useCallback(() => {
+    preservedScrollYRef.current = window.scrollY;
+  }, []);
+
+  const closeAlbum = useCallback(() => {
+    preserveViewport();
+    setSelectedIndex(null);
+    window.requestAnimationFrame(() => {
+      openerRef.current?.focus({ preventScroll: true });
+    });
+  }, [preserveViewport]);
+
+  useLayoutEffect(() => {
+    const preservedScrollY = preservedScrollYRef.current;
+    if (preservedScrollY === null) return;
+
+    window.scrollTo(window.scrollX, preservedScrollY);
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo(window.scrollX, preservedScrollY);
+      preservedScrollYRef.current = null;
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    if (selectedIndex === null) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeAlbum();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [closeAlbum, selectedIndex]);
 
   return (
     <section
@@ -483,26 +821,76 @@ export function HomepageFavoriteSongs() {
           <h2 id="homepage-songs-title">Songs I keep on repeat.</h2>
         </motion.header>
 
-        <motion.ol
-          className={styles.recordWall}
-          aria-label="A wall of favorite songs"
-          initial={initial}
-          whileInView={visible}
-          viewport={{ once: true, amount: 0.22 }}
-          transition={{
-            delay: reduceMotion ? 0 : 0.08,
-            duration: reduceMotion ? 0.2 : 0.8,
-            ease: FADE_UP_EASE,
-          }}
-        >
-          {FAVORITE_SONGS.map((song, index) => (
-            <FavoriteSongRecord
-              song={song}
-              index={index}
-              key={song.title}
-            />
-          ))}
-        </motion.ol>
+        <LayoutGroup id="favorite-album-playback">
+          <motion.div
+            className={styles.songsStage}
+            data-playing={selectedSong ? "true" : "false"}
+            layout
+            transition={ALBUM_SPACE_TRANSITION}
+          >
+            <motion.ol
+              className={styles.recordWall}
+              data-has-selection={selectedSong ? "true" : "false"}
+              aria-label="A wall of favorite songs"
+              layout
+              initial={initial}
+              whileInView={visible}
+              viewport={{ once: true, amount: 0.22 }}
+              transition={{
+                layout: ALBUM_SPACE_TRANSITION,
+                delay: reduceMotion ? 0 : 0.08,
+                duration: reduceMotion ? 0.2 : 0.8,
+                ease: FADE_UP_EASE,
+              }}
+            >
+              {FAVORITE_SONGS.map((song, index) => (
+                <FavoriteSongRecord
+                  song={song}
+                  index={index}
+                  selected={selectedIndex === index}
+                  hasSelection={selectedIndex !== null}
+                  reduceMotion={reduceMotion}
+                  onSelect={(nextIndex, trigger, restoreFocus) => {
+                    preserveViewport();
+                    openerRef.current = restoreFocus ? trigger : null;
+                    setSelectedIndex((currentIndex) =>
+                      currentIndex === nextIndex ? null : nextIndex,
+                    );
+                  }}
+                  key={song.id}
+                />
+              ))}
+            </motion.ol>
+
+            <AnimatePresence initial={false} mode="popLayout">
+              {selectedSong && selectedIndex !== null && (
+                <motion.div
+                  id="favorite-song-now-playing"
+                  className={styles.nowPlayingViewport}
+                  layout
+                  initial={{ opacity: reduceMotion ? 0 : 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: reduceMotion ? 0 : 1 }}
+                  transition={{
+                    layout: ALBUM_SPACE_TRANSITION,
+                    opacity: { duration: 0.16, ease: "easeOut" },
+                  }}
+                  key="favorite-song-now-playing"
+                >
+                  <AnimatePresence initial={false} mode="sync">
+                    <AlbumNowPlaying
+                      song={selectedSong}
+                      index={selectedIndex}
+                      reduceMotion={reduceMotion}
+                      onClose={closeAlbum}
+                      key={selectedSong.id}
+                    />
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </LayoutGroup>
       </div>
     </section>
   );

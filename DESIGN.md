@@ -65,9 +65,12 @@ exact components, tokens, typography, or page structure.
   `最速先行特典` vertically. It retains the site’s colorless label treatment rather than copying
   the reference package’s blue background or branded copy.
 - On the left-side obi, `永久 hours / aqhours` forms one horizontal title-and-artist wordmark that
-  is rotated 90 degrees as a complete line, matching the sideways orientation of `AQH-0001`.
+  is rotated 90 degrees as a complete line, matching the sideways orientation of `AQH-EH26`.
   It is not italic and does not use upright per-character vertical typesetting. The title and
   artist share one font stack and weight, with only a smaller artist size for hierarchy.
+- Personal release numbering encodes the project rather than an arbitrary sequence: `AQH-EH26`
+  combines aqhours, Eternal Hours, and 2026. The shrink-wrap label extends it as
+  `AQH-EH26 / SIDE A`.
 
 ## Header
 
@@ -272,9 +275,46 @@ exact components, tokens, typography, or page structure.
   must not restart or duplicate the sky gradient at its boundary.
 - The third screen is a full-height favorite-song wall. Five user-selected tracks are represented
   by their existing square artwork sleeves, arranged on one fine horizontal display rail. Each
-  entry includes a track number, song title, and artist. The wall currently presents only the
-  static square covers, without vinyl extraction, pointer tilt, moving sheen, hover dimming, or
-  other cover animation. On small screens the wall becomes a horizontal snap rail.
+  entry includes a track number, song title, and artist. Fine-pointer movement gives only the
+  active cover a spring-smoothed shallow 3D tilt, local moving sheen, and restrained image lift;
+  touch and reduced-motion presentations remain still. On small screens the wall becomes a
+  horizontal snap rail.
+- Every cover is a button that selects that album and transforms the fixed-height song wall into an
+  inline visual `Now Playing` stage; it does not append content below the wall, increase the section
+  height, play audio, or imply real transport progress. On desktop, the remaining sleeves fold into
+  a compact vertical shelf at the side while staying selectable; on small screens they form a compact
+  horizontal shelf above the player. Only the four unselected sleeves occupy that compact shelf; the
+  active sleeve leaves no empty placeholder behind. Every spatial change in this interaction—the
+  shelf reflow, active-sleeve travel and resize, album switching, and restoration of the loose
+  rotations and vertical offsets—uses the same interruptible `520ms`, critically damped,
+  no-bounce spring.
+  The selected sleeve then travels continuously from its exact wall position into the listening
+  area, growing into the active artwork with one critically damped, no-bounce shared-layout spring;
+  closing reverses that same spatial path. During that return, the exiting listening viewport is
+  removed from grid layout calculations while retaining its last rendered position, so it cannot
+  compete with the restoring five-cover shelf and introduce a one-frame jump. All five sleeves
+  measure both their current position and size before the state changes, then animate position and
+  size together into their individual shelf slots; the four compact-shelf sleeves and the active
+  listening sleeve therefore follow the same complete FLIP return rather than resizing at different
+  moments. Selecting a different album moves the new sleeve directly
+  sideways from the compact shelf into the fixed listening position while the previous sleeve takes
+  its place in the shelf; neither sleeve enters from below. Returning to the full shelf restores each
+  cover's original individual rotation and vertical offset, preserving the loose, collected-wall
+  composition. Only after this movement begins does the artwork softly bleed its colors into the
+  section through a broad masked blur, followed by metadata and lyrics. The atmosphere, status,
+  metadata, and lyric layers animate only through staggered opacity fades; they do not translate or
+  scale.
+  Artwork, metadata, lyrics, and the return control all remain fully visible inside the same song
+  viewport without requiring an additional scroll. The result has no card boundary, scrim,
+  full-screen overlay, or scroll lock.
+  A compact three-bar status indicator supplies the visual playback cue while the favorite lyric
+  appears beside the active artwork. Selecting another record keeps the listening area in place and
+  crossfades its artwork, atmosphere, metadata, and lyric; the layout stacks on small screens.
+  Clicking the selected cover again, using the visible return control, or pressing Escape collapses
+  the state along the same vertical path. Reduced motion uses a short crossfade and a static status
+  indicator. Each record exposes a dedicated favorite-lyric data field; until the owner supplies
+  exact lines, the listening state shows an explicit placeholder rather than invented or copied
+  lyrics.
 - A compact `70svh` fourth screen follows the song wall and presents
   the centered line `A few of my favorite things.` above two continuous logo marquees. The first
   row travels left while the second row travels right, with soft horizontal masks at both viewport
