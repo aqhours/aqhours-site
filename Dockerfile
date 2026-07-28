@@ -10,8 +10,7 @@ RUN npm install -g pnpm@11.7.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store,sharing=locked \
-    pnpm install --frozen-lockfile \
-      --registry=https://registry.npmmirror.com
+    pnpm install --frozen-lockfile
 
 COPY . .
 ARG NEXT_PUBLIC_AMAP_API_KEY
