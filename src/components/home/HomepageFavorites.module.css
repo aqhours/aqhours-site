@@ -615,59 +615,261 @@
   outline-offset: 4px;
 }
 
-.marquees {
+.deskEntrance {
+  margin-top: clamp(24px, 3.4svh, 38px);
+}
+
+.deskStage {
   display: grid;
-  gap: clamp(24px, 3.8svh, 40px);
-  margin-top: clamp(36px, 5svh, 54px);
+  width: min(96vw, 1240px);
+  margin-inline: auto;
+  place-items: center;
+  perspective: 1200px;
 }
 
-.marqueeRow {
+.deskPlane {
   width: 100%;
-  overflow: hidden;
-  mask-image: linear-gradient(90deg, transparent, black 20%, black 80%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, black 20%, black 80%, transparent);
-}
-
-.marqueeTrack {
-  display: flex;
-  width: max-content;
-  transform: translate3d(0, 0, 0);
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
-.logoGroup {
-  display: flex;
-  flex: none;
-  align-items: center;
+.deskSurface {
+  position: relative;
+  width: 100%;
+  height: clamp(390px, 38vw, 470px);
+  overflow: hidden;
+  border-block: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.055) 48%, transparent),
+    repeating-linear-gradient(102deg, transparent 0 88px, rgba(255, 255, 255, 0.025) 89px 90px);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 -24px 70px rgba(3, 20, 38, 0.08);
+  isolation: isolate;
+}
+
+.deskSurface::before,
+.deskSurface::after {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.deskSurface::before {
+  top: -38%;
+  left: 17%;
+  width: 42%;
+  aspect-ratio: 1;
+}
+
+.deskSurface::after {
+  right: 8%;
+  bottom: -48%;
+  width: 32%;
+  aspect-ratio: 1;
+}
+
+.scatterItems {
+  position: absolute;
+  z-index: 2;
+  inset: 4% 3%;
   margin: 0;
   padding: 0;
   list-style: none;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
-.logoItem {
-  display: grid;
-  flex: 0 0 clamp(156px, 15vw, 232px);
-  width: clamp(156px, 15vw, 232px);
-  height: clamp(70px, 7.4vw, 98px);
-  place-items: center;
+.scatterItem {
+  position: absolute;
+  z-index: 1;
+  top: var(--scatter-y);
+  left: var(--scatter-x);
+  width: var(--scatter-width);
+  transform: translate(-50%, -50%) rotate(var(--scatter-rotation)) translateZ(var(--scatter-depth));
+  transform-style: preserve-3d;
 }
 
-.logoMark {
+.scatterItem[data-active="true"] {
+  z-index: 40;
+}
+
+.scatterOffset {
+  width: 100%;
+  transform-style: preserve-3d;
+}
+
+.scatterDrag {
   display: block;
-  width: var(--favorite-logo-width);
-  height: var(--favorite-logo-height);
-  background: rgba(255, 255, 255, 0.96);
-  mask-image: var(--favorite-logo-image);
-  mask-mode: var(--favorite-logo-mask-mode, alpha);
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-size: contain;
-  -webkit-mask-image: var(--favorite-logo-image);
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  transform: scale(1.2);
-  transform-origin: center;
+  width: 100%;
+  cursor: grab;
+  touch-action: none;
+  transform-style: preserve-3d;
+}
+
+.scatterDrag:active {
+  cursor: grabbing;
+}
+
+.scatterBreath {
+  position: relative;
+  display: block;
+  width: 100%;
+  animation: scatter-breathe 6s ease-in-out var(--scatter-delay) infinite alternate;
+  transform-style: preserve-3d;
+}
+
+.scatterObject {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: calc(var(--scatter-width) * 0.58);
+  place-items: center;
+  border: 1px solid rgba(235, 250, 255, 0.28);
+  border-radius: 9px;
+  background: rgba(230, 245, 249, 0.16);
+  box-shadow:
+    0 5px 9px rgba(3, 20, 38, 0.1),
+    0 18px 30px rgba(3, 20, 38, 0.17),
+    inset 0 1px rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px) saturate(1.06);
+  transform-style: preserve-3d;
+}
+
+.paperclip {
+  position: absolute;
+  z-index: 6;
+  top: -13px;
+  left: 52%;
+  width: 18px;
+  height: 32px;
+  border: 2px solid rgba(225, 245, 251, 0.78);
+  border-bottom-color: rgba(186, 221, 233, 0.5);
+  border-radius: 10px 10px 8px 8px;
+  box-shadow:
+    0 3px 5px rgba(3, 20, 38, 0.18),
+    inset 0 0 2px rgba(255, 255, 255, 0.38);
+  pointer-events: none;
+  transform: translateX(-50%) rotate(calc(var(--scatter-rotation) * -0.25));
+}
+
+.paperclip::after {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  bottom: 7px;
+  left: 3px;
+  border: 1.5px solid rgba(229, 247, 252, 0.7);
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+  content: "";
+}
+
+.scatterItem[data-form="ticket"] .scatterObject {
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05), transparent 18% 82%, rgba(255, 255, 255, 0.05)),
+    rgba(199, 232, 243, 0.08);
+}
+
+.scatterItem[data-form="sticker"] .scatterObject {
+  border-color: rgba(255, 255, 255, 0.42);
+  border-radius: 32% 40% 34% 42% / 38% 32% 44% 36%;
+  background: rgba(203, 237, 247, 0.13);
+}
+
+.scatterItem[data-form="badge"] {
+  width: calc(var(--scatter-width) * 0.76);
+}
+
+.scatterItem[data-form="badge"] .scatterObject {
+  height: calc(var(--scatter-width) * 0.76);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.2), transparent 28%),
+    rgba(196, 231, 243, 0.1);
+}
+
+.scatterItem[data-form="badge"] .paperclip {
+  top: -10px;
+}
+
+.scatterEdge {
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.scatterLogo {
+  display: block;
+  width: min(var(--favorite-logo-width), 84%);
+  height: min(var(--favorite-logo-height), 76%);
+  object-fit: contain;
+  filter: drop-shadow(0 3px 7px rgba(3, 28, 47, 0.18));
+  pointer-events: none;
+  user-select: none;
+}
+
+.scatterIndex {
+  position: absolute;
+  right: 7px;
+  bottom: 5px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 6px;
+  font-weight: 720;
+  letter-spacing: 0.14em;
+}
+
+.deskPointerLight {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.deskCaption {
+  margin: 13px 0 0;
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 8px;
+  font-weight: 690;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+@keyframes scatter-breathe {
+  from {
+    transform: translate3d(-2px, 2px, 0) rotateX(-0.5deg);
+  }
+
+  to {
+    transform: translate3d(3px, -3px, 0) rotateX(0.8deg);
+  }
+}
+
+@keyframes favorites-desk-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .deskEntrance {
+    animation: favorites-desk-reveal 1s cubic-bezier(0.23, 1, 0.32, 1) both;
+    animation-range: entry 5% entry 62%;
+    animation-timeline: view(block);
+  }
 }
 
 .srOnly {
@@ -714,9 +916,27 @@
     max-height: none;
   }
 
-  .marquees {
-    gap: 22px;
-    margin-top: 34px;
+  .deskEntrance {
+    margin-top: 24px;
+  }
+
+  .deskStage {
+    width: 100%;
+  }
+
+  .deskSurface {
+    height: 420px;
+    overflow-x: auto;
+  }
+
+  .scatterItems {
+    right: auto;
+    width: 860px;
+    transform-origin: left center;
+  }
+
+  .scatterItem {
+    transform: translate(-50%, -50%) rotate(var(--scatter-rotation));
   }
 
   .recordWall {
@@ -887,11 +1107,6 @@
     margin-top: 16px;
   }
 
-  .logoItem {
-    flex-basis: 156px;
-    width: 156px;
-    height: 72px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -929,8 +1144,15 @@
     transition: none;
   }
 
-  .marqueeTrack {
+  .deskPlane,
+  .scatterItems {
     will-change: auto;
+  }
+
+  .scatterBreath,
+  .deskEntrance {
+    animation: none;
+    opacity: 1;
     transform: none;
   }
 }

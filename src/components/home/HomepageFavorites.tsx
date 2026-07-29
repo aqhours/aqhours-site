@@ -4,11 +4,11 @@ import {
   AnimatePresence,
   LayoutGroup,
   motion,
-  useInView,
   useMotionTemplate,
   useMotionValue,
   useReducedMotion,
   useSpring,
+  type PanInfo,
 } from "motion/react";
 import Image from "next/image";
 import {
@@ -18,6 +18,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type RefObject,
 } from "react";
 
 import styles from "./HomepageFavorites.module.css";
@@ -30,11 +31,20 @@ type FavoriteLogo = {
   maskMode?: "alpha" | "luminance";
 };
 
-type LogoStyle = CSSProperties & {
-  "--favorite-logo-image": string;
+type ScatterStyle = CSSProperties & {
   "--favorite-logo-width": string;
   "--favorite-logo-height": string;
-  "--favorite-logo-mask-mode"?: FavoriteLogo["maskMode"];
+  "--scatter-x": string;
+  "--scatter-y": string;
+  "--scatter-width": string;
+  "--scatter-rotation": string;
+  "--scatter-delay": string;
+  "--scatter-depth": string;
+};
+
+type ScatterOffset = {
+  x: number;
+  y: number;
 };
 
 type FavoriteSong = {
@@ -249,9 +259,27 @@ const ALBUM_SPACE_TRANSITION = {
   duration: 0.52,
   bounce: 0,
 } as const;
-const CAROUSEL_STEP_DURATION = 2_000;
-const CAROUSEL_STEP_EASE = "cubic-bezier(0.65, 0, 0.35, 1)";
-let carouselTimelineOrigin: number | null = null;
+
+const SCATTERED_FAVORITES = [...TECHNOLOGY_LOGOS, ...CULTURE_LOGOS].map(
+  (logo, index) => ({
+    ...logo,
+    x: [6, 19, 34, 48, 64, 81, 92, 12, 27, 43, 58, 74, 89, 5, 20, 36, 52, 68, 84, 95, 13, 31, 61, 79][
+      index
+    ],
+    y: [13, 8, 17, 9, 16, 8, 20, 39, 32, 42, 30, 39, 34, 67, 60, 71, 58, 70, 61, 76, 91, 86, 91, 88][
+      index
+    ],
+    itemWidth: [122, 142, 86, 94, 132, 88, 92, 126, 88, 136, 98, 148, 152, 160, 92, 118, 148, 146, 86, 150, 124, 90, 112, 92][
+      index
+    ],
+    rotation: [-8, 4, -3, 7, -5, 3, 9, 5, -7, 2, 8, -4, 3, -6, 7, -2, 5, -8, 4, -3, 8, -5, 2, -7][
+      index
+    ],
+    form: (["acrylic", "ticket", "sticker", "badge"] as const)[index % 4],
+  }),
+);
+
+type ScatteredFavorite = (typeof SCATTERED_FAVORITES)[number];
 
 function useEntranceMotion(reduceMotion: boolean) {
   return {
@@ -268,115 +296,254 @@ function useEntranceMotion(reduceMotion: boolean) {
   };
 }
 
-function LogoSequence({
-  logos,
-  duplicate = false,
+function ScatteredFavoriteItem({
+  logo,
+  index,
+  offset,
+  active,
+  reduceMotion,
+  constraintsRef,
+  onDrag,
+  onDragStart,
+  onDragEnd,
 }: {
-  logos: FavoriteLogo[];
-  duplicate?: boolean;
+  logo: ScatteredFavorite;
+  index: number;
+  offset: ScatterOffset;
+  active: boolean;
+  reduceMotion: boolean;
+  constraintsRef: RefObject<HTMLDivElement | null>;
+  onDrag: (index: number, info: PanInfo) => void;
+  onDragStart: (index: number) => void;
+  onDragEnd: (index: number, info: PanInfo) => void;
 }) {
-  return (
-    <ul className={styles.logoGroup} aria-hidden={duplicate || undefined}>
-      {logos.map((logo) => {
-        const logoStyle: LogoStyle = {
-          "--favorite-logo-image": `url("${encodeURI(logo.src)}")`,
-          "--favorite-logo-width": logo.width,
-          "--favorite-logo-height": logo.height,
-          "--favorite-logo-mask-mode": logo.maskMode,
-        };
+  const scatterStyle: ScatterStyle = {
+    "--favorite-logo-width": logo.width,
+    "--favorite-logo-height": logo.height,
+    "--scatter-x": `${logo.x}%`,
+    "--scatter-y": `${logo.y}%`,
+    "--scatter-width": `${logo.itemWidth}px`,
+    "--scatter-rotation": `${logo.rotation}deg`,
+    "--scatter-delay": `${index * -0.31}s`,
+    "--scatter-depth": `${8 + (index % 5) * 3}px`,
+  };
 
-        return (
-          <li className={styles.logoItem} key={logo.name}>
-            <span
-              className={styles.logoMark}
-              style={logoStyle}
-              aria-hidden="true"
-            />
-            {!duplicate && <span className={styles.srOnly}>{logo.name}</span>}
-          </li>
-        );
-      })}
-    </ul>
+  return (
+    <li
+      className={styles.scatterItem}
+      data-active={active ? "true" : "false"}
+      data-form={logo.form}
+      style={scatterStyle}
+    >
+      <motion.div
+        className={styles.scatterOffset}
+        animate={{ x: offset.x, y: offset.y }}
+        transition={{ type: "spring", stiffness: 260, damping: 28, bounce: 0 }}
+      >
+        <motion.div
+          className={styles.scatterDrag}
+          drag={!reduceMotion}
+          dragConstraints={constraintsRef}
+          dragElastic={0.06}
+          dragMomentum={false}
+          dragSnapToOrigin
+          whileDrag={{ scale: 1.035 }}
+          onDragStart={() => onDragStart(index)}
+          onDrag={(_, info) => onDrag(index, info)}
+          onDragEnd={(_, info) => onDragEnd(index, info)}
+        >
+          <span className={styles.scatterBreath}>
+            <span className={styles.paperclip} aria-hidden="true" />
+            <span className={styles.scatterObject}>
+              <span className={styles.scatterEdge} aria-hidden="true" />
+              <img
+                className={styles.scatterLogo}
+                src={logo.src}
+                alt={logo.name}
+                draggable={false}
+              />
+              <span className={styles.scatterIndex} aria-hidden="true">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+            </span>
+          </span>
+        </motion.div>
+      </motion.div>
+    </li>
   );
 }
 
-function LogoMarquee({
-  label,
-  logos,
-  direction,
-  reduceMotion,
-  isActive,
-}: {
-  label: string;
-  logos: FavoriteLogo[];
-  direction: "left" | "right";
-  reduceMotion: boolean;
-  isActive: boolean;
-}) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<Animation | null>(null);
+function FavoriteThingsDesk({ reduceMotion }: { reduceMotion: boolean }) {
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const pointerInsideRef = useRef(false);
+  const [offsets, setOffsets] = useState<ScatterOffset[]>(() =>
+    SCATTERED_FAVORITES.map(() => ({ x: 0, y: 0 })),
+  );
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const rotateXTarget = useMotionValue(0);
+  const rotateYTarget = useMotionValue(0);
+  const currentXTarget = useMotionValue(0);
+  const currentYTarget = useMotionValue(0);
+  const lightX = useMotionValue(50);
+  const lightY = useMotionValue(42);
+  const lightOpacityTarget = useMotionValue(0);
+  const rotateX = useSpring(rotateXTarget, { stiffness: 120, damping: 20 });
+  const rotateY = useSpring(rotateYTarget, { stiffness: 120, damping: 20 });
+  const currentX = useSpring(currentXTarget, { stiffness: 90, damping: 18 });
+  const currentY = useSpring(currentYTarget, { stiffness: 90, damping: 18 });
+  const lightOpacity = useSpring(lightOpacityTarget, {
+    stiffness: 90,
+    damping: 20,
+  });
+  const deskLight = useMotionTemplate`radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,.2), transparent 34%)`;
 
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track || reduceMotion) return;
+  const resetPointer = () => {
+    rotateXTarget.set(0);
+    rotateYTarget.set(0);
+    currentXTarget.set(0);
+    currentYTarget.set(0);
+    lightOpacityTarget.set(0);
+    pointerInsideRef.current = false;
+  };
 
-    const stepCount = logos.length;
-    const keyframes = Array.from({ length: stepCount + 1 }, (_, step) => {
-      const progress = step / stepCount;
-      const translateX =
-        direction === "left" ? -50 * progress : -50 * (1 - progress);
+  const handleCollision = useCallback(
+    (sourceIndex: number, info: PanInfo) => {
+      const surface = surfaceRef.current;
+      if (!surface) return;
+      const bounds = surface.getBoundingClientRect();
+      const source = SCATTERED_FAVORITES[sourceIndex];
 
-      return {
-        transform: `translate3d(${translateX}%, 0, 0)`,
-        easing: CAROUSEL_STEP_EASE,
-      };
-    });
-    const animation = track.animate(keyframes, {
-      duration: stepCount * CAROUSEL_STEP_DURATION,
-      fill: "both",
-      iterations: Infinity,
-    });
-    const initialStep = direction === "left" ? 2 : 5;
-    const timelineNow = document.timeline.currentTime;
-    let timelineElapsed = 0;
+      setOffsets((currentOffsets) => {
+        const sourceX =
+          (source.x / 100) * bounds.width +
+          currentOffsets[sourceIndex].x +
+          info.offset.x;
+        const sourceY =
+          (source.y / 100) * bounds.height +
+          currentOffsets[sourceIndex].y +
+          info.offset.y;
+        const sourceWidth =
+          source.itemWidth * (source.form === "badge" ? 0.76 : 1);
+        const sourceHeight =
+          source.itemWidth * (source.form === "badge" ? 0.76 : 0.58);
+        let changed = false;
+        const nextOffsets = currentOffsets.map((offset) => ({ ...offset }));
 
-    if (typeof timelineNow === "number") {
-      carouselTimelineOrigin ??= timelineNow;
-      timelineElapsed = timelineNow - carouselTimelineOrigin;
-    }
+        SCATTERED_FAVORITES.forEach((item, itemIndex) => {
+          if (itemIndex === sourceIndex) return;
+          const itemWidth =
+            item.itemWidth * (item.form === "badge" ? 0.76 : 1);
+          const itemHeight =
+            item.itemWidth * (item.form === "badge" ? 0.76 : 0.58);
+          const itemX =
+            (item.x / 100) * bounds.width + currentOffsets[itemIndex].x;
+          const itemY =
+            (item.y / 100) * bounds.height + currentOffsets[itemIndex].y;
+          const dx = itemX - sourceX;
+          const dy = itemY - sourceY;
+          const overlapX = (sourceWidth + itemWidth) * 0.43 - Math.abs(dx);
+          const overlapY = (sourceHeight + itemHeight) * 0.43 - Math.abs(dy);
 
-    animation.pause();
-    animation.currentTime =
-      (initialStep % stepCount) * CAROUSEL_STEP_DURATION + timelineElapsed;
-    animationRef.current = animation;
+          if (overlapX <= 0 || overlapY <= 0) return;
+          const length = Math.hypot(dx, dy) || 1;
+          const push = Math.min(9, Math.max(3, Math.min(overlapX, overlapY) * 0.18));
+          nextOffsets[itemIndex].x = Math.max(
+            -90,
+            Math.min(90, nextOffsets[itemIndex].x + (dx / length) * push),
+          );
+          nextOffsets[itemIndex].y = Math.max(
+            -70,
+            Math.min(70, nextOffsets[itemIndex].y + (dy / length) * push),
+          );
+          changed = true;
+        });
 
-    return () => {
-      animation.cancel();
-      animationRef.current = null;
-    };
-  }, [direction, logos.length, reduceMotion]);
+        return changed ? nextOffsets : currentOffsets;
+      });
+    },
+    [],
+  );
 
-  useEffect(() => {
-    const animation = animationRef.current;
-    if (!animation || reduceMotion) return;
-
-    if (isActive) {
-      animation.play();
-    } else {
-      animation.pause();
-    }
-  }, [isActive, reduceMotion]);
+  const settleDraggedItem = useCallback((index: number, info: PanInfo) => {
+    setOffsets((currentOffsets) =>
+      currentOffsets.map((offset, itemIndex) =>
+        itemIndex === index
+          ? {
+              x: Math.max(-140, Math.min(140, offset.x + info.offset.x)),
+              y: Math.max(-100, Math.min(100, offset.y + info.offset.y)),
+            }
+          : offset,
+      ),
+    );
+    setActiveIndex(null);
+  }, []);
 
   return (
-    <div className={styles.marqueeRow} aria-label={label}>
-      <div
-        ref={trackRef}
-        className={styles.marqueeTrack}
-        data-direction={direction}
+    <div className={styles.deskStage}>
+      <motion.div
+        className={styles.deskPlane}
+        style={{
+          rotateX: reduceMotion ? 0 : rotateX,
+          rotateY: reduceMotion ? 0 : rotateY,
+        }}
+        onPointerMove={(event) => {
+          if (reduceMotion || event.pointerType === "touch") return;
+          const bounds = event.currentTarget.getBoundingClientRect();
+          const x = (event.clientX - bounds.left) / bounds.width;
+          const y = (event.clientY - bounds.top) / bounds.height;
+
+          if (!pointerInsideRef.current) {
+            lightX.set(x * 100);
+            lightY.set(y * 100);
+            pointerInsideRef.current = true;
+          }
+          lightOpacityTarget.set(1);
+          rotateXTarget.set((0.5 - y) * 4);
+          rotateYTarget.set((x - 0.5) * 5);
+          currentXTarget.set((x - 0.5) * 10);
+          currentYTarget.set((y - 0.5) * 7);
+          lightX.set(x * 100);
+          lightY.set(y * 100);
+        }}
+        onPointerLeave={resetPointer}
       >
-        <LogoSequence logos={logos} />
-        <LogoSequence logos={logos} duplicate />
-      </div>
+        <div
+          ref={surfaceRef}
+          className={styles.deskSurface}
+        >
+          <motion.ul
+            className={styles.scatterItems}
+            style={{
+              x: reduceMotion ? 0 : currentX,
+              y: reduceMotion ? 0 : currentY,
+            }}
+            aria-label="Favorite things pinned across a desktop"
+          >
+            {SCATTERED_FAVORITES.map((logo, index) => (
+              <ScatteredFavoriteItem
+                logo={logo}
+                index={index}
+                offset={offsets[index]}
+                active={activeIndex === index}
+                reduceMotion={reduceMotion}
+                constraintsRef={surfaceRef}
+                onDrag={handleCollision}
+                onDragStart={setActiveIndex}
+                onDragEnd={settleDraggedItem}
+                key={logo.name}
+              />
+            ))}
+          </motion.ul>
+          <motion.div
+            className={styles.deskPointerLight}
+            style={{ backgroundImage: deskLight, opacity: lightOpacity }}
+            aria-hidden="true"
+          />
+        </div>
+      </motion.div>
+      <p className={styles.deskCaption}>
+        Drag to rearrange
+      </p>
     </div>
   );
 }
@@ -690,9 +857,6 @@ function AlbumNowPlaying({
 
 export function HomepageFavorites() {
   const reduceMotion = useReducedMotion() ?? false;
-  const marqueesRef = useRef<HTMLDivElement>(null);
-  const marqueesInView = useInView(marqueesRef, { amount: 0.05 });
-  const { initial, visible } = useEntranceMotion(reduceMotion);
 
   return (
     <section
@@ -704,43 +868,12 @@ export function HomepageFavorites() {
         <motion.h2
           id="homepage-favorites-title"
           className={styles.heading}
-          initial={initial}
-          whileInView={visible}
-          viewport={{ once: true, amount: 0.7 }}
-          transition={{
-            duration: reduceMotion ? 0.2 : 0.72,
-            ease: FADE_UP_EASE,
-          }}
         >
           A few of my favorite things.
         </motion.h2>
 
-        <motion.div
-          ref={marqueesRef}
-          className={styles.marquees}
-          initial={initial}
-          whileInView={visible}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{
-            delay: reduceMotion ? 0 : 0.12,
-            duration: reduceMotion ? 0.2 : 0.78,
-            ease: FADE_UP_EASE,
-          }}
-        >
-          <LogoMarquee
-            label="Favorite technology, creative tools, and culture"
-            logos={TECHNOLOGY_LOGOS}
-            direction="left"
-            reduceMotion={reduceMotion}
-            isActive={marqueesInView}
-          />
-          <LogoMarquee
-            label="Favorite culture, entertainment, services, and institutions"
-            logos={CULTURE_LOGOS}
-            direction="right"
-            reduceMotion={reduceMotion}
-            isActive={marqueesInView}
-          />
+        <motion.div className={styles.deskEntrance}>
+          <FavoriteThingsDesk reduceMotion={reduceMotion} />
         </motion.div>
       </div>
     </section>
