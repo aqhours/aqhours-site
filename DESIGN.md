@@ -315,20 +315,24 @@ exact components, tokens, typography, or page structure.
   indicator. Each record exposes a dedicated favorite-lyric data field; until the owner supplies
   exact lines, the listening state shows an explicit placeholder rather than invented or copied
   lyrics.
-- A compact `70svh` fourth screen follows the song wall and presents
-  the centered line `A few of my favorite things.` above two continuous logo marquees. The first
-  row travels left while the second row travels right, with soft horizontal masks at both viewport
-  edges. All supplied SVG marks, including Figma, Ghostty, Love Live! Asia Tour, Aqours Finale Live,
-  and Shining Nikki, render as monochrome white silhouettes in equal-width rhythm slots. The copy
-  and the paired marquee block each receive a one-time Fade Up when entering the viewport, with the
-  marquee following the copy by a short delay. Each row advances by one equal-width logo slot per
-  two-second glide using `cubic-bezier(.65, 0, .35, 1)`, then loops across duplicated sequences without
-  a visible reset. Both rows use one shared document-timeline origin so their two-second movement phases
-  remain aligned even though their starting logo positions differ. The second row moves in the opposite
-  direction. One observer watches the paired-row container rather than either row individually, so both
-  animations pause together while the pair is outside the viewport and resume together from their paused
-  positions. Every logo uses a larger display scale and taller rhythm slot so the marks read prominently
-  without clipping. Pointer interaction does not affect playback; reduced motion keeps both rows static.
+- A compact `70svh` fourth screen follows the song wall and presents the centered line
+  `A few of my favorite things.` above a wide, lightly implied desktop surface. All 24 supplied
+  favorite-item SVG marks retain their own source colors instead of being normalized into white
+  silhouettes, and appear as a loose personal collection of
+  translucent acrylic pieces, tickets, irregular stickers, and circular badges rather than a uniform
+  logo catalogue. Their varied scale, rotation, shallow overlap, contact shadows, and small archive
+  numbers create the impression of objects casually scattered across a desk. The surface has no opaque
+  card boundary; only restrained edge lines, faint drafting circles, and low-contrast material seams
+  separate it from the shared atmospheric background. Fine-pointer movement gives the complete plane a
+  shallow spring-smoothed perspective tilt and nudges the collection as one layer. The local light is
+  fully absent while the pointer is outside the surface; on entry it first adopts the pointer position,
+  then fades in through a spring so it never travels abruptly from a default center point.
+  Every object is visibly held by a restrained silver-blue paperclip above its top edge. Objects can be
+  dragged within the desktop, rise above the stack while held, and use shallow collision response to push
+  overlapping neighbors aside before all affected positions settle with no-bounce springs. Objects do
+  not flip or expose a separate reverse face. The individual objects retain slow low-amplitude breathing motion while idle.
+  The composition receives a scroll-view-timeline Fade Up. Touch uses a horizontally clipped wide
+  collection, and reduced motion removes dragging and ambient motion.
 - The fifth screen expresses the education statement in three uppercase English lines:
   `COMPUTER SCIENCE. / B.S. EARNED. / M.S. STUDENT.` The accessible label expands both
   degree abbreviations and states that both belong to Computer Science and Technology. The lines
