@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REMOTE_URL="${REMOTE_URL:-git@github.com:aqhours/aqhours-site.git}"
+REMOTE_URL="${REMOTE_URL:-origin}"
 SERVER="${AQHOURS_SERVER:-aqhours-server}"
 SERVER_DIR="${AQHOURS_SERVER_DIR:-/opt/apps/homepage}"
 SITE_URL="${AQHOURS_SITE_URL:-https://aqhours.cn/}"
