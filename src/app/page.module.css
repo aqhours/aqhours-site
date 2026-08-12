@@ -84,14 +84,30 @@
 }
 
 .skyNight {
-  background: linear-gradient(
-    180deg,
-    #061a42 0%,
-    #062b60 20%,
-    #073e76 48%,
-    #07558a 73%,
-    #08699d 100%
-  );
+  background:
+    radial-gradient(
+      ellipse at 50% 44%,
+      rgba(112, 157, 203, 0.1),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at -8% 52%,
+      rgba(2, 10, 30, 0.28),
+      transparent 31%
+    ),
+    radial-gradient(
+      ellipse at 108% 52%,
+      rgba(4, 16, 39, 0.24),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      #061a42 0%,
+      #062b60 20%,
+      #073e76 48%,
+      #07558a 73%,
+      #08699d 100%
+    );
 }
 
 :global(:root[data-theme="dawn"]) .skyDawn,
