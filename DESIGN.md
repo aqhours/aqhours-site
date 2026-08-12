@@ -151,9 +151,10 @@ exact components, tokens, typography, or page structure.
   lift and blue-violet edge depth remain lower in contrast than the dawn and dusk treatments; no
   yellow is present. These overlays fade to transparency and do not use a blur filter. Dusk uses cool indigo through misty blue-grey to
   low-saturation warm brown with the same layered atmospheric structure. Night continues the shared
-  five-stop atmospheric structure using only deep midnight-to-ocean blue tones; blue-green,
-  ultramarine, and contrasting star colors are excluded. Its original deep-blue range remains intact,
-  while a restrained cool central lift and deeper navy falloff beyond both horizontal edges give it
+  five-stop atmospheric structure using ink black, charcoal, and restrained cool-black tones;
+  blue, blue-green, ultramarine, and contrasting star colors are excluded. A restrained cool-grey
+  central lift occupies only a compact middle area, while deeper black falloff beyond both
+  horizontal edges gives it
   the same depth language as the first three themes. Only the color relationships are adapted: no screenshot, cloud, branding, logo, copy,
   or other proprietary asset is used in the public interface.
 - On every fresh page load, the active theme follows the visitor's device-local time.

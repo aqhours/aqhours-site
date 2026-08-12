@@ -86,27 +86,27 @@
 .skyNight {
   background:
     radial-gradient(
-      ellipse at 50% 44%,
-      rgba(112, 157, 203, 0.1),
-      transparent 48%
+      ellipse at 50% 46%,
+      rgba(112, 126, 140, 0.055),
+      transparent 32%
     ),
     radial-gradient(
       ellipse at -8% 52%,
-      rgba(2, 10, 30, 0.28),
+      rgba(0, 0, 0, 0.34),
       transparent 31%
     ),
     radial-gradient(
       ellipse at 108% 52%,
-      rgba(4, 16, 39, 0.24),
+      rgba(0, 0, 0, 0.3),
       transparent 32%
     ),
     linear-gradient(
       180deg,
-      #061a42 0%,
-      #062b60 20%,
-      #073e76 48%,
-      #07558a 73%,
-      #08699d 100%
+      #030406 0%,
+      #06090d 20%,
+      #0b1016 48%,
+      #0f151c 73%,
+      #151c24 100%
     );
 }
 

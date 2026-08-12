@@ -238,11 +238,11 @@
 :global(:root[data-theme="night"]) .heroAlbumBackdrop {
   background: linear-gradient(
     180deg,
-    #061a42 0%,
-    #062b60 20%,
-    #073e76 48%,
-    #07558a 73%,
-    #08699d 100%
+    #030406 0%,
+    #06090d 20%,
+    #0b1016 48%,
+    #0f151c 73%,
+    #151c24 100%
   );
 }
 
