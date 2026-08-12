@@ -20,8 +20,8 @@ export default function Home() {
       <TimeThemeSwitcher />
       <div className={styles.content}>
         <HomepageHero />
-        <HomepageFavoriteSongs />
         <HomepageFavorites />
+        <HomepageFavoriteSongs />
         <HomepageInterlude />
         <HomepageEnding />
       </div>

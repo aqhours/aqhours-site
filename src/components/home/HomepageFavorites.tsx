@@ -22,6 +22,7 @@ import {
 } from "react";
 
 import styles from "./HomepageFavorites.module.css";
+import { FavoritesStickerShowcase } from "./FavoritesStickerShowcase";
 
 type FavoriteLogo = {
   name: string;
@@ -204,6 +205,12 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
     height: "72%",
   },
   {
+    name: "Takami Chika",
+    src: "/logo_png/takami-chika.png",
+    width: "92%",
+    height: "64%",
+  },
+  {
     name: "Aqours Finale Live",
     src: "/logo_svg/aqours-finale-live.svg",
     width: "82%",
@@ -246,13 +253,9 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
     width: "76%",
     height: "58%",
   },
-  {
-    name: "Nanchang Hangkong University",
-    src: "/logo_svg/nanchang-hangkong-university.svg",
-    width: "38%",
-    height: "82%",
-  },
 ];
+
+const FAVORITE_LOGOS = [...TECHNOLOGY_LOGOS, ...CULTURE_LOGOS];
 
 const FADE_UP_EASE = [0.23, 1, 0.32, 1] as const;
 const ALBUM_SPACE_TRANSITION = {
@@ -261,7 +264,7 @@ const ALBUM_SPACE_TRANSITION = {
   bounce: 0,
 } as const;
 
-const SCATTERED_FAVORITES = [...TECHNOLOGY_LOGOS, ...CULTURE_LOGOS].map(
+const SCATTERED_FAVORITES = FAVORITE_LOGOS.map(
   (logo, index) => ({
     ...logo,
     x: [6, 20, 34, 47, 64, 81, 92, 12, 27, 39, 50, 76, 92, 5, 20, 36, 55, 71, 84, 95, 13, 25, 57, 84][
@@ -894,7 +897,10 @@ export function HomepageFavorites() {
         </motion.h2>
 
         <motion.div className={styles.deskEntrance}>
-          <FavoriteThingsDesk reduceMotion={reduceMotion} />
+          <FavoritesStickerShowcase
+            logos={FAVORITE_LOGOS}
+            reduceMotion={reduceMotion}
+          />
         </motion.div>
       </div>
     </section>

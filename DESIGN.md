@@ -273,7 +273,7 @@ exact components, tokens, typography, or page structure.
 
 - All six screens share one continuous fixed atmospheric background; the later screens
   must not restart or duplicate the sky gradient at its boundary.
-- The third screen is a full-height favorite-song wall. Five user-selected tracks are represented
+- The favorite-song wall follows the favorite-sticker screen as its own full-height section. Five user-selected tracks are represented
   by their existing square artwork sleeves, arranged on one fine horizontal display rail. Each
   entry includes a track number, song title, and artist. Fine-pointer movement gives only the
   active cover a spring-smoothed shallow 3D tilt, local moving sheen, and restrained image lift;
@@ -317,32 +317,19 @@ exact components, tokens, typography, or page structure.
   indicator. Each record exposes a dedicated favorite-lyric data field; until the owner supplies
   exact lines, the listening state shows an explicit placeholder rather than invented or copied
   lyrics.
-- A compact `70svh` fourth screen follows the song wall and presents the centered line
-  `A few of my favorite things.` above a wide, lightly implied desktop surface. All 24 supplied
-  favorite-item SVG marks retain their own source colors instead of being normalized into white
-  silhouettes, and appear as a loose personal collection of
-  translucent acrylic pieces, tickets, irregular stickers, and circular badges rather than a uniform
-  logo catalogue. Their varied scale, rotation, shallow overlap, contact shadows, and small archive
-  numbers create the impression of objects casually scattered across a desk. The surface has no opaque
-  card boundary; only restrained edge lines, faint drafting circles, and low-contrast material seams
-  separate it from the shared atmospheric background. Fine-pointer movement gives the complete plane a
-  restrained spring-smoothed perspective tilt capped at `1.5deg` vertically and `2deg` horizontally,
-  while the collection's shared parallax remains within `4px × 3px`. The local light is
-  fully absent while the pointer is outside the surface; on entry it first adopts the pointer position,
-  then fades in through a spring so it never travels abruptly from a default center point. It is a
-  narrow low-opacity ellipse using ordinary alpha compositing, clipped and paint-contained within the
-  desktop; it does not use a screen blend that can raise the brightness of the surrounding sky.
-  Every object is visibly held by a restrained silver-blue paperclip above its top edge. Objects can be
-  dragged within the desktop, rise above the stack while held, and use shallow collision response to push
-  overlapping neighbors aside before all affected positions settle with no-bounce springs. Objects do
-  not flip or expose a separate reverse face. Individual idle breathing is limited to roughly `1px`
-  over a `9s` cycle. Dragging supplies the clearly visible lift through a deeper temporary contact shadow
-  and a slightly raised paperclip, while collision response uses a smaller displacement impulse.
-  The desktop starting arrangement keeps the physical card bounds separated, with card scale adapting
-  to the available wide-screen surface before it reaches its maximum width. The narrow-screen rail may
-  retain intentional overlaps as part of the loose scattered composition. The composition receives a
-  scroll-view-timeline Fade Up. Touch uses a horizontally clipped wide collection, and reduced motion
-  removes dragging and ambient motion.
+- A compact `70svh` third screen follows the personal introduction and precedes the song wall. It
+  presents the centered line `A few of my favorite things.` above one large interactive sticker stage
+  and a lightweight archive of all 24 favorite marks. The marks retain their source colors and may be
+  SVG or transparent PNG artwork; they are never normalized into white silhouettes or placed on large
+  rectangular white cards. The archive shows die-cut-like white edges without item numbers. Selecting
+  an archive mark replaces the single large sticker in the stage, avoiding simultaneous WebGL contexts.
+  The selected artwork's alpha silhouette generates its real white cut line and edge hit area. Pulling
+  that edge bends a mesh, exposes the satin back, deforms the projected shadow, reveals adhesive residue,
+  and can fully detach the sticker before it is placed back. Peel audio responds to the gesture, and the
+  source-change entrance retains the renderer's restrained scan effect. The implementation uses a
+  locally vendored, MIT-licensed Sticker Forge module with its license preserved; no reference artwork
+  or brand assets are included. Reduced motion suppresses the entrance, wind, and sound while keeping
+  the collection selectable.
 - The fifth screen expresses the education statement in three uppercase English lines:
   `COMPUTER SCIENCE. / B.S. EARNED. / M.S. STUDENT.` The accessible label expands both
   degree abbreviations and states that both belong to Computer Science and Technology. The lines
