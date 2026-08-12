@@ -90,6 +90,20 @@ Merge `deploy/Caddyfile.example` into the shared Caddy container configuration.
 The receiver binds only to the Docker bridge gateway; only Caddy exposes its
 two fixed POST routes.
 
+If UFW uses a default-deny input policy, allow only the shared Docker bridge to
+reach the receiver. Docker assigns the bridge name from the first 12 characters
+of the network ID:
+
+```bash
+network_id="$(docker network inspect aqhours-web --format '{{.Id}}')"
+bridge_name="br-${network_id:0:12}"
+sudo ufw allow in on "$bridge_name" from 172.18.0.0/16 \
+  to 172.18.0.1 port 9000 proto tcp comment 'Caddy to aqhours webhook'
+unset network_id bridge_name
+```
+
+Do not expose TCP 9000 on the public interface.
+
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now aqhours-webhook.service
