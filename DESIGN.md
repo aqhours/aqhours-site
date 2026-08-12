@@ -277,6 +277,8 @@ exact components, tokens, typography, or page structure.
   by their existing square artwork sleeves, arranged on one fine horizontal display rail. Each
   entry includes a track number, song title, and artist. Fine-pointer movement gives only the
   active cover a spring-smoothed shallow 3D tilt, local moving sheen, and restrained image lift;
+  the sheen uses a narrow, low-opacity ellipse clipped to the sleeve and receives the pointer's
+  actual entry coordinates before becoming visible, preventing a default-position white flash.
   touch and reduced-motion presentations remain still. On small screens the wall becomes a
   horizontal snap rail.
 - Every cover is a button that selects that album and transforms the fixed-height song wall into an
@@ -324,15 +326,23 @@ exact components, tokens, typography, or page structure.
   numbers create the impression of objects casually scattered across a desk. The surface has no opaque
   card boundary; only restrained edge lines, faint drafting circles, and low-contrast material seams
   separate it from the shared atmospheric background. Fine-pointer movement gives the complete plane a
-  shallow spring-smoothed perspective tilt and nudges the collection as one layer. The local light is
+  restrained spring-smoothed perspective tilt capped at `1.5deg` vertically and `2deg` horizontally,
+  while the collection's shared parallax remains within `4px × 3px`. The local light is
   fully absent while the pointer is outside the surface; on entry it first adopts the pointer position,
-  then fades in through a spring so it never travels abruptly from a default center point.
+  then fades in through a spring so it never travels abruptly from a default center point. It is a
+  narrow low-opacity ellipse using ordinary alpha compositing, clipped and paint-contained within the
+  desktop; it does not use a screen blend that can raise the brightness of the surrounding sky.
   Every object is visibly held by a restrained silver-blue paperclip above its top edge. Objects can be
   dragged within the desktop, rise above the stack while held, and use shallow collision response to push
   overlapping neighbors aside before all affected positions settle with no-bounce springs. Objects do
-  not flip or expose a separate reverse face. The individual objects retain slow low-amplitude breathing motion while idle.
-  The composition receives a scroll-view-timeline Fade Up. Touch uses a horizontally clipped wide
-  collection, and reduced motion removes dragging and ambient motion.
+  not flip or expose a separate reverse face. Individual idle breathing is limited to roughly `1px`
+  over a `9s` cycle. Dragging supplies the clearly visible lift through a deeper temporary contact shadow
+  and a slightly raised paperclip, while collision response uses a smaller displacement impulse.
+  The desktop starting arrangement keeps the physical card bounds separated, with card scale adapting
+  to the available wide-screen surface before it reaches its maximum width. The narrow-screen rail may
+  retain intentional overlaps as part of the loose scattered composition. The composition receives a
+  scroll-view-timeline Fade Up. Touch uses a horizontally clipped wide collection, and reduced motion
+  removes dragging and ambient motion.
 - The fifth screen expresses the education statement in three uppercase English lines:
   `COMPUTER SCIENCE. / B.S. EARNED. / M.S. STUDENT.` The accessible label expands both
   degree abbreviations and states that both belong to Computer Science and Technology. The lines

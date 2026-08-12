@@ -254,6 +254,7 @@
   transform-origin: center 78%;
   transform-style: preserve-3d;
   transition: box-shadow 180ms ease;
+  contain: paint;
   will-change: transform;
 }
 
@@ -645,6 +646,7 @@
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.06),
     inset 0 -24px 70px rgba(3, 20, 38, 0.08);
+  contain: paint;
   isolation: isolate;
 }
 
@@ -718,7 +720,7 @@
   position: relative;
   display: block;
   width: 100%;
-  animation: scatter-breathe 6s ease-in-out var(--scatter-delay) infinite alternate;
+  animation: scatter-breathe 9s ease-in-out var(--scatter-delay) infinite alternate;
   transform-style: preserve-3d;
 }
 
@@ -726,7 +728,7 @@
   position: relative;
   display: grid;
   width: 100%;
-  height: calc(var(--scatter-width) * 0.58);
+  aspect-ratio: 1 / 0.58;
   place-items: center;
   border: 1px solid rgba(235, 250, 255, 0.28);
   border-radius: 9px;
@@ -786,15 +788,37 @@
 }
 
 .scatterItem[data-form="badge"] .scatterObject {
-  height: calc(var(--scatter-width) * 0.76);
+  aspect-ratio: 1;
   border-radius: 50%;
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.2), transparent 28%),
     rgba(196, 231, 243, 0.1);
 }
 
+@media (min-width: 721px) and (max-width: 1291px) {
+  .scatterItem {
+    width: var(--scatter-responsive-width);
+  }
+
+  .scatterItem[data-form="badge"] {
+    width: calc(var(--scatter-responsive-width) * 0.76);
+  }
+}
+
 .scatterItem[data-form="badge"] .paperclip {
   top: -10px;
+}
+
+.scatterItem[data-active="true"] .scatterObject {
+  box-shadow:
+    0 9px 16px rgba(3, 20, 38, 0.14),
+    0 28px 44px rgba(3, 20, 38, 0.24),
+    inset 0 1px rgba(255, 255, 255, 0.17);
+}
+
+.scatterItem[data-active="true"] .paperclip {
+  transform: translateX(-50%) translateY(-2px)
+    rotate(calc(var(--scatter-rotation) * -0.25));
 }
 
 .scatterEdge {
@@ -829,7 +853,6 @@
   position: absolute;
   z-index: 4;
   inset: 0;
-  mix-blend-mode: screen;
   pointer-events: none;
 }
 
@@ -844,11 +867,11 @@
 
 @keyframes scatter-breathe {
   from {
-    transform: translate3d(-2px, 2px, 0) rotateX(-0.5deg);
+    transform: translate3d(-0.7px, 0.8px, 0) rotateX(-0.18deg);
   }
 
   to {
-    transform: translate3d(3px, -3px, 0) rotateX(0.8deg);
+    transform: translate3d(1px, -1px, 0) rotateX(0.22deg);
   }
 }
 

@@ -37,6 +37,7 @@ type ScatterStyle = CSSProperties & {
   "--scatter-x": string;
   "--scatter-y": string;
   "--scatter-width": string;
+  "--scatter-responsive-width": string;
   "--scatter-rotation": string;
   "--scatter-delay": string;
   "--scatter-depth": string;
@@ -263,10 +264,10 @@ const ALBUM_SPACE_TRANSITION = {
 const SCATTERED_FAVORITES = [...TECHNOLOGY_LOGOS, ...CULTURE_LOGOS].map(
   (logo, index) => ({
     ...logo,
-    x: [6, 19, 34, 48, 64, 81, 92, 12, 27, 43, 58, 74, 89, 5, 20, 36, 52, 68, 84, 95, 13, 31, 61, 79][
+    x: [6, 20, 34, 47, 64, 81, 92, 12, 27, 39, 50, 76, 92, 5, 20, 36, 55, 71, 84, 95, 13, 25, 57, 84][
       index
     ],
-    y: [13, 8, 17, 9, 16, 8, 20, 39, 32, 42, 30, 39, 34, 67, 60, 71, 58, 70, 61, 76, 91, 86, 91, 88][
+    y: [13, 8, 17, 8, 16, 8, 20, 39, 32, 42, 26, 39, 40, 67, 60, 71, 60, 73, 61, 76, 91, 87, 91, 92][
       index
     ],
     itemWidth: [122, 142, 86, 94, 132, 88, 92, 126, 88, 136, 98, 148, 152, 160, 92, 118, 148, 146, 86, 150, 124, 90, 112, 92][
@@ -323,6 +324,7 @@ function ScatteredFavoriteItem({
     "--scatter-x": `${logo.x}%`,
     "--scatter-y": `${logo.y}%`,
     "--scatter-width": `${logo.itemWidth}px`,
+    "--scatter-responsive-width": `clamp(${Math.round(logo.itemWidth * 0.58)}px, ${(logo.itemWidth * 0.07742).toFixed(2)}vw, ${logo.itemWidth}px)`,
     "--scatter-rotation": `${logo.rotation}deg`,
     "--scatter-delay": `${index * -0.31}s`,
     "--scatter-depth": `${8 + (index % 5) * 3}px`,
@@ -384,18 +386,29 @@ function FavoriteThingsDesk({ reduceMotion }: { reduceMotion: boolean }) {
   const rotateYTarget = useMotionValue(0);
   const currentXTarget = useMotionValue(0);
   const currentYTarget = useMotionValue(0);
-  const lightX = useMotionValue(50);
-  const lightY = useMotionValue(42);
+  const lightXTarget = useMotionValue(50);
+  const lightYTarget = useMotionValue(42);
   const lightOpacityTarget = useMotionValue(0);
   const rotateX = useSpring(rotateXTarget, { stiffness: 120, damping: 20 });
   const rotateY = useSpring(rotateYTarget, { stiffness: 120, damping: 20 });
   const currentX = useSpring(currentXTarget, { stiffness: 90, damping: 18 });
   const currentY = useSpring(currentYTarget, { stiffness: 90, damping: 18 });
+  const lightX = useSpring(lightXTarget, {
+    stiffness: 95,
+    damping: 20,
+    mass: 0.8,
+  });
+  const lightY = useSpring(lightYTarget, {
+    stiffness: 95,
+    damping: 20,
+    mass: 0.8,
+  });
   const lightOpacity = useSpring(lightOpacityTarget, {
     stiffness: 90,
     damping: 20,
   });
-  const deskLight = useMotionTemplate`radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,.2), transparent 34%)`;
+  const deskLight =
+    useMotionTemplate`radial-gradient(ellipse 28% 20% at ${lightX}% ${lightY}%, rgba(255,255,255,.1), rgba(255,255,255,.025) 48%, transparent 100%)`;
 
   const resetPointer = () => {
     rotateXTarget.set(0);
@@ -446,7 +459,7 @@ function FavoriteThingsDesk({ reduceMotion }: { reduceMotion: boolean }) {
 
           if (overlapX <= 0 || overlapY <= 0) return;
           const length = Math.hypot(dx, dy) || 1;
-          const push = Math.min(9, Math.max(3, Math.min(overlapX, overlapY) * 0.18));
+          const push = Math.min(6, Math.max(2, Math.min(overlapX, overlapY) * 0.14));
           nextOffsets[itemIndex].x = Math.max(
             -90,
             Math.min(90, nextOffsets[itemIndex].x + (dx / length) * push),
@@ -493,17 +506,17 @@ function FavoriteThingsDesk({ reduceMotion }: { reduceMotion: boolean }) {
           const y = (event.clientY - bounds.top) / bounds.height;
 
           if (!pointerInsideRef.current) {
-            lightX.set(x * 100);
-            lightY.set(y * 100);
+            lightXTarget.jump(x * 100);
+            lightYTarget.jump(y * 100);
             pointerInsideRef.current = true;
           }
           lightOpacityTarget.set(1);
-          rotateXTarget.set((0.5 - y) * 4);
-          rotateYTarget.set((x - 0.5) * 5);
-          currentXTarget.set((x - 0.5) * 10);
-          currentYTarget.set((y - 0.5) * 7);
-          lightX.set(x * 100);
-          lightY.set(y * 100);
+          rotateXTarget.set((0.5 - y) * 1.5);
+          rotateYTarget.set((x - 0.5) * 2);
+          currentXTarget.set((x - 0.5) * 4);
+          currentYTarget.set((y - 0.5) * 3);
+          lightXTarget.set(x * 100);
+          lightYTarget.set(y * 100);
         }}
         onPointerLeave={resetPointer}
       >
@@ -595,7 +608,7 @@ function FavoriteSongRecord({
   const coverTransform =
     useMotionTemplate`perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(0)`;
   const sheenBackground =
-    useMotionTemplate`radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.07) 24%, transparent 52%)`;
+    useMotionTemplate`radial-gradient(ellipse 34% 24% at ${lightX}% ${lightY}%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.035) 48%, transparent 100%)`;
   const shelfRotation = Number.parseFloat(song.rotation);
   const shelfOffset = Number.parseFloat(song.offset);
   const artworkSrc = `/album/${encodeURIComponent(song.fileName)}`;
@@ -655,7 +668,15 @@ function FavoriteSongRecord({
             onSelect(index, event.currentTarget, restoreFocus);
           }}
           onPointerEnter={(event) => {
-            if (event.pointerType !== "touch") setPointerActive(true);
+            if (reduceMotion || event.pointerType === "touch") return;
+
+            const bounds = event.currentTarget.getBoundingClientRect();
+            const x = (event.clientX - bounds.left) / bounds.width;
+            const y = (event.clientY - bounds.top) / bounds.height;
+
+            lightXTarget.jump(x * 100);
+            lightYTarget.jump(y * 100);
+            setPointerActive(true);
           }}
           onPointerMove={(event) => {
             if (reduceMotion || event.pointerType === "touch") return;
