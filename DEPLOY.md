@@ -20,6 +20,8 @@ command.
   secrets/                          Docker secret source files
   compose.yaml
 /opt/deploy/aqhours-site.sh         stable deployment entrypoint
+/opt/deploy/github-deployment-status.sh
+                                    GitHub Deployments API reporter
 /etc/aqhours-webhook/
   hooks.json.tmpl                   receiver rules
 /etc/aqhours-webhook.env            HMAC secret (mode 600)
@@ -66,6 +68,8 @@ Install the versioned deployment assets from the server checkout:
 sudo install -d -m 755 /opt/deploy /etc/aqhours-webhook
 sudo install -m 755 /opt/apps/homepage/scripts/server-deploy-homepage.sh \
   /opt/deploy/aqhours-site.sh
+sudo install -m 755 /opt/apps/homepage/scripts/github-deployment-status.sh \
+  /opt/deploy/github-deployment-status.sh
 sudo install -m 755 /opt/apps/eternal-card/scripts/server-deploy.sh \
   /opt/deploy/eternal-card.sh
 sudo install -m 644 /opt/apps/homepage/deploy/hooks.json.tmpl \
@@ -84,6 +88,14 @@ printf 'AQHOURS_WEBHOOK_SECRET=%s\nAQHOURS_WEBHOOK_IP=172.18.0.1\n' "$webhook_se
 sudo chmod 600 /etc/aqhours-webhook.env
 printf '%s\n' "$webhook_secret"
 unset webhook_secret
+```
+
+Create a fine-grained GitHub personal access token scoped only to the deployed
+repositories, with **Deployments: Read and write** permission. Add it to the
+same mode-600 environment file without committing or printing it:
+
+```dotenv
+AQHOURS_GITHUB_TOKEN=github_pat_...
 ```
 
 Merge `deploy/Caddyfile.example` into the shared Caddy container configuration.
@@ -177,8 +189,9 @@ ahead, and then pushes. It no longer opens an SSH session.
 The server deployment script waits on a lock, so closely spaced webhook
 deliveries cannot run simultaneous builds. It fetches `origin/main`, resets the
 tracked checkout to that commit, builds the image, recreates the Compose
-service, and checks `https://aqhours.cn/`. The previous container remains up if
-the new image fails to build.
+service, and checks `https://aqhours.cn/`. It creates a GitHub production
+deployment before the build and marks it `success` or `failure` afterwards.
+The previous container remains up if the new image fails to build.
 
 Git fetches and build downloads run through the server's `mesh-proxy` helper.
 The helper forwards only the child command through the Headscale/Tailscale
@@ -219,6 +232,8 @@ After changing a receiver template or the external deployment script:
 
 ```bash
 sudo install -m 755 scripts/server-deploy-homepage.sh /opt/deploy/aqhours-site.sh
+sudo install -m 755 scripts/github-deployment-status.sh \
+  /opt/deploy/github-deployment-status.sh
 sudo install -m 644 deploy/hooks.json.tmpl /etc/aqhours-webhook/hooks.json.tmpl
 sudo systemctl restart aqhours-webhook.service
 ```

@@ -7,6 +7,11 @@ REMOTE="${AQHOURS_REMOTE:-origin}"
 LOCK_FILE="${AQHOURS_LOCK_FILE:-/run/aqhours-webhook/deploy.lock}"
 LOCK_WAIT_SECONDS="${AQHOURS_LOCK_WAIT_SECONDS:-900}"
 SITE_URL="${AQHOURS_SITE_URL:-https://aqhours.cn/}"
+GITHUB_REPOSITORY="${AQHOURS_GITHUB_REPOSITORY:-aqhours/aqhours-site}"
+DEPLOYMENT_ENVIRONMENT="${AQHOURS_DEPLOYMENT_ENVIRONMENT:-production}"
+DEPLOYMENT_REPORTER="${AQHOURS_DEPLOYMENT_REPORTER:-/opt/deploy/github-deployment-status.sh}"
+target_commit=""
+deployment_id=""
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$*"
@@ -17,19 +22,33 @@ fail() {
   exit 1
 }
 
+report_deployment_status() {
+  local state="$1"
+
+  [[ -n "$deployment_id" ]] || return 0
+  if ! "$DEPLOYMENT_REPORTER" status \
+    "$GITHUB_REPOSITORY" "$deployment_id" "$state" \
+    "$DEPLOYMENT_ENVIRONMENT" "$SITE_URL"; then
+    log "WARNING: Could not report GitHub deployment status: ${state}"
+  fi
+}
+
 on_error() {
   local exit_code=$?
+  trap - ERR
+  report_deployment_status failure
   log "Deployment failed at line ${BASH_LINENO[0]} with exit code ${exit_code}."
   exit "$exit_code"
 }
 trap on_error ERR
 
-for command_name in git docker flock mesh-proxy; do
+for command_name in git docker flock mesh-proxy curl python3; do
   command -v "$command_name" >/dev/null 2>&1 || fail "Required command not found: ${command_name}"
 done
 
 [[ -d "$APP_DIR/.git" ]] || fail "Not a Git checkout: ${APP_DIR}"
 [[ -f "$APP_DIR/compose.yaml" ]] || fail "compose.yaml not found in ${APP_DIR}"
+[[ -x "$DEPLOYMENT_REPORTER" ]] || fail "Deployment reporter is not executable: ${DEPLOYMENT_REPORTER}"
 
 exec 9>"$LOCK_FILE"
 log "Waiting for deployment lock."
@@ -43,6 +62,15 @@ target_commit="$(git rev-parse --verify "${REMOTE}/${BRANCH}^{commit}")"
 current_commit="$(git rev-parse --verify HEAD)"
 log "Updating checkout from ${current_commit} to ${target_commit}."
 git reset --hard "$target_commit"
+
+if deployment_id="$($DEPLOYMENT_REPORTER create \
+  "$GITHUB_REPOSITORY" "$target_commit" "$DEPLOYMENT_ENVIRONMENT" "$SITE_URL")"; then
+  report_deployment_status in_progress
+  log "GitHub deployment ${deployment_id} is in progress."
+else
+  deployment_id=""
+  log "WARNING: Could not create a GitHub deployment; continuing without status reporting."
+fi
 
 log "Building production image."
 mesh-proxy pull node:24-alpine
@@ -59,6 +87,7 @@ if [[ -n "$SITE_URL" ]]; then
   for attempt in {1..12}; do
     if curl --fail --silent --show-error --head --max-time 10 "$SITE_URL" >/dev/null; then
       log "Health check passed: ${SITE_URL}"
+      report_deployment_status success
       log "Deployment completed at ${target_commit}."
       exit 0
     fi
@@ -70,4 +99,5 @@ if [[ -n "$SITE_URL" ]]; then
   fail "Health check did not pass: ${SITE_URL}"
 fi
 
+report_deployment_status success
 log "Deployment completed at ${target_commit}."
