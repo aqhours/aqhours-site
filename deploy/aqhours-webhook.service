@@ -11,6 +11,7 @@ Group=aqhours-deploy
 SupplementaryGroups=docker
 Environment=HOME=/var/lib/aqhours-deploy
 EnvironmentFile=/etc/aqhours-webhook.env
+Environment=DOCKER_CONFIG=/var/lib/aqhours-webhook/docker
 StateDirectory=aqhours-webhook
 RuntimeDirectory=aqhours-webhook
 ExecStartPre=/bin/sh -c 'test -n "$AQHOURS_WEBHOOK_SECRET" && test -n "$AQHOURS_WEBHOOK_IP"'
