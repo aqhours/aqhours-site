@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Reuse the repository's configured transport instead of hard-coding GitHub SSH.
 REMOTE_URL="${REMOTE_URL:-origin}"
 SERVER="${AQHOURS_SERVER:-aqhours-server}"
 SERVER_DIR="${AQHOURS_SERVER_DIR:-/opt/apps/homepage}"
