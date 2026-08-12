@@ -27,8 +27,8 @@ exact components, tokens, typography, or page structure.
   and no decorative glass treatment on every component.
 - The area outside the square hero cover uses a very deep navy (`#031426`) rather than pure black,
   keeping the album-focused contrast while connecting visually to the sky and cloud palette.
-- The complete second-screen composition—including the rotating disc, lyric-style profile copy,
-  and map surface—stays
+- The complete second-screen composition—including the centered profile copy and compact map
+  surface—stays
   hidden until the profile reveal threshold, so none of its surfaces leak into the opening cover.
 - The fixed time-theme selector is one intentional glass surface: its existing translucent
   white background samples the sky through a medium backdrop blur with restrained saturation.
@@ -142,10 +142,15 @@ exact components, tokens, typography, or page structure.
 ## Time themes
 
 - The homepage has four time-of-day themes: dawn, day, dusk, and night.
-- Dawn uses a clean vertical gradient from pale sky-blue through grey-green into warm apricot-gold,
-  without radial light patches or edge darkening. Day uses a clean vertical gradient from saturated
-  blue into bright pale sky-blue, also without radial light patches or edge darkening. Dusk uses
-  cool indigo through misty blue-grey to low-saturation warm brown. Night uses a clean vertical
+- Dawn uses the restrained cool-to-warm atmospheric sequence: cobalt blue, blue-grey, misty cyan,
+  muted grey-green, and low-saturation apricot near the lower horizon. One broad low-opacity
+  grey-cyan lift sits near the center with restrained deep-blue falloff beyond both horizontal
+  edges. Day remains fresh without using high saturation: neighboring indigo-blue and grey-blue
+  retain a clearly blue middle field, then soften through sea-glass green into warm cloud-grey.
+  Purple, yellow, and a cyan middle stop are excluded. Its central atmospheric
+  lift and blue-violet edge depth remain lower in contrast than the dawn and dusk treatments; no
+  yellow is present. These overlays fade to transparency and do not use a blur filter. Dusk uses cool indigo through misty blue-grey to
+  low-saturation warm brown with the same layered atmospheric structure. Night uses a clean vertical
   gradient from deep navy into a slightly cyan ocean blue, without radial light patches or edge
   darkening. Only the color relationships are adapted: no screenshot, cloud, branding, logo, copy,
   or other proprietary asset is used in the public interface.
@@ -208,14 +213,15 @@ exact components, tokens, typography, or page structure.
   scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a personal-introduction
   layer within the same fixed stage.
-- The personal introduction is presented like an album spread without a jewel case: one large,
-  slowly rotating CD on the left and lyric-style profile copy on the right. The interactive
-  Honggutan map fills the circular disc face beneath restrained optical grooves, sheen, and hub
-  details. Hovering the disc pauses rotation for map interaction, and reduced-motion removes the
-  spin. The lyrics retain the original three lines: `I am aqhours.`,
-  `A passionate Software Designer and CSer`, and `Living in Honggutan, Nanchang`. A restrained
-  `Personal archive · Side B · 2026` footer supplies album metadata without listing interests.
-  `aqhours` remains the only handwritten Caveat Bold text.
+- The personal introduction uses a centered, single-column editorial profile rather than an album
+  metaphor. The upper group contains `I am aqhours.` and `A passionate Software Designer and CSer`;
+  `aqhours` remains the only handwritten Caveat Bold text, and no eyebrow label sits above the copy.
+  `Living in Honggutan, Nanchang` is the third line in the same group. Apart from the handwritten
+  `aqhours`, all three lines share one font size, weight, line height, and vertical interval, and
+  remain on one line. Beneath them, a compact location panel contains a small horizontal map and two restrained metadata
+  entries: `28.65° N · 115.83° E` and `China Standard Time · UTC+8`. CD geometry, circular map
+  cropping, grooves, hub, rotation, track numbering, and `Side B` metadata are removed so the later
+  favorite-song wall owns the album language.
 - The default map uses AMap's official JavaScript API 2.0, configured through the public,
   domain-restricted `NEXT_PUBLIC_AMAP_API_KEY`. Its security code is kept only in a production
   Docker secret and is injected by the Nginx `/_AMapService` proxy; it is never emitted in the
@@ -226,39 +232,47 @@ exact components, tokens, typography, or page structure.
   are disabled, as is map dragging. Wheel input over the map continues scrolling the page.
   Provider attribution and copyright remain visible.
   The map is presented as the bare map surface without an outer card, translucent frame, or
-  shadow. The map crop itself has one restrained `2px` grey-white border.
-  Its location line remains outside the map and closer to the personal-introduction sentence.
-- The three introduction lines use one responsive, tightly spaced vertical rhythm. The `Living in`
-  lead uses the same white Manrope treatment, size, weight, and tracking as the location text. The
-  map begins exactly `45px` below the third line.
+  shadow. The map crop itself has one restrained `1px` grey-white border.
+  Its location line remains outside and directly above the map.
+- The three introduction lines use one responsive, tightly spaced vertical rhythm and the same
+  white Manrope treatment, except for the handwritten `aqhours`. The location line sits directly
+  above the map with a restrained connecting gap.
+- Fine coordinate-line segments connect the three introduction lines and continue to a single blue
+  datum point above the map. They draw once with the introduction entrance and then remain still.
+  A faint local latitude-longitude grid sits behind this composition, fades at its edges, and moves
+  no more than `4px` on each axis under spring-smoothed fine-pointer input. It does not move the copy
+  or map, and remains static in reduced-motion mode.
+- The visible introduction layer accepts text selection and sits above the retired opening-cover
+  content. On narrow screens, the map retains a clear horizontal safety gap from the fixed theme
+  selector.
+- The homepage has no visual-variant query mode. If an older link contains a `variant` search
+  parameter, the client removes that obsolete parameter while preserving all other URL state.
 - The map itself uses a rounded crop and the selected custom AMap base style
   `f068f1616ca8804b3fc1d203aa5f3a6b` for dawn, day, and dusk, with `darkblue` at night.
-  A white-ringed compact blue position dot marks the configured Honggutan
-  coordinate, while a small `Nanchang, China` label sits inside the lower-left map area without
-  obscuring required AMap attribution. The position dot has two staggered, continuously expanding
-  blue pulse rings with a soft radial falloff. The center remains still, and reduced-motion mode
-  removes the pulse. The Chinese base map retains its roads and regional/place labels while keeping
+  A white-ringed compact blue position dot marks the configured Honggutan coordinate without
+  adding a redundant location label inside the map. The position dot emits one expanding blue pulse
+  with a soft radial falloff after the map enters, then remains still; reduced-motion mode removes
+  the pulse. The Chinese base map retains its roads and regional/place labels while keeping
   building layers out of the crop; its custom `Nanchang, China` caption and required AMap attribution
-  remain visible. The position dot and both pulse rings are one custom DOM-backed `AMap.Marker`; no
+  remain visible. The position dot and pulse ring are one custom DOM-backed `AMap.Marker`; no
   default marker or separate map Overlay is used.
-- On fine-pointer devices, the map receives a restrained, viewport-wide mouse-position-driven
-  3D tilt with perspective and a spring-smoothed return when the pointer leaves the window. It has
-  its own interruptible `520ms` Fade Up entrance after the introduction and location line begin to
-  settle, while touch and reduced-motion experiences remain still. It is not mounted before the
-  introduction first reveals, and remains mounted across later reversible exits.
+- The map remains static rather than following the viewport pointer. It has its own interruptible
+  `520ms` Fade Up entrance after the introduction and location heading begin to settle. It is not
+  mounted before the introduction first reveals, and remains mounted across later reversible exits.
 - The personal-introduction screen has one dedicated cloud near each horizontal edge. The left and
   right clouds are compact, clearly edged, and sit at visibly different heights. They remain near
   their sides with only a slow, low-amplitude ambient drift, reveal with the second screen, and stay
   behind its content. Their vertical position follows the second screen's sticky scroll travel, so
   they move upward with that screen and are fully absent from the third screen. Reduced-motion mode
   keeps their ambient drift still while preserving the page-linked scroll position.
-- The identity, role description, and location lines enter in that order with one interruptible
+- The identity, role description, and location heading enter in that order with one interruptible
   Fade Up motion: `420ms cubic-bezier(0.23, 1, 0.32, 1)`, an `18px` rise, and `55ms` between lines.
   Reverse-scroll exit takes `180ms` in reverse line order, so interrupted transitions continue from
   their current rendered state rather than restarting a keyframe.
 - The concise introduction remains above the vertical center and uses the full available content width,
   so all three lines are horizontally centered against the complete viewport. The block sits closer
-  to the settled header `hello` than before.
+  to the settled header `hello` than before. Its resting composition is offset only slightly above
+  center with `clamp(-24px, -2vh, -12px)`, avoiding the earlier top-heavy placement.
   Its reveal and reverse-scroll exit use different thresholds: after appearing, it remains visible
   while moving clearly farther down and hides only below its original reveal position. The shared
   scroll mapping must preserve a visibly distinct distance between those two positions. It appears
@@ -328,8 +342,10 @@ exact components, tokens, typography, or page structure.
   and can fully detach the sticker before it is placed back. Peel audio responds to the gesture, and the
   source-change entrance retains the renderer's restrained scan effect. The implementation uses a
   locally vendored, MIT-licensed Sticker Forge module with its license preserved; no reference artwork
-  or brand assets are included. Reduced motion suppresses the entrance, wind, and sound while keeping
-  the collection selectable.
+  or brand assets are included. The stage background contains no bordered circular outlines. It keeps
+  one very low-opacity radial light falloff behind the main sticker together with its restrained
+  diagonal texture. Reduced motion suppresses the entrance, wind, and sound while keeping the
+  collection selectable.
 - The fifth screen expresses the education statement in three uppercase English lines:
   `COMPUTER SCIENCE. / B.S. EARNED. / M.S. STUDENT.` The accessible label expands both
   degree abbreviations and states that both belong to Computer Science and Technology. The lines

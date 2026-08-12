@@ -36,12 +36,10 @@ function createPositionMarker() {
 
   const firstRing = document.createElement("span");
   firstRing.className = styles.markerPulseRing;
-  const secondRing = document.createElement("span");
-  secondRing.className = styles.markerPulseRing;
   const center = document.createElement("span");
   center.className = styles.markerCenter;
 
-  marker.append(firstRing, secondRing, center);
+  marker.append(firstRing, center);
   return marker;
 }
 

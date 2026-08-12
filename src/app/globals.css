@@ -11,13 +11,13 @@
 }
 
 :root[data-theme="dawn"] {
-  --page: #c8d0c4;
+  --page: #8db4bd;
   --ink: #ffffff;
   --focus: #ffffff;
 }
 
 :root[data-theme="day"] {
-  --page: #3d99ee;
+  --page: #77a5c2;
   --ink: #ffffff;
   --focus: #ffffff;
 }

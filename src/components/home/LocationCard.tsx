@@ -1,18 +1,10 @@
 "use client";
 
-import {
-  motion,
-  useMotionTemplate,
-  useMotionValue,
-  useSpring,
-} from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { GoogleMap } from "./GoogleMap";
 import styles from "./LocationCard.module.css";
 
-const MAX_ROTATE_X = 3.8;
-const MAX_ROTATE_Y = 5.2;
 const MAP_PROVIDER = process.env.NEXT_PUBLIC_MAP_PROVIDER ?? "amap";
 const AMAP_API_KEY = process.env.NEXT_PUBLIC_AMAP_API_KEY;
 const AMAP_DEVELOPMENT_SECURITY_JS_CODE =
@@ -52,12 +44,10 @@ function createPositionMarker() {
 
   const firstRing = document.createElement("span");
   firstRing.className = styles.markerPulseRing;
-  const secondRing = document.createElement("span");
-  secondRing.className = styles.markerPulseRing;
   const center = document.createElement("span");
   center.className = styles.markerCenter;
 
-  marker.append(firstRing, secondRing, center);
+  marker.append(firstRing, center);
   return marker;
 }
 
@@ -158,34 +148,8 @@ function InteractiveMap() {
   return MAP_PROVIDER === "google" ? <GoogleMap /> : <AMapMap />;
 }
 
-type LocationCardProps = {
-  visible: boolean;
-  variant?: "card" | "disc";
-};
-
-export function LocationCard({
-  visible,
-  variant = "card",
-}: LocationCardProps) {
+export function LocationCard({ visible }: { visible: boolean }) {
   const [entranceReady, setEntranceReady] = useState(false);
-  const rotateXTarget = useMotionValue(0);
-  const rotateYTarget = useMotionValue(0);
-  const rotateX = useSpring(rotateXTarget, {
-    stiffness: 150,
-    damping: 22,
-    mass: 0.8,
-  });
-  const rotateY = useSpring(rotateYTarget, {
-    stiffness: 150,
-    damping: 22,
-    mass: 0.8,
-  });
-  const cardTransform = useMotionTemplate`perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-
-  const resetTilt = useCallback(() => {
-    rotateXTarget.set(0);
-    rotateYTarget.set(0);
-  }, [rotateXTarget, rotateYTarget]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setEntranceReady(true));
@@ -193,55 +157,19 @@ export function LocationCard({
     return () => window.cancelAnimationFrame(frame);
   }, []);
 
-  useEffect(() => {
-    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    const handleMouseMove = (event: MouseEvent) => {
-      if (!finePointer.matches || reducedMotion.matches) return;
-
-      const normalizedX = event.clientX / window.innerWidth - 0.5;
-      const normalizedY = event.clientY / window.innerHeight - 0.5;
-      rotateXTarget.set(normalizedY * -2 * MAX_ROTATE_X);
-      rotateYTarget.set(normalizedX * 2 * MAX_ROTATE_Y);
-    };
-    const handleMouseOut = (event: MouseEvent) => {
-      if (event.relatedTarget === null) resetTilt();
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, {
-      passive: true,
-      capture: true,
-    });
-    window.addEventListener("mouseout", handleMouseOut);
-    window.addEventListener("blur", resetTilt);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove, true);
-      window.removeEventListener("mouseout", handleMouseOut);
-      window.removeEventListener("blur", resetTilt);
-    };
-  }, [resetTilt, rotateXTarget, rotateYTarget]);
-
   return (
     <div
       className={styles.entrance}
-      data-variant={variant}
       data-visible={visible && entranceReady ? "true" : "false"}
       aria-hidden={!visible}
       inert={!visible}
     >
-      <motion.article
+      <article
         className={styles.mapTilt}
-        data-variant={variant}
-        style={{ transform: cardTransform }}
         aria-label="Map of Honggutan, Nanchang"
       >
         <InteractiveMap />
-        {variant === "card" && (
-          <span className={styles.mapCaption}>Nanchang, China</span>
-        )}
-      </motion.article>
+      </article>
     </div>
   );
 }

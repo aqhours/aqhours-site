@@ -22,25 +22,57 @@
 }
 
 .skyDawn {
-  background: linear-gradient(
-    180deg,
-    #83b8da 0%,
-    #acd0df 25%,
-    #c7d1c7 54%,
-    #ddd2b4 76%,
-    #f3ca88 100%
-  );
+  background:
+    radial-gradient(
+      ellipse at 50% 44%,
+      rgba(205, 226, 220, 0.2),
+      transparent 49%
+    ),
+    radial-gradient(
+      ellipse at -8% 52%,
+      rgba(35, 73, 127, 0.15),
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 108% 52%,
+      rgba(49, 78, 117, 0.13),
+      transparent 33%
+    ),
+    linear-gradient(
+      180deg,
+      #2f70c8 0%,
+      #5b94c5 25%,
+      #8db4bd 51%,
+      #bdc4ad 74%,
+      #e4bb88 100%
+    );
 }
 
 .skyDay {
-  background: linear-gradient(
-    180deg,
-    #0d6fe5 0%,
-    #1682f3 10%,
-    #3696ee 39%,
-    #55aaf0 68%,
-    #83c6f1 100%
-  );
+  background:
+    radial-gradient(
+      ellipse at 50% 45%,
+      rgba(224, 232, 228, 0.17),
+      transparent 49%
+    ),
+    radial-gradient(
+      ellipse at -8% 52%,
+      rgba(42, 60, 105, 0.15),
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 108% 52%,
+      rgba(70, 77, 112, 0.12),
+      transparent 33%
+    ),
+    linear-gradient(
+      180deg,
+      #456fae 0%,
+      #6290b8 25%,
+      #77a5c2 51%,
+      #a0bbb9 75%,
+      #c5c7bd 100%
+    );
 }
 
 .skyDusk {
