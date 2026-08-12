@@ -9,7 +9,7 @@ Type=simple
 User=aqhours-deploy
 Group=aqhours-deploy
 SupplementaryGroups=docker
-Environment=HOME=/var/lib/aqhours-webhook
+Environment=HOME=/var/lib/aqhours-deploy
 EnvironmentFile=/etc/aqhours-webhook.env
 StateDirectory=aqhours-webhook
 RuntimeDirectory=aqhours-webhook
