@@ -1,4 +1,4 @@
-aqhours.cn, www.aqhours.cn {
+deploy.aqhours.cn {
 	@deploy_hooks {
 		method POST
 		path /hooks/aqhours-site /hooks/eternal-card
@@ -9,7 +9,5 @@ aqhours.cn, www.aqhours.cn {
 		reverse_proxy 172.18.0.1:9000
 	}
 
-	handle {
-		reverse_proxy homepage:80
-	}
+	respond 404
 }

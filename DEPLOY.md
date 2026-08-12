@@ -3,9 +3,9 @@
 The production site is deployed without Coolify or inbound SSH automation:
 
 ```text
-local main -> GitHub -> HTTPS webhook -> Caddy -> webhook (172.18.0.1:9000)
-                                             -> /opt/deploy/aqhours-site.sh
-                                             -> git fetch/reset -> Compose build/up
+local main -> GitHub -> deploy.aqhours.cn -> Caddy -> webhook (172.18.0.1:9000)
+                                                    -> /opt/deploy/aqhours-site.sh
+                                                    -> git fetch/reset -> Compose build/up
 ```
 
 Only a signed GitHub `push` for `aqhours/aqhours-site` on `main` can start the
@@ -116,14 +116,14 @@ docker compose -f /opt/apps/caddy/compose.yaml exec caddy \
 
 Create a repository webhook under **GitHub -> Settings -> Webhooks**:
 
-- Payload URL: `https://aqhours.cn/hooks/aqhours-site`
+- Payload URL: `https://deploy.aqhours.cn/hooks/aqhours-site`
 - Content type: `application/json`
 - Secret: the generated value
 - SSL verification: enabled
 - Events: **Just the push event**
 
 Use the same secret for the Eternal Card repository with payload URL
-`https://aqhours.cn/hooks/eternal-card`. The receiver applies repository- and
+`https://deploy.aqhours.cn/hooks/eternal-card`. The receiver applies repository- and
 branch-specific rules before choosing either fixed deployment script.
 
 The receiver additionally verifies `X-Hub-Signature-256`, the `push` event
@@ -186,6 +186,19 @@ bridge to the Mac proxy; it does not grant GitHub an SSH path into the server.
 Keep the Mac bridge available when a deployment needs uncached source,
 packages, or base images.
 
+## Why this replaced the earlier approaches
+
+- Coolify was convenient, but added a control plane, proxy, generated resource names,
+  and migration coupling for several otherwise small Compose services.
+- GitHub Actions over SSH removed that control plane but required exposing and managing
+  deployment SSH credentials in CI.
+- Signed webhooks keep GitHub's responsibility to notification only. The server owns its
+  credentials, fixed commands, locking, build, health checks, and rollback boundary.
+
+During migrations, bring up the replacement stack beside the old one, copy persistent data,
+verify it internally, switch the proxy last, and remove old containers and volumes only after
+real GitHub deliveries and public health checks pass.
+
 ## Operations and recovery
 
 Follow receiver and deployment output:
@@ -223,7 +236,5 @@ docker compose up -d --remove-orphans --no-build
 sudo systemctl start aqhours-webhook.service
 ```
 
-Bring this webhook path up and verify one GitHub delivery before disabling or
-removing Coolify. Also confirm that the host Caddy instance owns ports 80/443
-and that the site's existing Caddy-to-Compose route still reaches the
-`homepage` service. The webhook change does not alter that application route.
+Before retiring another deployment path, verify a real GitHub delivery, confirm Caddy owns
+ports 80/443, and check every public service plus its persistent data.
