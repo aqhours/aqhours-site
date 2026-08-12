@@ -166,10 +166,11 @@ tracked checkout to that commit, builds the image, recreates the Compose
 service, and checks `https://aqhours.cn/`. The previous container remains up if
 the new image fails to build.
 
-The server still needs outbound access to GitHub for `git fetch` and to the
-package/image registries used by changed builds. That egress can use the
-server's normal network or an independently configured proxy; it is not routed
-through Coolify.
+Git fetches and build downloads run through the server's `mesh-proxy` helper.
+The helper forwards only the child command through the Headscale/Tailscale
+bridge to the Mac proxy; it does not grant GitHub an SSH path into the server.
+Keep the Mac bridge available when a deployment needs uncached source,
+packages, or base images.
 
 ## Operations and recovery
 

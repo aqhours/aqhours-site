@@ -24,7 +24,7 @@ on_error() {
 }
 trap on_error ERR
 
-for command_name in git docker flock; do
+for command_name in git docker flock mesh-proxy; do
   command -v "$command_name" >/dev/null 2>&1 || fail "Required command not found: ${command_name}"
 done
 
@@ -37,7 +37,7 @@ flock -w "$LOCK_WAIT_SECONDS" 9 || fail "Timed out waiting for ${LOCK_FILE}"
 
 cd "$APP_DIR"
 log "Fetching ${REMOTE}/${BRANCH}."
-git fetch --prune "$REMOTE" "$BRANCH"
+mesh-proxy exec git fetch --prune "$REMOTE" "$BRANCH"
 
 target_commit="$(git rev-parse --verify "${REMOTE}/${BRANCH}^{commit}")"
 current_commit="$(git rev-parse --verify HEAD)"
@@ -45,7 +45,9 @@ log "Updating checkout from ${current_commit} to ${target_commit}."
 git reset --hard "$target_commit"
 
 log "Building production image."
-docker compose build
+mesh-proxy pull node:24-alpine
+mesh-proxy pull nginx:alpine
+mesh-proxy exec docker compose build
 
 log "Starting production service."
 docker compose up -d --remove-orphans --no-build
