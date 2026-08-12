@@ -7,8 +7,16 @@
   overflow: hidden;
   border-block: 1px solid rgba(255, 255, 255, 0.13);
   background:
-    radial-gradient(circle at 25% 32%, rgba(255, 255, 255, 0.045), transparent 26%),
-    repeating-linear-gradient(108deg, transparent 0 110px, rgba(255, 255, 255, 0.018) 111px 112px);
+    radial-gradient(
+      circle at 25% 32%,
+      rgba(255, 255, 255, 0.045),
+      transparent 26%
+    ),
+    repeating-linear-gradient(
+      108deg,
+      transparent 0 110px,
+      rgba(255, 255, 255, 0.018) 111px 112px
+    );
   contain: paint;
 }
 
@@ -60,30 +68,6 @@
   min-height: 385px;
   overflow: hidden;
   isolation: isolate;
-}
-
-.forgeViewport::before,
-.forgeViewport::after {
-  position: absolute;
-  z-index: 0;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  border-radius: 50%;
-  content: "";
-  pointer-events: none;
-}
-
-.forgeViewport::before {
-  top: 8%;
-  left: 12%;
-  width: 42%;
-  aspect-ratio: 1;
-}
-
-.forgeViewport::after {
-  right: 11%;
-  bottom: -42%;
-  width: 34%;
-  aspect-ratio: 1;
 }
 
 .forgeHost,

@@ -13,6 +13,7 @@ import {
   type MutableRefObject,
   type RefObject,
 } from "react";
+import { motion, useMotionValue, useSpring } from "motion/react";
 import * as THREE from "three";
 
 import {
@@ -1978,6 +1979,18 @@ function PersonalIntroduction({
   subscribeScrollProgress,
 }: PersonalIntroductionProps) {
   const motionRef = useRef<HTMLDivElement>(null);
+  const gridX = useMotionValue(0);
+  const gridY = useMotionValue(0);
+  const gridSpringX = useSpring(gridX, {
+    stiffness: 90,
+    damping: 22,
+    mass: 0.8,
+  });
+  const gridSpringY = useSpring(gridY, {
+    stiffness: 90,
+    damping: 22,
+    mass: 0.8,
+  });
   const [revealState, setRevealState] = useState<ProfileRevealState>(() => ({
     visible: reduceMotion,
     hasEntered: reduceMotion,
@@ -2053,29 +2066,30 @@ function PersonalIntroduction({
           aria-hidden={!revealState.visible}
           inert={!revealState.visible}
         >
-          <div className={styles.profileRecord}>
-            <div className={styles.discColumn}>
-              <div className={styles.cdDisc}>
-                {revealState.hasEntered && (
-                  <LocationCard
-                    visible={revealState.visible}
-                    variant="disc"
-                  />
-                )}
-                <span className={styles.cdDiscSheen} aria-hidden="true" />
-                <span className={styles.cdDiscGrooves} aria-hidden="true" />
-                <span className={styles.cdDiscHub} aria-hidden="true" />
-              </div>
-              <p className={styles.discCaption}>
-                Honggutan, Nanchang · 28.65° N
-              </p>
-            </div>
+          <div
+            className={styles.profileRecord}
+            onPointerMove={(event) => {
+              if (reduceMotion || event.pointerType !== "mouse") return;
 
-            <article className={styles.lyricSheet}>
-              <header className={styles.lyricHeader}>
-                <span>TRACK 02</span>
-                <span>ABOUT AQHOURS</span>
-              </header>
+              const bounds = event.currentTarget.getBoundingClientRect();
+              const normalizedX =
+                (event.clientX - bounds.left) / bounds.width - 0.5;
+              const normalizedY =
+                (event.clientY - bounds.top) / bounds.height - 0.5;
+              gridX.set(normalizedX * 8);
+              gridY.set(normalizedY * 8);
+            }}
+            onPointerLeave={() => {
+              gridX.set(0);
+              gridY.set(0);
+            }}
+          >
+            <motion.div
+              className={styles.profileGeoGrid}
+              style={{ x: gridSpringX, y: gridSpringY }}
+              aria-hidden="true"
+            />
+            <article className={styles.profileCopy}>
               <div className={styles.lyricBody}>
                 <p>
                   I am{" "}
@@ -2084,10 +2098,23 @@ function PersonalIntroduction({
                 <p>A passionate Software Designer and CSer</p>
                 <p>Living in Honggutan, Nanchang</p>
               </div>
-              <footer className={styles.lyricFooter}>
-                Personal archive · Side B · 2026
-              </footer>
             </article>
+
+            <aside className={styles.locationPanel}>
+              {revealState.hasEntered && (
+                <LocationCard visible={revealState.visible} />
+              )}
+              <dl className={styles.locationMetadata}>
+                <div>
+                  <dt>Coordinates</dt>
+                  <dd>28.65° N · 115.83° E</dd>
+                </div>
+                <div>
+                  <dt>Time zone</dt>
+                  <dd>China Standard Time · UTC+8</dd>
+                </div>
+              </dl>
+            </aside>
           </div>
         </div>
       </div>
@@ -2115,6 +2142,19 @@ export function HomepageHero() {
   const scrollStageHeight = reduceMotion
     ? "100svh"
     : `${(1 + HELLO_SETTLE_MOTION.scrollViewports) * 100}svh`;
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+
+    if (!url.searchParams.has("variant")) return;
+
+    url.searchParams.delete("variant");
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }, []);
 
   return (
     <>
