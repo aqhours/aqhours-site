@@ -59,6 +59,13 @@ type FavoriteSong = {
   favoriteLyric?: readonly string[];
 };
 
+const AQOURS_FINALE_STICKER: FavoriteLogo = {
+  name: "LoveLive! Sunshine!! Aqours Finale LoveLive! ～EIKYU stage～",
+  src: "/logo_svg/aqours-finale-live.svg",
+  width: "82%",
+  height: "66%",
+};
+
 const FAVORITE_SONGS: FavoriteSong[] = [
   {
     id: "birds-of-a-feather",
@@ -211,12 +218,6 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
     height: "64%",
   },
   {
-    name: "Aqours Finale Live",
-    src: "/logo_svg/aqours-finale-live.svg",
-    width: "82%",
-    height: "66%",
-  },
-  {
     name: "Infinity Nikki",
     src: "/logo_svg/infinity-nikki.svg",
     width: "90%",
@@ -255,7 +256,11 @@ const CULTURE_LOGOS: FavoriteLogo[] = [
   },
 ];
 
-const FAVORITE_LOGOS = [...TECHNOLOGY_LOGOS, ...CULTURE_LOGOS];
+const FAVORITE_LOGOS = [
+  AQOURS_FINALE_STICKER,
+  ...TECHNOLOGY_LOGOS,
+  ...CULTURE_LOGOS,
+];
 
 const FADE_UP_EASE = [0.23, 1, 0.32, 1] as const;
 const ALBUM_SPACE_TRANSITION = {
