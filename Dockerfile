@@ -18,8 +18,9 @@ ARG NEXT_PUBLIC_MAP_PROVIDER=amap
 ARG NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID
 ARG NEXT_PUBLIC_UMAMI_SCRIPT_URL
 ARG NEXT_PUBLIC_UMAMI_WEBSITE_ID
-RUN --mount=type=secret,id=google_maps_api_key,required=true \
-    NEXT_PUBLIC_AMAP_API_KEY="$NEXT_PUBLIC_AMAP_API_KEY" \
+RUN --mount=type=secret,id=NEXT_PUBLIC_AMAP_API_KEY \
+    --mount=type=secret,id=google_maps_api_key,required=true \
+    NEXT_PUBLIC_AMAP_API_KEY="$(if [ -f /run/secrets/NEXT_PUBLIC_AMAP_API_KEY ]; then cat /run/secrets/NEXT_PUBLIC_AMAP_API_KEY; else printf '%s' "$NEXT_PUBLIC_AMAP_API_KEY"; fi)" \
     NEXT_PUBLIC_MAP_PROVIDER="$NEXT_PUBLIC_MAP_PROVIDER" \
     NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="$(cat /run/secrets/google_maps_api_key)" \
     NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID="$NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID" \
