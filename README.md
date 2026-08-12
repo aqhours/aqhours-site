@@ -6,8 +6,7 @@ Homepage v0.1 is the Next.js personal homepage for aqhours.cn.
 
 ## Deployment
 
-Pushing `main` triggers the production deployment in Coolify. The deployment server reaches
-GitHub through the Tailscale mesh proxy bridge on the development Mac, so Tailscale, Nextin's
-local proxy, and `cn.aqhours.mesh-proxy-bridge` must be running when a build starts. The
-`pnpm deploy` script remains a manual fallback and pushes through the repository's configured
-`origin` transport before rebuilding the legacy server checkout.
+Pushing `main` triggers the production webhook. Caddy forwards the signed GitHub request to a
+localhost-only receiver, which updates the server checkout and rebuilds the Docker Compose
+service. Coolify and GitHub Actions SSH access are not part of the deployment path. See
+[DEPLOY.md](DEPLOY.md) for server networking requirements, setup, and recovery commands.

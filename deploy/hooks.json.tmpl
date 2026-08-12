@@ -1,0 +1,64 @@
+[
+  {
+    "id": "aqhours-site",
+    "execute-command": "/opt/deploy/aqhours-site.sh",
+    "command-working-directory": "/opt/apps/homepage",
+    "response-message": "Deployment accepted.",
+    "success-http-response-code": 202,
+    "trigger-rule-mismatch-http-response-code": 403,
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "payload-hmac-sha256",
+            "secret": "{{ getenv "AQHOURS_WEBHOOK_SECRET" | js }}",
+            "parameter": {
+              "source": "header",
+              "name": "X-Hub-Signature-256"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "push",
+            "parameter": {
+              "source": "header",
+              "name": "X-GitHub-Event"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "aqhours/aqhours-site",
+            "parameter": {
+              "source": "payload",
+              "name": "repository.full_name"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "refs/heads/main",
+            "parameter": {
+              "source": "payload",
+              "name": "ref"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "false",
+            "parameter": {
+              "source": "payload",
+              "name": "deleted"
+            }
+          }
+        }
+      ]
+    }
+  }
+]

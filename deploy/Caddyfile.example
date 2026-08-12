@@ -1,0 +1,12 @@
+deploy.aqhours.cn {
+	@aqhours_site {
+		method POST
+		path /hooks/aqhours-site
+	}
+
+	handle @aqhours_site {
+		reverse_proxy 127.0.0.1:9000
+	}
+
+	respond 404
+}

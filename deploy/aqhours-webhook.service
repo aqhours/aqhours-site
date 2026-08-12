@@ -1,0 +1,28 @@
+[Unit]
+Description=aqhours GitHub webhook receiver
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=aqhours-deploy
+Group=aqhours-deploy
+SupplementaryGroups=docker
+Environment=HOME=/var/lib/aqhours-webhook
+EnvironmentFile=/etc/aqhours-webhook.env
+StateDirectory=aqhours-webhook
+RuntimeDirectory=aqhours-webhook
+ExecStartPre=/bin/sh -c 'test -n "$AQHOURS_WEBHOOK_SECRET"'
+ExecStart=/usr/bin/webhook -ip 127.0.0.1 -port 9000 -hooks /etc/aqhours-webhook/hooks.json.tmpl -template -http-methods POST -verbose
+Restart=on-failure
+RestartSec=5s
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/apps/homepage /run/aqhours-webhook
+
+[Install]
+WantedBy=multi-user.target

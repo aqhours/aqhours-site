@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Reuse the repository's configured transport instead of hard-coding GitHub SSH.
 REMOTE_URL="${REMOTE_URL:-origin}"
-SERVER="${AQHOURS_SERVER:-aqhours-server}"
-SERVER_DIR="${AQHOURS_SERVER_DIR:-/opt/apps/homepage}"
-SITE_URL="${AQHOURS_SITE_URL:-https://aqhours.cn/}"
 
 cd "$(git rev-parse --show-toplevel)"
 
@@ -24,14 +20,11 @@ fi
 pnpm run typecheck
 pnpm run build
 
-git fetch origin main
-if ! git merge-base --is-ancestor origin/main HEAD; then
-  echo "origin/main has commits that are not in local main. Pull/rebase before deploy." >&2
+git fetch "$REMOTE_URL" main
+if ! git merge-base --is-ancestor "$REMOTE_URL/main" HEAD; then
+  echo "$REMOTE_URL/main has commits that are not in local main. Pull/rebase before deploy." >&2
   exit 1
 fi
 
 git push "$REMOTE_URL" main
-
-ssh "$SERVER" "cd '$SERVER_DIR' && git pull --ff-only origin main && docker compose up -d --build && docker compose ps"
-
-curl -fsSI "$SITE_URL" | sed -n '1,12p'
+echo "Push completed. GitHub will notify the production webhook receiver."
