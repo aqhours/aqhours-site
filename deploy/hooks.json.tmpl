@@ -60,5 +60,67 @@
         }
       ]
     }
+  },
+  {
+    "id": "eternal-card",
+    "execute-command": "/opt/deploy/eternal-card.sh",
+    "command-working-directory": "/opt/apps/eternal-card",
+    "response-message": "Deployment accepted.",
+    "success-http-response-code": 202,
+    "trigger-rule-mismatch-http-response-code": 403,
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "payload-hmac-sha256",
+            "secret": "{{ getenv "AQHOURS_WEBHOOK_SECRET" | js }}",
+            "parameter": {
+              "source": "header",
+              "name": "X-Hub-Signature-256"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "push",
+            "parameter": {
+              "source": "header",
+              "name": "X-GitHub-Event"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "aqhours/eternal-card",
+            "parameter": {
+              "source": "payload",
+              "name": "repository.full_name"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "refs/heads/main",
+            "parameter": {
+              "source": "payload",
+              "name": "ref"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "false",
+            "parameter": {
+              "source": "payload",
+              "name": "deleted"
+            }
+          }
+        }
+      ]
+    }
   }
 ]

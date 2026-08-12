@@ -13,8 +13,8 @@ Environment=HOME=/var/lib/aqhours-webhook
 EnvironmentFile=/etc/aqhours-webhook.env
 StateDirectory=aqhours-webhook
 RuntimeDirectory=aqhours-webhook
-ExecStartPre=/bin/sh -c 'test -n "$AQHOURS_WEBHOOK_SECRET"'
-ExecStart=/usr/bin/webhook -ip 127.0.0.1 -port 9000 -hooks /etc/aqhours-webhook/hooks.json.tmpl -template -http-methods POST -verbose
+ExecStartPre=/bin/sh -c 'test -n "$AQHOURS_WEBHOOK_SECRET" && test -n "$AQHOURS_WEBHOOK_IP"'
+ExecStart=/usr/bin/webhook -ip ${AQHOURS_WEBHOOK_IP} -port 9000 -hooks /etc/aqhours-webhook/hooks.json.tmpl -template -http-methods POST -verbose
 Restart=on-failure
 RestartSec=5s
 
@@ -22,7 +22,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectHome=true
 ProtectSystem=strict
-ReadWritePaths=/opt/apps/homepage /run/aqhours-webhook
+ReadWritePaths=/opt/apps/homepage /opt/apps/eternal-card /run/aqhours-webhook
 
 [Install]
 WantedBy=multi-user.target

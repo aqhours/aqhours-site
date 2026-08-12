@@ -1,12 +1,15 @@
-deploy.aqhours.cn {
-	@aqhours_site {
+aqhours.cn, www.aqhours.cn {
+	@deploy_hooks {
 		method POST
-		path /hooks/aqhours-site
+		path /hooks/aqhours-site /hooks/eternal-card
 	}
 
-	handle @aqhours_site {
-		reverse_proxy 127.0.0.1:9000
+	handle @deploy_hooks {
+		# aqhours-web's host-side gateway; the receiver binds only here.
+		reverse_proxy 172.18.0.1:9000
 	}
 
-	respond 404
+	handle {
+		reverse_proxy homepage:80
+	}
 }

@@ -3,7 +3,7 @@
 The production site is deployed without Coolify or inbound SSH automation:
 
 ```text
-local main -> GitHub -> HTTPS webhook -> Caddy -> webhook (127.0.0.1:9000)
+local main -> GitHub -> HTTPS webhook -> Caddy -> webhook (172.18.0.1:9000)
                                              -> /opt/deploy/aqhours-site.sh
                                              -> git fetch/reset -> Compose build/up
 ```
@@ -33,9 +33,13 @@ server deployment script intentionally changes.
 
 ## One-time server setup
 
-These instructions assume Caddy runs directly on the host. A containerized
-Caddy cannot reach a host service through `127.0.0.1`; give it an explicit host
-route or use a Unix socket instead.
+The production Caddy container reaches the host receiver through the
+`aqhours-web` bridge gateway. Confirm its current gateway before installation:
+
+```bash
+docker network inspect aqhours-web \
+  --format '{{range .IPAM.Config}}{{.Gateway}}{{end}}'
+```
 
 Install the receiver and create a dedicated deployment account. Membership in
 the `docker` group is effectively root-level access, so do not reuse this
@@ -47,7 +51,8 @@ sudo apt-get install webhook git curl openssl
 sudo useradd --system --create-home --home-dir /var/lib/aqhours-deploy \
   --shell /usr/sbin/nologin aqhours-deploy
 sudo usermod --append --groups docker aqhours-deploy
-sudo chown -R aqhours-deploy:aqhours-deploy /opt/apps/homepage
+sudo chown -R aqhours-deploy:aqhours-deploy \
+  /opt/apps/homepage /opt/apps/eternal-card
 sudo -u aqhours-deploy git -C /opt/apps/homepage fetch origin main
 ```
 
@@ -61,6 +66,8 @@ Install the versioned deployment assets from the server checkout:
 sudo install -d -m 755 /opt/deploy /etc/aqhours-webhook
 sudo install -m 755 /opt/apps/homepage/scripts/server-deploy-homepage.sh \
   /opt/deploy/aqhours-site.sh
+sudo install -m 755 /opt/apps/eternal-card/scripts/server-deploy.sh \
+  /opt/deploy/eternal-card.sh
 sudo install -m 644 /opt/apps/homepage/deploy/hooks.json.tmpl \
   /etc/aqhours-webhook/hooks.json.tmpl
 sudo install -m 644 /opt/apps/homepage/deploy/aqhours-webhook.service \
@@ -72,32 +79,38 @@ the GitHub webhook form; do not commit it.
 
 ```bash
 webhook_secret="$(openssl rand -hex 32)"
-printf 'AQHOURS_WEBHOOK_SECRET=%s\n' "$webhook_secret" \
+printf 'AQHOURS_WEBHOOK_SECRET=%s\nAQHOURS_WEBHOOK_IP=172.18.0.1\n' "$webhook_secret" \
   | sudo tee /etc/aqhours-webhook.env >/dev/null
 sudo chmod 600 /etc/aqhours-webhook.env
 printf '%s\n' "$webhook_secret"
 unset webhook_secret
 ```
 
-Add the contents of `deploy/Caddyfile.example` to the host Caddy configuration,
-adjusting `deploy.aqhours.cn` if necessary. The receiver itself remains bound to
-loopback; only Caddy exposes its one POST route.
+Merge `deploy/Caddyfile.example` into the shared Caddy container configuration.
+The receiver binds only to the Docker bridge gateway; only Caddy exposes its
+two fixed POST routes.
 
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now aqhours-webhook.service
 sudo systemctl status aqhours-webhook.service
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
+docker compose -f /opt/apps/caddy/compose.yaml run --rm caddy \
+  validate --config /etc/caddy/Caddyfile
+docker compose -f /opt/apps/caddy/compose.yaml exec caddy \
+  caddy reload --config /etc/caddy/Caddyfile
 ```
 
 Create a repository webhook under **GitHub -> Settings -> Webhooks**:
 
-- Payload URL: `https://deploy.aqhours.cn/hooks/aqhours-site`
+- Payload URL: `https://aqhours.cn/hooks/aqhours-site`
 - Content type: `application/json`
 - Secret: the generated value
 - SSL verification: enabled
 - Events: **Just the push event**
+
+Use the same secret for the Eternal Card repository with payload URL
+`https://aqhours.cn/hooks/eternal-card`. The receiver applies repository- and
+branch-specific rules before choosing either fixed deployment script.
 
 The receiver additionally verifies `X-Hub-Signature-256`, the `push` event
 header, repository name, `refs/heads/main`, and that the ref was not deleted.
