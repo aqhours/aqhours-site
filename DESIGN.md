@@ -27,9 +27,8 @@ exact components, tokens, typography, or page structure.
   and no decorative glass treatment on every component.
 - The area outside the square hero cover uses a very deep navy (`#031426`) rather than pure black,
   keeping the album-focused contrast while connecting visually to the sky and cloud palette.
-- The complete second-screen composition—including the centered profile copy and compact map
-  surface—stays
-  hidden until the profile reveal threshold, so none of its surfaces leak into the opening cover.
+- The complete second-screen personal-object field stays hidden until its reveal threshold, so none
+  of its geometry or light leaks into the opening cover.
 - The fixed time-theme selector is one intentional glass surface: its existing translucent
   white background samples the sky through a medium backdrop blur with restrained saturation.
 
@@ -53,24 +52,25 @@ exact components, tokens, typography, or page structure.
   recycle to the far depth only after it is no longer visible, maintaining continuous full-screen coverage.
   Recycled banks use a smooth far-depth opacity fade-in rather than popping back into the scene. No bank
   starts close enough to the center of the camera to wash out the refreshed hero view.
-- On hero-to-introduction scroll, the complete hero cloud field retains its existing spatial exit:
+- On hero-to-personal-objects scroll, the complete hero cloud field retains its existing spatial exit:
   it moves upward as one field and leaves without a scroll-linked opacity fade.
 - A compact `Listen` button sits vertically centered to the right of the opening cover in the
   surrounding deep-navy area, rather than appearing as printed cover content. On constrained
   widths it moves below the cover to avoid clipping. Automatic hero advance remains disabled;
-  activating this explicit control runs the existing velocity-continuous hero-to-introduction
+  activating this explicit control runs the existing velocity-continuous hero-to-personal-objects
   transition into the second screen. Reduced-motion activation moves directly to the settled
-  introduction state.
+  object-field state.
 - The translucent shrink-wrap release label includes a narrow, separated left column reading
   `最速先行特典` vertically. It retains the site’s colorless label treatment rather than copying
   the reference package’s blue background or branded copy.
 - On the left-side obi, `永久 hours / aqhours` forms one horizontal title-and-artist wordmark that
-  is rotated 90 degrees as a complete line, matching the sideways orientation of `AQH-EH26`.
+  is rotated 90 degrees as a complete line, matching the sideways orientation of `AQH-7319`.
   It is not italic and does not use upright per-character vertical typesetting. The title and
   artist share one font stack and weight, with only a smaller artist size for hierarchy.
-- Personal release numbering encodes the project rather than an arbitrary sequence: `AQH-EH26`
-  combines aqhours, Eternal Hours, and 2026. The shrink-wrap label extends it as
-  `AQH-EH26 / SIDE A`.
+- Personal release numbering uses stable, irregular archive numbers rather than repeating the
+  current year: `Personal record · 0719`, `Personal CD · 4831`, `AQH-7319`, and
+  `LOT 5804 / SIDE A`. The values stay fixed across visits so they read as artifact identities,
+  not live random UI state.
 
 ## Header
 
@@ -106,8 +106,8 @@ exact components, tokens, typography, or page structure.
   gradient reaches full transparency at the bottom so it never reads as a framed rectangle.
 - Apply the blur through Tailwind's `backdrop-blur-md` utility, matching the supplied Air HTML
   and ensuring the generated stylesheet retains the backdrop-filter declarations.
-- The cloud field and 3D glass stroke share one fixed Canvas and one Three.js scene. That Canvas
-  stays below the personal-introduction copy. The header frost remains hidden while the 3D glass
+- The cloud field, 3D glass stroke, and personal objects share one fixed Canvas and one Three.js
+  scene. The header frost remains hidden while the 3D glass
   stroke is present; it appears only after the handoff to the flat header mark has completed. The
   flat mark and header navigation stay above the frost.
 - Extend the frost `28px` below the header and mask that extension from opaque to transparent,
@@ -188,20 +188,20 @@ exact components, tokens, typography, or page structure.
 - Reduced-motion keeps the state change but removes the indicator's spatial movement and shape
   deformation. Keyboard and pointer activation otherwise share the same animation behavior.
 
-## Personal introduction layer
+## Personal objects layer
 
-- The automatic hero-to-introduction scroll uses one velocity-continuous segmented curve. It starts
+- The automatic hero-to-personal-objects scroll uses one velocity-continuous segmented curve. It starts
   from rest, passes through an explicit 85% rotation checkpoint at 1.320s, then accelerates from a
   normalized speed of 1.2 to 1.4 through the remaining scale-and-travel phase, reaching the 91%
   header handoff at 1.394s of the 1.6s total. From 91–100%, one uninterrupted roughly 206ms Hermite
-  tail carries the introduction to its final position and decelerates monotonically to rest, with no
+  tail carries the object field to its final position and decelerates monotonically to rest, with no
   intermediate 95% control point.
   The checkpoint times are derived from their progress distances and velocities rather than tuned
   independently. When raw stage
   progress reaches 91%, only the hello visual
   progress snaps exactly to 1 and completes its header handoff; authoritative stage progress
-  continues to 100%. At that hello handoff milestone the introduction remains exactly 6vh below
-  its target, and automatic scrolling ends only when the introduction reaches its target.
+  continues to 100%. At that hello handoff milestone the object field remains exactly 6vh below
+  its target, and automatic scrolling ends only when the object field reaches its target.
 - One scroll motion controller owns automatic scrolling, desktop wheel inertia, the authoritative
   stage progress, and progress subscriptions. Three.js and DOM consumers must not add independent
   scroll smoothing or permanent polling loops on top of that shared progress.
@@ -210,81 +210,63 @@ exact components, tokens, typography, or page structure.
   presentation value without overshoot. Retargeting or reversing preserves the current on-screen
   velocity, and interrupting the automatic transition hands its measured velocity directly to the
   same manual motion state instead of restarting from rest. The first micro input in a new direction
-  receives a restrained minimum glide only once. The interactive map is excluded from the page-level
-  wheel interception so its greedy zoom remains direct. Touch scrolling keeps the operating system's
-  native inertia, keyboard scrolling remains native, and reduced-motion mode does not add custom
-  scroll inertia.
-- The first `100vh` of scrolling transitions from the hero into a personal-introduction
-  layer within the same fixed stage.
-- The personal introduction uses a centered, single-column editorial profile rather than an album
-  metaphor. The upper group contains `I am aqhours.` and `A passionate Software Designer and CSer`;
-  `aqhours` remains the only handwritten Caveat Bold text, and no eyebrow label sits above the copy.
-  `Living in Honggutan, Nanchang` is the third line in the same group. Apart from the handwritten
-  `aqhours`, all three lines share one font size, weight, line height, and vertical interval, and
-  remain on one line. Beneath them, a compact location panel contains a small horizontal map and two restrained metadata
-  entries: `28.65° N · 115.83° E` and `China Standard Time · UTC+8`. CD geometry, circular map
-  cropping, grooves, hub, rotation, track numbering, and `Side B` metadata are removed so the later
-  favorite-song wall owns the album language.
-- The default map uses AMap's official JavaScript API 2.0, configured through the public,
-  domain-restricted `NEXT_PUBLIC_AMAP_API_KEY`. Its security code is kept only in a production
-  Docker secret and is injected by the Nginx `/_AMapService` proxy; it is never emitted in the
-  static site. A retained Google Maps implementation can be selected at build time with
-  `NEXT_PUBLIC_MAP_PROVIDER=google`; it uses a separately domain-restricted browser key and Map ID.
-  Both providers are centered at longitude `115.83`, latitude `28.65` with an initial zoom of
-  `11.5`. The map is a fixed view: mouse-wheel, trackpad, touch, double-click, and keyboard zoom
-  are disabled, as is map dragging. Wheel input over the map continues scrolling the page.
-  Provider attribution and copyright remain visible.
-  The map is presented as the bare map surface without an outer card, translucent frame, or
-  shadow. The map crop itself has one restrained `1px` grey-white border.
-  Its location line remains outside and directly above the map.
-- The three introduction lines use one responsive, tightly spaced vertical rhythm and the same
-  white Manrope treatment, except for the handwritten `aqhours`. The location line sits directly
-  above the map with a restrained connecting gap.
-- Fine coordinate-line segments connect the three introduction lines and continue to a single blue
-  datum point above the map. They draw once with the introduction entrance and then remain still.
-  A faint local latitude-longitude grid sits behind this composition, fades at its edges, and moves
-  no more than `4px` on each axis under spring-smoothed fine-pointer input. It does not move the copy
-  or map, and remains static in reduced-motion mode.
-- The visible introduction layer accepts text selection and sits above the retired opening-cover
-  content. On narrow screens, the map retains a clear horizontal safety gap from the fixed theme
-  selector.
+  receives a restrained minimum glide only once. Touch scrolling keeps the operating system's native
+  inertia, keyboard scrolling remains native, and reduced-motion mode does not add custom scroll inertia.
+- The first `100vh` of scrolling transitions from the hero into a spatial collection of personal
+  objects within the same fixed stage.
+- The second screen contains no biographical paragraph, cards, map, room, desk, grid, or connecting
+  lines. Its only visible copy is the horizontally centered lowercase question `what fills my hours?`,
+  placed slightly above the viewport midpoint so it reads as an opening thought rather than the center
+  of a product diagram. It ties the personal collection back to the aqhours name without turning the
+  screen into a product headline.
+- Objects float independently in the deep-navy atmosphere, gathered into a loose asymmetric orbit
+  around the central question rather than being pushed toward the viewport edges. Negative space
+  remains between individual silhouettes.
+- The three visual anchors are the starry-orange iPhone 17 Pro Max, AirPods Max, and MacBook Air M3.
+  The iPad Pro M5, Apple Watch, and AirPods Pro 2 remain supporting objects. The MacBook and iPad
+  carry enough visual mass to read immediately rather than appearing as small background props.
+  The light stick is deferred until its exact silhouette can be represented clearly.
+- MacBook Air M3, AirPods Max, iPad Pro M5, and Apple Watch use a coordinated midnight finish.
+  The iPhone remains starry orange and AirPods Pro 2 remain white.
+- Desktop shows the complete six-device collection with the three anchors dominant. Narrow screens
+  reduce the field to the three anchors rather than shrinking all objects into clutter.
+- Device identity comes from silhouette, proportion, camera layout, controls, hinges, cushions,
+  keyboard, and other physical details—not logos or explanatory labels. Apple marks and third-party
+  proprietary artwork are not reproduced.
+- All six devices use attribution-compatible source models rather than procedural substitutes.
+  Their source geometry is not simplified; Meshopt packing and WebP textures reduce only the transfer
+  payload. They begin loading only as the transition approaches the personal-object screen, preserving
+  the first screen's initial payload. Source credits and changes live beside the delivered models in
+  `public/models/personal/CREDITS.md`.
+- No album sleeves, sticky-note-like props, detached discs, or unexplained plates appear in the
+  personal-object field.
+- Materials use restrained metallic-roughness PBR with a local studio reflection environment. That
+  environment is applied only to the personal-object materials and must not alter the opening hero.
+- Every object owns a distinct, low-amplitude drift and rotation phase. The movement is slow,
+  continuous, and unsynchronized, with no bobbing grid or equal spacing. Reduced-motion mode keeps
+  the settled composition still.
+- On desktop fine pointers, each visible device can be grabbed directly and rotated on both axes.
+  Pointer capture keeps the object attached to the drag outside its silhouette; release velocity
+  continues into short, damped inertia and can be interrupted immediately by the next grab. The
+  resulting orientation remains where it settles rather than snapping back. Reduced-motion keeps
+  the collection completely still, and touch remains native page scrolling. Interaction remains
+  available for the full interval in which the device field is visibly on screen.
+- The centered question remains text-selectable while the rest of its overlay stays transparent to
+  pointer input, so it does not block direct interaction with the devices around it.
 - The homepage has no visual-variant query mode. If an older link contains a `variant` search
   parameter, the client removes that obsolete parameter while preserving all other URL state.
-- The map itself uses a rounded crop and the selected custom AMap base style
-  `f068f1616ca8804b3fc1d203aa5f3a6b` for dawn, day, and dusk, with `darkblue` at night.
-  A white-ringed compact blue position dot marks the configured Honggutan coordinate without
-  adding a redundant location label inside the map. The position dot emits one expanding blue pulse
-  with a soft radial falloff after the map enters, then remains still; reduced-motion mode removes
-  the pulse. The Chinese base map retains its roads and regional/place labels while keeping
-  building layers out of the crop; its custom `Nanchang, China` caption and required AMap attribution
-  remain visible. The position dot and pulse ring are one custom DOM-backed `AMap.Marker`; no
-  default marker or separate map Overlay is used.
-- The map remains static rather than following the viewport pointer. It has its own interruptible
-  `520ms` Fade Up entrance after the introduction and location heading begin to settle. It is not
-  mounted before the introduction first reveals, and remains mounted across later reversible exits.
-- The personal-introduction screen has one dedicated cloud near each horizontal edge. The left and
+- The personal-object screen has one dedicated cloud near each horizontal edge. The left and
   right clouds are compact, clearly edged, and sit at visibly different heights. They remain near
   their sides with only a slow, low-amplitude ambient drift, reveal with the second screen, and stay
   behind its content. Their vertical position follows the second screen's sticky scroll travel, so
   they move upward with that screen and are fully absent from the third screen. Reduced-motion mode
   keeps their ambient drift still while preserving the page-linked scroll position.
-- The identity, role description, and location heading enter in that order with one interruptible
-  Fade Up motion: `420ms cubic-bezier(0.23, 1, 0.32, 1)`, an `18px` rise, and `55ms` between lines.
-  Reverse-scroll exit takes `180ms` in reverse line order, so interrupted transitions continue from
-  their current rendered state rather than restarting a keyframe.
-- The concise introduction remains above the vertical center and uses the full available content width,
-  so all three lines are horizontally centered against the complete viewport. The block sits closer
-  to the settled header `hello` than before. Its resting composition is offset only slightly above
-  center with `clamp(-24px, -2vh, -12px)`, avoiding the earlier top-heavy placement.
-  Its reveal and reverse-scroll exit use different thresholds: after appearing, it remains visible
-  while moving clearly farther down and hides only below its original reveal position. The shared
-  scroll mapping must preserve a visibly distinct distance between those two positions. It appears
-  at 45% stage progress while still substantially below its final resting position. Its vertical
-  travel is viewport-relative rather than fixed-pixel: reveal is exactly 50vh below rest, while
-  reverse-scroll exit occurs at 39% progress exactly 60vh below rest.
+- The object field reveals as one scroll-linked spatial layer while each object's ambient motion
+  remains independent. Reverse scrolling follows the same path instead of starting a separate exit
+  animation.
 - Hero atmospheric elements must leave the viewport through scroll-linked spatial movement,
-  not a scroll-linked opacity fade, and be absent by the completed introduction state. The two
-  dedicated side clouds on the personal-introduction screen are a separate atmospheric layer.
+  not a scroll-linked opacity fade, and be absent by the completed object-field state. The two
+  dedicated side clouds on the personal-object screen are a separate atmospheric layer.
 
 ## Ending
 
@@ -334,7 +316,7 @@ exact components, tokens, typography, or page structure.
   indicator. Each record exposes a dedicated favorite-lyric data field; until the owner supplies
   exact lines, the listening state shows an explicit placeholder rather than invented or copied
   lyrics.
-- A compact `70svh` third screen follows the personal introduction and precedes the song wall. It
+- A compact `70svh` third screen follows the personal-object field and precedes the song wall. It
   presents the centered line `A few of my favorite things.` above one large interactive sticker stage
   and a lightweight archive of all 24 favorite marks. The marks retain their source colors and may be
   SVG or transparent PNG artwork; they are never normalized into white silhouettes or placed on large
@@ -378,7 +360,7 @@ exact components, tokens, typography, or page structure.
   the internal rolling motion and horizontal drift.
   The education scroll timeline starts when the fifth-screen section first enters at the bottom of
   the viewport, rather than waiting until its top reaches the viewport top. The text group sits
-  `18svh` below the section start, so its first row follows the settled map after a short transition
+  `18svh` below the section start, so its first row follows the settled object field after a short transition
   instead of leaving a full blank viewport between the two screens. The three scroll-driven
   entrances overlap in sequence and finish by the time the fourth screen fully occupies the viewport.
   The section is `160svh`; reduced-motion mode

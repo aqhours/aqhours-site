@@ -58,6 +58,14 @@ export function HomepageEnding() {
           <a href={ICP_RECORD_URL} target="_blank" rel="noreferrer">
             <strong>赣ICP备2022005856号-2</strong>
           </a>
+          <span className={styles.separator} aria-hidden="true">|</span>
+          <a
+            href="/models/personal/CREDITS.md"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <strong>3D credits</strong>
+          </a>
         </div>
 
         <DesignCredit />

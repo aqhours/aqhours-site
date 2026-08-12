@@ -13,15 +13,11 @@ import {
   type MutableRefObject,
   type RefObject,
 } from "react";
-import { motion, useMotionValue, useSpring } from "motion/react";
 import * as THREE from "three";
 
 import {
   resolveCloudFieldOffset,
   resolveHeaderTransition,
-  resolveProfileRevealState,
-  resolveProfileTravelOffsetVh,
-  type ProfileRevealState,
 } from "./helloScrollSession";
 import {
   HELLO_TILT_COMPENSATION_RADIANS,
@@ -36,7 +32,7 @@ import {
   useScrollMotionController,
   type SubscribeScrollProgress,
 } from "./useScrollMotionController";
-import { LocationCard } from "./LocationCard";
+import { ThreePersonalObjects } from "./ThreePersonalObjects";
 import styles from "./HomepageHero.module.css";
 
 const VERTEX_SHADER = /* glsl */ `
@@ -318,7 +314,7 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
     volume: 0.6,
     smallestVolume: 0.2,
     color: "#f7fbff",
-    opacity: 0.34,
+    opacity: 0.2,
     speed: 0.1,
     scale: [0.5, 0.5, 0.5],
     driftX: 0.1,
@@ -335,7 +331,7 @@ const PROFILE_CLOUDS: readonly ProfileCloudSpec[] = [
     volume: 0.4,
     smallestVolume: 0.19,
     color: "#f4faff",
-    opacity: 0.34,
+    opacity: 0.2,
     speed: 0.15,
     scale: [0.5, 0.5, 0.5],
     driftX: 0.08,
@@ -1819,12 +1815,6 @@ function GlassStroke({
   );
 }
 
-type PersonalIntroductionProps = {
-  reduceMotion: boolean;
-  initialScrollProgress: number;
-  subscribeScrollProgress: SubscribeScrollProgress;
-};
-
 type HeroEditorialProps = {
   reduceMotion: boolean;
   initialScrollProgress: number;
@@ -1905,6 +1895,9 @@ function HeroEditorial({
       );
 
       layerRef.current.style.opacity = `${1 - exitProgress}`;
+      layerRef.current.style.visibility = exitProgress >= 0.995
+        ? "hidden"
+        : "visible";
       layerRef.current.style.transform =
         `translate3d(0, ${(-18 * exitProgress).toFixed(2)}px, 0)`;
     },
@@ -1929,22 +1922,22 @@ function HeroEditorial({
       <div className={styles.heroAlbumFrame}>
         <div className={styles.heroEditorialTop}>
           <span>Eternal Hours</span>
-          <span aria-hidden="true">Personal record · 2026</span>
+          <span aria-hidden="true">Personal record · 0719</span>
         </div>
 
         <aside className={styles.heroObi} aria-label="Eternal Hours CD side obi">
-          <span className={styles.heroObiEdition}>Personal CD · 2026</span>
+          <span className={styles.heroObiEdition}>Personal CD · 4831</span>
           <div className={styles.heroObiCredit}>
             <strong>永久 hours</strong>
             <span className={styles.heroObiArtist}>/ aqhours</span>
           </div>
-          <span className={styles.heroObiCode}>AQH-EH26</span>
+          <span className={styles.heroObiCode}>AQH-7319</span>
         </aside>
 
         <div className={styles.heroTrack} aria-label="Eternal Hours release label">
           <span className={styles.heroTrackBonus}>初回生产特典</span>
           <div className={styles.heroTrackBody}>
-            <span className={styles.heroTrackCode}>AQH-EH26 / SIDE A</span>
+            <span className={styles.heroTrackCode}>LOT 5804 / SIDE A</span>
             <strong>Eternal Hours</strong>
             <span>Personal archive · Side A</span>
             <span>Track 01 “Hello” · Songs / Code / Sunlight</span>
@@ -1973,153 +1966,90 @@ function HeroEditorial({
   );
 }
 
+type PersonalIntroductionProps = Pick<
+  HeroEditorialProps,
+  "reduceMotion" | "initialScrollProgress" | "subscribeScrollProgress"
+>;
+
 function PersonalIntroduction({
   reduceMotion,
   initialScrollProgress,
   subscribeScrollProgress,
 }: PersonalIntroductionProps) {
-  const motionRef = useRef<HTMLDivElement>(null);
-  const gridX = useMotionValue(0);
-  const gridY = useMotionValue(0);
-  const gridSpringX = useSpring(gridX, {
-    stiffness: 90,
-    damping: 22,
-    mass: 0.8,
-  });
-  const gridSpringY = useSpring(gridY, {
-    stiffness: 90,
-    damping: 22,
-    mass: 0.8,
-  });
-  const [revealState, setRevealState] = useState<ProfileRevealState>(() => ({
-    visible: reduceMotion,
-    hasEntered: reduceMotion,
-  }));
-  const revealStateRef = useRef(revealState);
-
-  const commitRevealState = useCallback((next: ProfileRevealState) => {
-    const current = revealStateRef.current;
-    if (
-      current.visible === next.visible &&
-      current.hasEntered === next.hasEntered
-    ) {
-      return;
-    }
-
-    revealStateRef.current = next;
-    setRevealState(next);
-  }, []);
-
-  const applyTravel = useCallback(
-    (scrollProgress: number) => {
-      const translateYVh = reduceMotion
-        ? 0
-        : resolveProfileTravelOffsetVh(scrollProgress);
-
-      if (motionRef.current) {
-        motionRef.current.style.transform =
-          `translate3d(0, ${translateYVh.toFixed(2)}vh, 0)`;
-      }
-
-    },
-    [reduceMotion],
-  );
+  const questionRef = useRef<HTMLHeadingElement>(null);
 
   const applyProgress = useCallback(
     (scrollProgress: number) => {
-      const nextRevealState = reduceMotion
-        ? { visible: true, hasEntered: true }
-        : resolveProfileRevealState(
-            scrollProgress,
-            revealStateRef.current,
-          );
+      if (!questionRef.current) return;
 
-      commitRevealState(nextRevealState);
-      applyTravel(scrollProgress);
+      const reveal = reduceMotion
+        ? Number(scrollProgress >= 0.48)
+        : smootherStep(
+            THREE.MathUtils.clamp((scrollProgress - 0.48) / 0.42, 0, 1),
+          );
+      const fade = reduceMotion
+        ? reveal
+        : smootherStep(
+            THREE.MathUtils.clamp((reveal - 0.22) / 0.5, 0, 1),
+          );
+      const travel = THREE.MathUtils.lerp(62, 0, reveal);
+      const scale = THREE.MathUtils.lerp(0.72, 1, reveal);
+
+      questionRef.current.style.opacity = `${fade}`;
+      questionRef.current.style.visibility = fade > 0.001 ? "visible" : "hidden";
+      questionRef.current.style.transform =
+        `translate3d(0, ${travel.toFixed(2)}vh, 0) scale(${scale.toFixed(4)})`;
     },
-    [applyTravel, commitRevealState, reduceMotion],
+    [reduceMotion],
   );
 
   useLayoutEffect(() => {
     applyProgress(initialScrollProgress);
   }, [applyProgress, initialScrollProgress]);
 
-  useEffect(() => {
-    if (reduceMotion) return;
-
-    return subscribeScrollProgress(applyProgress);
-  }, [applyProgress, reduceMotion, subscribeScrollProgress]);
+  useEffect(() => subscribeScrollProgress(applyProgress), [
+    applyProgress,
+    subscribeScrollProgress,
+  ]);
 
   return (
     <section
       className={styles.profileLayer}
       aria-labelledby="homepage-about-title"
     >
-      <div className={styles.profileContent}>
-        <h2 id="homepage-about-title" className={styles.srOnly}>
-          About aqhours
-        </h2>
-        <div
-          ref={motionRef}
-          className={styles.profileMotion}
-          data-visible={revealState.visible ? "true" : "false"}
-          aria-hidden={!revealState.visible}
-          inert={!revealState.visible}
-        >
-          <div
-            className={styles.profileRecord}
-            onPointerMove={(event) => {
-              if (reduceMotion || event.pointerType !== "mouse") return;
-
-              const bounds = event.currentTarget.getBoundingClientRect();
-              const normalizedX =
-                (event.clientX - bounds.left) / bounds.width - 0.5;
-              const normalizedY =
-                (event.clientY - bounds.top) / bounds.height - 0.5;
-              gridX.set(normalizedX * 8);
-              gridY.set(normalizedY * 8);
-            }}
-            onPointerLeave={() => {
-              gridX.set(0);
-              gridY.set(0);
-            }}
-          >
-            <motion.div
-              className={styles.profileGeoGrid}
-              style={{ x: gridSpringX, y: gridSpringY }}
-              aria-hidden="true"
-            />
-            <article className={styles.profileCopy}>
-              <div className={styles.lyricBody}>
-                <p>
-                  I am{" "}
-                  <span className={styles.profileHandwritten}>aqhours</span>.
-                </p>
-                <p>A passionate Software Designer and CSer</p>
-                <p>Living in Honggutan, Nanchang</p>
-              </div>
-            </article>
-
-            <aside className={styles.locationPanel}>
-              {revealState.hasEntered && (
-                <LocationCard visible={revealState.visible} />
-              )}
-              <dl className={styles.locationMetadata}>
-                <div>
-                  <dt>Coordinates</dt>
-                  <dd>28.65° N · 115.83° E</dd>
-                </div>
-                <div>
-                  <dt>Time zone</dt>
-                  <dd>China Standard Time · UTC+8</dd>
-                </div>
-              </dl>
-            </aside>
-          </div>
-        </div>
-      </div>
+      <h2
+        ref={questionRef}
+        id="homepage-about-title"
+        className={styles.personalQuestion}
+      >
+        what fills my hours?
+      </h2>
     </section>
   );
+}
+
+function usePersonalModelsReady({
+  initialScrollProgress,
+  subscribeScrollProgress,
+}: {
+  initialScrollProgress: number;
+  subscribeScrollProgress: SubscribeScrollProgress;
+}) {
+  const [ready, setReady] = useState(initialScrollProgress >= 0.34);
+
+  useEffect(() => {
+    if (ready) return undefined;
+    if (initialScrollProgress >= 0.34) {
+      setReady(true);
+      return undefined;
+    }
+
+    return subscribeScrollProgress((progress) => {
+      if (progress >= 0.34) setReady(true);
+    });
+  }, [initialScrollProgress, ready, subscribeScrollProgress]);
+
+  return ready;
 }
 
 export function HomepageHero() {
@@ -2137,6 +2067,10 @@ export function HomepageHero() {
   } = useScrollMotionController({
     reduceMotion,
     autoScrollDuration: HELLO_SETTLE_MOTION.autoScrollDuration,
+  });
+  const personalModelsReady = usePersonalModelsReady({
+    initialScrollProgress: scrollSession.startProgress,
+    subscribeScrollProgress,
   });
 
   const scrollStageHeight = reduceMotion
@@ -2267,6 +2201,8 @@ export function HomepageHero() {
               dpr={[1, 1.25]}
               frameloop={reduceMotion ? "demand" : "always"}
               gl={{ alpha: true, antialias: true, stencil: false }}
+              eventSource={scrollStageRef as RefObject<HTMLElement>}
+              eventPrefix="client"
               onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
             >
               <Suspense fallback={null}>
@@ -2281,6 +2217,14 @@ export function HomepageHero() {
                   scrollProgressRef={scrollProgressRef}
                   scrollStageRef={scrollStageRef}
                 />
+                {personalModelsReady && (
+                  <ThreePersonalObjects
+                    reduceMotion={reduceMotion}
+                    initialScrollProgress={scrollSession.startProgress}
+                    scrollProgressRef={scrollProgressRef}
+                    scrollStageRef={scrollStageRef}
+                  />
+                )}
                 <ThreeEducationCloud reduceMotion={reduceMotion} />
               </Suspense>
               <GlassStroke
