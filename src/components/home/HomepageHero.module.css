@@ -542,27 +542,7 @@
   transform: translate3d(0, -8svh, 0);
 }
 
-.personalQuestion {
-  margin: 0;
-  pointer-events: auto;
-  user-select: text;
-  color: rgba(247, 250, 252, 0.78);
-  font-family: var(--font-manrope), Manrope, system-ui, sans-serif;
-  font-size: clamp(32px, 3.25vw, 50px);
-  font-weight: 560;
-  letter-spacing: -0.038em;
-  line-height: 1;
-  text-align: center;
-  text-shadow:
-    0 1px 2px rgba(1, 12, 22, 0.42),
-    0 18px 56px rgba(17, 67, 100, 0.2);
-  text-transform: lowercase;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transform-origin: center;
-  will-change: opacity, transform;
-}
+
 
 .profileContent {
   width: 100%;
@@ -798,18 +778,16 @@
     justify-self: end;
   }
 
-  .heroEditorial {
-    --mobile-album-size: min(88vw, calc(100svh - 130px));
+  .heroAlbumFrame,
+  .heroAlbumBackdrop {
+    /* Reserve room for the 32px obi and breathing space on both sides. */
+    width: min(360px, calc(100vw - 104px), calc(100svh - 180px));
+    left: calc(50vw + 16px);
+    transform: translate(-50%, calc(-50% + 10px));
   }
 
   .heroAlbumFrame {
-    width: var(--mobile-album-size);
-    transform: translate(-50%, calc(-50% + 10px));
-  }
-
-  .heroAlbumBackdrop {
-    width: min(88vw, calc(100svh - 130px));
-    transform: translate(-50%, calc(-50% + 10px));
+    container-type: inline-size;
   }
 
   .heroEditorialTop {
@@ -819,17 +797,25 @@
   }
 
   .heroTrack {
-    top: 44px;
+    top: 40px;
     right: 10px;
-    width: min(240px, calc(100% - 20px));
+    width: 70%;
+    font-size: clamp(6px, 2.4cqi, 8px);
   }
 
   .heroTrackBody {
-    padding: 10px 11px 9px;
+    min-width: 0;
+    gap: 4px;
+    padding: 8px;
+  }
+
+  .heroTrackBody strong {
+    padding-right: 0;
+    font-size: clamp(10px, 4.2cqi, 14px);
   }
 
   .heroTrack {
-    grid-template-columns: 29px minmax(0, 1fr);
+    grid-template-columns: 23px minmax(0, 1fr);
   }
 
   .heroTrackBonus {
@@ -838,15 +824,15 @@
   }
 
   .heroTrackCode {
-    top: 10px;
-    right: 11px;
+    position: static;
+    font-size: clamp(6px, 2.2cqi, 8px);
   }
 
   .heroObi {
     top: 0;
     bottom: 0;
     right: 100%;
-    width: 38px;
+    width: 32px;
     padding-inline: 5px;
   }
 
@@ -864,7 +850,7 @@
   }
 
   .heroListenButton {
-    top: calc(50% + min(44vw, calc((100svh - 130px) / 2)) + 30px);
+    top: calc(50% + min(180px, calc((100vw - 104px) / 2), calc((100svh - 180px) / 2)) + 30px);
     left: 50%;
     min-height: 34px;
     padding-inline: 13px;
@@ -919,10 +905,7 @@
     transform: translate3d(0, -6svh, 0);
   }
 
-  .personalQuestion {
-    font-size: clamp(22px, 6.4vw, 27px);
-    letter-spacing: -0.035em;
-  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {

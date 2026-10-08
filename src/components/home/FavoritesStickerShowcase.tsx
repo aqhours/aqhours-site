@@ -73,12 +73,29 @@ export function FavoritesStickerShowcase({
   const hostRef = useRef<HTMLDivElement>(null);
   const forgeRef = useRef<StickerForgeElement | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const selectedIndexRef = useRef(0);
+  const [nearViewport, setNearViewport] = useState(false);
   const [ready, setReady] = useState(false);
   const [progress, setProgress] = useState(0);
   const [detached, setDetached] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setNearViewport(entry.isIntersecting);
+    }, { rootMargin: "180px 0px" });
+    observer.observe(host);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!nearViewport) return;
+    setReady(false);
+    setProgress(0);
+    setDetached(false);
+    setError(null);
     let cancelled = false;
     const host = hostRef.current;
     if (!host) return;
@@ -154,8 +171,8 @@ export function FavoritesStickerShowcase({
         });
         await forge.setSource({
           type: "image",
-          src: logos[0].src,
-          name: logos[0].name,
+          src: logos[selectedIndexRef.current].src,
+          name: logos[selectedIndexRef.current].name,
         });
         if (!reduceMotion) forge.reappear();
       })
@@ -178,12 +195,17 @@ export function FavoritesStickerShowcase({
       }
       forgeRef.current = null;
     };
-  }, [logos, reduceMotion]);
+  }, [logos, nearViewport, reduceMotion]);
 
   const selectSticker = useCallback(
     async (index: number) => {
+      selectedIndexRef.current = index;
       const forge = forgeRef.current;
-      if (!forge || index === selectedIndex) {
+      if (!forge) {
+        setSelectedIndex(index);
+        return;
+      }
+      if (index === selectedIndex) {
         if (detached) {
           forge?.reset();
           if (!reduceMotion) forge?.reappear();

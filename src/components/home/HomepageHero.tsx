@@ -32,7 +32,6 @@ import {
   useScrollMotionController,
   type SubscribeScrollProgress,
 } from "./useScrollMotionController";
-import { ThreePersonalObjects } from "./ThreePersonalObjects";
 import styles from "./HomepageHero.module.css";
 
 const VERTEX_SHADER = /* glsl */ `
@@ -1966,90 +1965,66 @@ function HeroEditorial({
   );
 }
 
-type PersonalIntroductionProps = Pick<
-  HeroEditorialProps,
-  "reduceMotion" | "initialScrollProgress" | "subscribeScrollProgress"
->;
-
-function PersonalIntroduction({
+// Keep the shared canvas mounted, but run continuous animation only near its
+// visible content. Native and controller-driven scroll both request a fresh frame.
+function SceneActivity({
   reduceMotion,
-  initialScrollProgress,
-  subscribeScrollProgress,
-}: PersonalIntroductionProps) {
-  const questionRef = useRef<HTMLHeadingElement>(null);
-
-  const applyProgress = useCallback(
-    (scrollProgress: number) => {
-      if (!questionRef.current) return;
-
-      const reveal = reduceMotion
-        ? Number(scrollProgress >= 0.48)
-        : smootherStep(
-            THREE.MathUtils.clamp((scrollProgress - 0.48) / 0.42, 0, 1),
-          );
-      const fade = reduceMotion
-        ? reveal
-        : smootherStep(
-            THREE.MathUtils.clamp((reveal - 0.22) / 0.5, 0, 1),
-          );
-      const travel = THREE.MathUtils.lerp(62, 0, reveal);
-      const scale = THREE.MathUtils.lerp(0.72, 1, reveal);
-
-      questionRef.current.style.opacity = `${fade}`;
-      questionRef.current.style.visibility = fade > 0.001 ? "visible" : "hidden";
-      questionRef.current.style.transform =
-        `translate3d(0, ${travel.toFixed(2)}vh, 0) scale(${scale.toFixed(4)})`;
-    },
-    [reduceMotion],
-  );
-
-  useLayoutEffect(() => {
-    applyProgress(initialScrollProgress);
-  }, [applyProgress, initialScrollProgress]);
-
-  useEffect(() => subscribeScrollProgress(applyProgress), [
-    applyProgress,
-    subscribeScrollProgress,
-  ]);
-
-  return (
-    <section
-      className={styles.profileLayer}
-      aria-labelledby="homepage-about-title"
-    >
-      <h2
-        ref={questionRef}
-        id="homepage-about-title"
-        className={styles.personalQuestion}
-      >
-        what fills my hours?
-      </h2>
-    </section>
-  );
-}
-
-function usePersonalModelsReady({
-  initialScrollProgress,
+  scrollStageRef,
   subscribeScrollProgress,
 }: {
-  initialScrollProgress: number;
+  reduceMotion: boolean;
+  scrollStageRef: RefObject<HTMLElement | null>;
   subscribeScrollProgress: SubscribeScrollProgress;
 }) {
-  const [ready, setReady] = useState(initialScrollProgress >= 0.34);
+  const invalidate = useThree((state) => state.invalidate);
+  const getState = useThree((state) => state.get);
 
   useEffect(() => {
-    if (ready) return undefined;
-    if (initialScrollProgress >= 0.34) {
-      setReady(true);
-      return undefined;
-    }
+    const sections = [
+      scrollStageRef.current,
+      document.getElementById(EDUCATION_CLOUD.sectionId),
+    ].filter((section): section is HTMLElement => section !== null);
+    const visibleSections = new Set<Element>();
+    const updateActivity = () => {
+      const visible = document.visibilityState === "visible";
+      const mode = visible && visibleSections.size > 0 && !reduceMotion
+        ? "always"
+        : "demand";
+      const state = getState();
+      if (state.frameloop !== mode) {
+        // Fiber resets its clock when changing modes. Preserve animation time so
+        // returning to the hero never restarts the completed write-on.
+        const elapsed = state.clock.elapsedTime;
+        state.setFrameloop(mode);
+        state.clock.elapsedTime = elapsed;
+      }
+      if (visible) invalidate();
+    };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visibleSections.add(entry.target);
+        else visibleSections.delete(entry.target);
+      });
+      updateActivity();
+    }, { rootMargin: "35% 0px" });
+    sections.forEach((section) => observer.observe(section));
+    const requestFrame = () => {
+      if (document.visibilityState === "visible") invalidate();
+    };
+    const unsubscribe = subscribeScrollProgress(requestFrame);
+    window.addEventListener("scroll", requestFrame, { passive: true });
+    document.addEventListener("visibilitychange", updateActivity);
 
-    return subscribeScrollProgress((progress) => {
-      if (progress >= 0.34) setReady(true);
-    });
-  }, [initialScrollProgress, ready, subscribeScrollProgress]);
+    return () => {
+      observer.disconnect();
+      unsubscribe();
+      window.removeEventListener("scroll", requestFrame);
+      document.removeEventListener("visibilitychange", updateActivity);
 
-  return ready;
+    };
+  }, [getState, invalidate, reduceMotion, scrollStageRef, subscribeScrollProgress]);
+
+  return null;
 }
 
 export function HomepageHero() {
@@ -2067,10 +2042,6 @@ export function HomepageHero() {
   } = useScrollMotionController({
     reduceMotion,
     autoScrollDuration: HELLO_SETTLE_MOTION.autoScrollDuration,
-  });
-  const personalModelsReady = usePersonalModelsReady({
-    initialScrollProgress: scrollSession.startProgress,
-    subscribeScrollProgress,
   });
 
   const scrollStageHeight = reduceMotion
@@ -2199,12 +2170,17 @@ export function HomepageHero() {
                 position: [0, 0, CLOUD_CAMERA_Z],
               }}
               dpr={[1, 1.25]}
-              frameloop={reduceMotion ? "demand" : "always"}
+              frameloop="demand"
               gl={{ alpha: true, antialias: true, stencil: false }}
               eventSource={scrollStageRef as RefObject<HTMLElement>}
               eventPrefix="client"
               onCreated={({ gl }) => gl.setClearColor(0x000000, 0)}
             >
+              <SceneActivity
+                reduceMotion={reduceMotion}
+                scrollStageRef={scrollStageRef}
+                subscribeScrollProgress={subscribeScrollProgress}
+              />
               <Suspense fallback={null}>
                 <ThreeCloudBackdrop
                   reduceMotion={reduceMotion}
@@ -2217,14 +2193,6 @@ export function HomepageHero() {
                   scrollProgressRef={scrollProgressRef}
                   scrollStageRef={scrollStageRef}
                 />
-                {personalModelsReady && (
-                  <ThreePersonalObjects
-                    reduceMotion={reduceMotion}
-                    initialScrollProgress={scrollSession.startProgress}
-                    scrollProgressRef={scrollProgressRef}
-                    scrollStageRef={scrollStageRef}
-                  />
-                )}
                 <ThreeEducationCloud reduceMotion={reduceMotion} />
               </Suspense>
               <GlassStroke
@@ -2260,11 +2228,6 @@ export function HomepageHero() {
                 initialScrollProgress={scrollSession.startProgress}
                 subscribeScrollProgress={subscribeScrollProgress}
                 onListen={() => startAutoScroll(true)}
-              />
-              <PersonalIntroduction
-                reduceMotion={reduceMotion}
-                initialScrollProgress={scrollSession.startProgress}
-                subscribeScrollProgress={subscribeScrollProgress}
               />
             </>
           )}

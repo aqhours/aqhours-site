@@ -106,7 +106,7 @@ exact components, tokens, typography, or page structure.
   gradient reaches full transparency at the bottom so it never reads as a framed rectangle.
 - Apply the blur through Tailwind's `backdrop-blur-md` utility, matching the supplied Air HTML
   and ensuring the generated stylesheet retains the backdrop-filter declarations.
-- The cloud field, 3D glass stroke, and personal objects share one fixed Canvas and one Three.js
+- The cloud field and 3D glass stroke share one fixed Canvas and one Three.js
   scene. The header frost remains hidden while the 3D glass
   stroke is present; it appears only after the handoff to the flat header mark has completed. The
   flat mark and header navigation stay above the frost.
@@ -214,45 +214,15 @@ exact components, tokens, typography, or page structure.
   inertia, keyboard scrolling remains native, and reduced-motion mode does not add custom scroll inertia.
 - The first `100vh` of scrolling transitions from the hero into a spatial collection of personal
   objects within the same fixed stage.
-- The second screen contains no biographical paragraph, cards, map, room, desk, grid, or connecting
-  lines. Its only visible copy is the horizontally centered lowercase question `what fills my hours?`,
-  placed slightly above the viewport midpoint so it reads as an opening thought rather than the center
-  of a product diagram. It ties the personal collection back to the aqhours name without turning the
-  screen into a product headline.
-- Objects float independently in the deep-navy atmosphere, gathered into a loose asymmetric orbit
-  around the central question rather than being pushed toward the viewport edges. Negative space
-  remains between individual silhouettes.
-- The three visual anchors are the starry-orange iPhone 17 Pro Max, AirPods Max, and MacBook Air M3.
-  The iPad Pro M5, Apple Watch, and AirPods Pro 2 remain supporting objects. The MacBook and iPad
-  carry enough visual mass to read immediately rather than appearing as small background props.
-  The light stick is deferred until its exact silhouette can be represented clearly.
-- MacBook Air M3, AirPods Max, iPad Pro M5, and Apple Watch use a coordinated midnight finish.
-  The iPhone remains starry orange and AirPods Pro 2 remain white.
-- Desktop shows the complete six-device collection with the three anchors dominant. Narrow screens
-  reduce the field to the three anchors rather than shrinking all objects into clutter.
-- Device identity comes from silhouette, proportion, camera layout, controls, hinges, cushions,
-  keyboard, and other physical details—not logos or explanatory labels. Apple marks and third-party
-  proprietary artwork are not reproduced.
-- All six devices use attribution-compatible source models rather than procedural substitutes.
-  Their source geometry is not simplified; Meshopt packing and WebP textures reduce only the transfer
-  payload. They begin loading only as the transition approaches the personal-object screen, preserving
-  the first screen's initial payload. Source credits and changes live beside the delivered models in
-  `public/models/personal/CREDITS.md`.
-- No album sleeves, sticky-note-like props, detached discs, or unexplained plates appear in the
-  personal-object field.
-- Materials use restrained metallic-roughness PBR with a local studio reflection environment. That
-  environment is applied only to the personal-object materials and must not alter the opening hero.
-- Every object owns a distinct, low-amplitude drift and rotation phase. The movement is slow,
-  continuous, and unsynchronized, with no bobbing grid or equal spacing. Reduced-motion mode keeps
-  the settled composition still.
-- On desktop fine pointers, each visible device can be grabbed directly and rotated on both axes.
-  Pointer capture keeps the object attached to the drag outside its silhouette; release velocity
-  continues into short, damped inertia and can be interrupted immediately by the next grab. The
-  resulting orientation remains where it settles rather than snapping back. Reduced-motion keeps
-  the collection completely still, and touch remains native page scrolling. Interaction remains
-  available for the full interval in which the device field is visibly on screen.
-- The centered question remains text-selectable while the rest of its overlay stays transparent to
-  pointer input, so it does not block direct interaction with the devices around it.
+- Following the owner's performance request, the six-device 3D collection and its
+  GLB assets are removed. The owner also removed `what fills my hours?`; this screen
+  now retains only the two side clouds and the existing scroll transition. Replacement
+  content or changes to the section's height require a separate review.
+- The shared Canvas animates continuously only near the hero/introduction or education
+  section. Elsewhere and in hidden tabs it uses demand rendering, with scroll requesting
+  fresh frames. Reduced motion retains demand rendering throughout.
+- The sticker renderer loads only near its viewport and releases its WebGL resources
+  when that region is left. The selected artwork is retained when returning.
 - The homepage has no visual-variant query mode. If an older link contains a `variant` search
   parameter, the client removes that obsolete parameter while preserving all other URL state.
 - The personal-object screen has one dedicated cloud near each horizontal edge. The left and
@@ -261,9 +231,8 @@ exact components, tokens, typography, or page structure.
   behind its content. Their vertical position follows the second screen's sticky scroll travel, so
   they move upward with that screen and are fully absent from the third screen. Reduced-motion mode
   keeps their ambient drift still while preserving the page-linked scroll position.
-- The object field reveals as one scroll-linked spatial layer while each object's ambient motion
-  remains independent. Reverse scrolling follows the same path instead of starting a separate exit
-  animation.
+- The introduction reveals as one scroll-linked spatial layer. Reverse scrolling follows the
+  same path instead of starting a separate exit animation.
 - Hero atmospheric elements must leave the viewport through scroll-linked spatial movement,
   not a scroll-linked opacity fade, and be absent by the completed object-field state. The two
   dedicated side clouds on the personal-object screen are a separate atmospheric layer.
