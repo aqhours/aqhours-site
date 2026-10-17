@@ -205,6 +205,8 @@ production `.env` when using a different registry. The mirror bypasses the Mac
 proxy, while external build requests retain the mesh proxy. The pnpm package
 store is explicitly mounted at `/pnpm/store` so available package downloads
 can survive a dependency-layer rebuild; Docker may still evict this cache.
+The production build uses Webpack so Next.js's Google font loader honors the
+forwarded HTTPS proxy when downloading fonts.
 
 Git fetches and build downloads run through the server's `mesh-proxy` helper.
 The helper forwards only the child command through the Headscale/Tailscale
