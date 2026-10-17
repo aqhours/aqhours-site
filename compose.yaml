@@ -5,6 +5,8 @@ services:
     build:
       context: .
       args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://mirrors.tencentyun.com/npm}
+        NPM_NO_PROXY: ${NPM_NO_PROXY:-mirrors.tencentyun.com}
         NEXT_PUBLIC_AMAP_API_KEY: ${NEXT_PUBLIC_AMAP_API_KEY:?AMap JavaScript API key is required}
         NEXT_PUBLIC_MAP_PROVIDER: ${NEXT_PUBLIC_MAP_PROVIDER:-amap}
         NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: ${NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID:?Google Maps Map ID is required}

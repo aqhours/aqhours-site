@@ -5,12 +5,18 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PNPM_HOME="/pnpm"
+ARG NPM_REGISTRY=https://registry.npmjs.org
+ARG NPM_NO_PROXY=""
 
-RUN npm install -g pnpm@11.7.0
+RUN NO_PROXY="${NO_PROXY:+$NO_PROXY,}${NPM_NO_PROXY}" \
+    no_proxy="${no_proxy:+$no_proxy,}${NPM_NO_PROXY}" \
+    npm install -g pnpm@11.7.0 --registry="$NPM_REGISTRY"
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store,sharing=locked \
-    pnpm install --frozen-lockfile
+    NO_PROXY="${NO_PROXY:+$NO_PROXY,}${NPM_NO_PROXY}" \
+    no_proxy="${no_proxy:+$no_proxy,}${NPM_NO_PROXY}" \
+    pnpm install --frozen-lockfile --registry="$NPM_REGISTRY" --store-dir=/pnpm/store
 
 COPY . .
 ARG NEXT_PUBLIC_AMAP_API_KEY

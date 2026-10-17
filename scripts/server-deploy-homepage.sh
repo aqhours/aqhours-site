@@ -10,6 +10,7 @@ SITE_URL="${AQHOURS_SITE_URL:-https://aqhours.cn/}"
 GITHUB_REPOSITORY="${AQHOURS_GITHUB_REPOSITORY:-aqhours/aqhours-site}"
 DEPLOYMENT_ENVIRONMENT="${AQHOURS_DEPLOYMENT_ENVIRONMENT:-production}"
 DEPLOYMENT_REPORTER="${AQHOURS_DEPLOYMENT_REPORTER:-/opt/deploy/github-deployment-status.sh}"
+REFRESH_BASE_IMAGES="${AQHOURS_REFRESH_BASE_IMAGES:-0}"
 target_commit=""
 deployment_id=""
 
@@ -20,6 +21,18 @@ log() {
 fail() {
   log "ERROR: $*" >&2
   exit 1
+}
+
+ensure_base_image() {
+  local image="$1"
+
+  if [[ "$REFRESH_BASE_IMAGES" != "1" ]] && docker image inspect "$image" >/dev/null 2>&1; then
+    log "Using cached base image: ${image}"
+    return 0
+  fi
+
+  log "Downloading base image: ${image}"
+  mesh-proxy pull "$image"
 }
 
 report_deployment_status() {
@@ -73,8 +86,8 @@ else
 fi
 
 log "Building production image."
-mesh-proxy pull node:24-alpine
-mesh-proxy pull nginx:alpine
+ensure_base_image node:24-alpine
+ensure_base_image nginx:alpine
 # Build containers need explicit proxy arguments; CLI environment alone is not inherited.
 mesh-proxy exec docker compose build \
   --build-arg HTTP_PROXY \

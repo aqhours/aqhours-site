@@ -188,10 +188,23 @@ ahead, and then pushes. It no longer opens an SSH session.
 
 The server deployment script waits on a lock, so closely spaced webhook
 deliveries cannot run simultaneous builds. It fetches `origin/main`, resets the
-tracked checkout to that commit, builds the image, recreates the Compose
+tracked checkout to that commit, reuses locally available base images, builds the image, recreates the Compose
 service, and checks `https://aqhours.cn/`. It creates a GitHub production
 deployment before the build and marks it `success` or `failure` afterwards.
 The previous container remains up if the new image fails to build.
+
+Missing base images are downloaded through `mesh-proxy`. Ordinary deployments
+do not re-copy Node and nginx images that are already available locally. To
+refresh their mutable tags intentionally, set `AQHOURS_REFRESH_BASE_IMAGES=1`
+in the deployment service environment for that run.
+
+Production npm and pnpm installs explicitly use the host's Tencent Cloud
+internal mirror, `https://mirrors.tencentyun.com/npm`. Docker does not inherit
+the host's `/root/.npmrc`. Override `NPM_REGISTRY` and `NPM_NO_PROXY` in the
+production `.env` when using a different registry. The mirror bypasses the Mac
+proxy, while external build requests retain the mesh proxy. The pnpm package
+store is explicitly mounted at `/pnpm/store` so available package downloads
+can survive a dependency-layer rebuild; Docker may still evict this cache.
 
 Git fetches and build downloads run through the server's `mesh-proxy` helper.
 The helper forwards only the child command through the Headscale/Tailscale
