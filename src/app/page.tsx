@@ -4,6 +4,7 @@ import {
   HomepageFavoriteSongs,
 } from "@/components/home/HomepageFavorites";
 import { HomepageInterlude } from "@/components/home/HomepageInterlude";
+import { HomepageBookshelf } from "@/components/home/HomepageBookshelf";
 import { HomepageEnding } from "@/components/home/OceanEnding";
 import { TimeThemeSwitcher } from "@/components/home/ThemeToggle";
 import styles from "./page.module.css";
@@ -22,6 +23,7 @@ export default function Home() {
         <HomepageHero />
         <HomepageFavorites />
         <HomepageFavoriteSongs />
+        <HomepageBookshelf />
         <HomepageInterlude />
         <HomepageEnding />
       </div>
