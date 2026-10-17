@@ -75,7 +75,12 @@ fi
 log "Building production image."
 mesh-proxy pull node:24-alpine
 mesh-proxy pull nginx:alpine
-mesh-proxy exec docker compose build
+# Build containers need explicit proxy arguments; CLI environment alone is not inherited.
+mesh-proxy exec docker compose build \
+  --build-arg HTTP_PROXY \
+  --build-arg HTTPS_PROXY \
+  --build-arg ALL_PROXY \
+  --build-arg NO_PROXY
 
 log "Starting production service."
 docker compose up -d --remove-orphans --no-build

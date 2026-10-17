@@ -196,6 +196,10 @@ The previous container remains up if the new image fails to build.
 Git fetches and build downloads run through the server's `mesh-proxy` helper.
 The helper forwards only the child command through the Headscale/Tailscale
 bridge to the Mac proxy; it does not grant GitHub an SSH path into the server.
+The Compose build explicitly forwards `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`,
+and `NO_PROXY` as predefined build arguments from that child environment.
+Setting them only on the Docker CLI does not configure dependency downloads
+inside the build container. The proxy is not embedded in the runtime image.
 Keep the Mac bridge available when a deployment needs uncached source,
 packages, or base images.
 
